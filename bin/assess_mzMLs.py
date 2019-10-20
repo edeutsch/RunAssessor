@@ -8,6 +8,7 @@ def eprint(*args, **kwargs):
 
 #### Import some standard modules
 import os
+import argparse
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/../lib")
 from mzML_assessor import MzMLAssessor
