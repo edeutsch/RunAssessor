@@ -15,6 +15,7 @@ import re
 import json
 import numpy
 import pickle
+import gzip
 from lxml import etree
 
 #### Import technical modules and pyteomics
@@ -69,7 +70,8 @@ class MzMLAssessor:
             progress_intro = False
 
         #### Read spectra from the file
-        with mzml.read(self.mzml_file) as reader:
+        with gzip.open(self.mzml_file) as infile:
+          with mzml.read(infile) as reader:
             for spectrum in reader:
 
                 #### Testing. Print the data structure of the first spectrum
@@ -299,12 +301,14 @@ class MzMLAssessor:
     def read_header(self):
 
         #### Read the header into a text buffer
-        with open(self.mzml_file) as infile:
+        with gzip.open(self.mzml_file, 'r') as infile:
             buffer = ''
             counter = 0
 
             #### Read line by line
             for line in infile:
+
+                line = str(line, 'utf-8', 'ignore')
 
                 #### Completely skip the <indexedmzML> tag if present
                 match = re.search('<indexedmzML ',line)
