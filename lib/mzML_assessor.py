@@ -69,9 +69,15 @@ class MzMLAssessor:
             eprint(f"INFO: Assessing mzML file {self.mzml_file}")
             progress_intro = False
 
+        #### If the mzML is gzipped, then open with zlib, else a plain open
+        match = re.search('\.gz$',self.mzml_file)
+        if match:
+            infile = gzip.open(self.mzml_file)
+        else:
+            infile = open(self.mzml_file, 'rb')
+
         #### Read spectra from the file
-        with gzip.open(self.mzml_file) as infile:
-          with mzml.read(infile) as reader:
+        with mzml.read(infile) as reader:
             for spectrum in reader:
 
                 #### Testing. Print the data structure of the first spectrum
@@ -168,7 +174,9 @@ class MzMLAssessor:
                             progress_intro = True
                         eprint(f"{stats['n_spectra']}.. ", end='', flush=True)
 
-        #### Show progress information
+        infile.close()
+
+        #### Send newline if we were printing progress information
         if self.verbose >= 1:
             eprint("")
 
@@ -298,65 +306,73 @@ class MzMLAssessor:
 
     ####################################################################################################
     #### Read header
+    #### Open the mzML file and read line by line into a text buffer that we will XML parse
     def read_header(self):
 
-        #### Read the header into a text buffer
-        with gzip.open(self.mzml_file, 'r') as infile:
-            buffer = ''
-            counter = 0
+        #### If the mzML is gzipped, then open with zlib, else a plain open
+        match = re.search('\.gz$',self.mzml_file)
+        if match:
+            infile = gzip.open(self.mzml_file)
+        else:
+            infile = open(self.mzml_file)
 
-            #### Read line by line
-            for line in infile:
+        #### set up a text buffer to hold the mzML header
+        buffer = ''
+        counter = 0
 
+        #### Read line by line
+        for line in infile:
+
+            if not isinstance(line, str):
                 line = str(line, 'utf-8', 'ignore')
 
-                #### Completely skip the <indexedmzML> tag if present
-                match = re.search('<indexedmzML ',line)
-                if match:
-                    continue
+            #### Completely skip the <indexedmzML> tag if present
+            match = re.search('<indexedmzML ',line)
+            if match: continue
 
-                #### Look for first tag after the header and end when found
-                match = re.search('<run ',line)
-                if match:
-                    break
-                if counter > 0:
-                    buffer += line
-                counter += 1
+            #### Look for first tag after the header and end when found
+            match = re.search('<run ',line)
+            if match: break
+            if counter > 0: buffer += line
+            counter += 1
 
-            #### Finish the XML by closing the tags
-            buffer += '  </mzML>\n'
+        #### Close file and process the XML in the buffer
+        infile.close()
 
-            #### Get the root of the XML and the namespace
-            xmlroot = etree.fromstring(buffer)
-            namespace = xmlroot.nsmap
-            namespace = namespace[None]
+        #### Finish the XML by closing the tags
+        buffer += '  </mzML>\n'
 
-            #### List of instruments we know
-            instrument_by_category = { 'pureHCD': [ 'MS:1001911|Q Exactive' ],
-                'variable': [ 'MS:1001910|LTQ Orbitrap Elite', 'MS:1001742|LTQ Orbitrap Velos', 'MS:1000556|LTQ Orbitrap XL',
-                    'MS:1000555|LTQ Orbitrap Discovery' ] }
-            instrument_attributes = {}
-            for instrument_category in instrument_by_category:
-                for instrument_string in instrument_by_category[instrument_category]:
-                    accession,name = instrument_string.split('|')
-                    instrument_attributes[accession] = { 'category': instrument_category, 'accession': accession, 'name': name }
+        #### Get the root of the XML and the namespace
+        xmlroot = etree.fromstring(buffer)
+        namespace = xmlroot.nsmap
+        namespace = namespace[None]
 
-            #### Get all the CV params in the header and look for ones we know about
-            cv_params = xmlroot.findall('.//{http://psi.hupo.org/ms/mzml}cvParam')
-            found_instrument = 0
-            for cv_param in cv_params:
-                accession = cv_param.get('accession')
-                if accession in instrument_attributes:
-                    #print(f"Found instrument: {instrument_attributes[accession]['name']}")
-                    #### Store the attributes about this instrument model
-                    model_data = { 'accession': accession, 'name': instrument_attributes[accession]['name'], 'category': instrument_attributes[accession]['category'] }
-                    self.metadata['files'][self.mzml_file]['instrument_model'] = model_data
-                    found_instrument = 1
+        #### Create a reference of instruments we know
+        instrument_by_category = { 'pureHCD': [ 'MS:1001911|Q Exactive' ],
+            'variable': [ 'MS:1001910|LTQ Orbitrap Elite', 'MS:1001742|LTQ Orbitrap Velos', 'MS:1000556|LTQ Orbitrap XL',
+                'MS:1000555|LTQ Orbitrap Discovery' ] }
 
-            if not found_instrument:
-                print("ERROR: Did not recognize the instrument. Please teach me about this instrument.")
+        #### Restructure it into a dict by PSI-MS identifier
+        instrument_attributes = {}
+        for instrument_category in instrument_by_category:
+            for instrument_string in instrument_by_category[instrument_category]:
+                accession,name = instrument_string.split('|')
+                instrument_attributes[accession] = { 'category': instrument_category, 'accession': accession, 'name': name }
 
-        return
+        #### Get all the CV params in the header and look for ones we know about
+        cv_params = xmlroot.findall('.//{http://psi.hupo.org/ms/mzml}cvParam')
+        found_instrument = 0
+        for cv_param in cv_params:
+            accession = cv_param.get('accession')
+            if accession in instrument_attributes:
+                #### Store the attributes about this instrument model
+                model_data = { 'accession': accession, 'name': instrument_attributes[accession]['name'], 'category': instrument_attributes[accession]['category'] }
+                self.metadata['files'][self.mzml_file]['instrument_model'] = model_data
+                found_instrument = 1
+
+        #### If none are an instrument we know about about, ask for help
+        if not found_instrument:
+            print("ERROR: Did not recognize the instrument. Please teach me about this instrument.")
 
 
     ####################################################################################################
