@@ -395,8 +395,8 @@ class MzMLAssessor:
     ####################################################################################################
     #### Assess composite spectra
     def assess_composite_spectra(self):
-        with open('zzcomposite_spectrum.pickle','rb') as infile:
-            spec = pickle.load(infile)
+        #with open('zzcomposite_spectrum.pickle','rb') as infile:
+        #    spec = pickle.load(infile)
 
         composite_type = 'lowend_HCD'
         if composite_type not in spec:
