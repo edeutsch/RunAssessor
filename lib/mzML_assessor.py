@@ -17,6 +17,7 @@ import numpy
 import pickle
 import gzip
 from lxml import etree
+from multiprocessing.pool import ThreadPool
 
 #### Import technical modules and pyteomics
 import matplotlib.pyplot as plt
@@ -76,6 +77,9 @@ class MzMLAssessor:
         else:
             infile = open(self.mzml_file, 'rb')
 
+        #### Try storing all spectra for multithreaded processing
+        spectra = []
+
         #### Read spectra from the file
         with mzml.read(infile) as reader:
             for spectrum in reader:
@@ -86,62 +90,16 @@ class MzMLAssessor:
 
                 #### Set a default spectrum type
                 spectrum_type = 'default'
+                filter_string = None
 
                 #### Look for a filter string and parse it
                 if 'filter string' in spectrum['scanList']['scan'][0]:
                     filter_string = spectrum['scanList']['scan'][0]['filter string']
-                    match = re.search(' ms ',filter_string)
+                self.parse_filter_string(filter_string,stats)
 
-                    #### If this is an MS1 scan, learn what we can from it
-                    if match:
-                        stats['n_ms1_spectra'] += 1
-                        spectrum_type = 'MS1'
-                        match = re.search('^(\S+)',filter_string)
-                        if match:
-                            if match.group(0) == 'FTMS':
-                                if stats['high_accuracy_precursors'] == 'unknown':
-                                    stats['high_accuracy_precursors'] = 'true'
-                                elif stats['high_accuracy_precursors'] == 'true' or stats['high_accuracy_precursors'] == 'mixed':
-                                    pass
-                                elif stats['high_accuracy_precursors'] == 'false':
-                                    stats['high_accuracy_precursors'] = 'mixed'
-                                else:
-                                    self.log_event('ERROR','InternalStateError',f"high_accuracy_precursors has a strange state '{stats['high_accuracy_precursors']}'")
-                                    break
-                            elif match.group(0) == 'ITMS':
-                                if stats['high_accuracy_precursors'] == 'unknown':
-                                    stats['high_accuracy_precursors'] = 'false'
-                                elif stats['high_accuracy_precursors'] == 'false' or stats['high_accuracy_precursors'] == 'mixed':
-                                    pass
-                                elif stats['high_accuracy_precursors'] == 'true':
-                                    stats['high_accuracy_precursors'] = 'mixed'
-                                else:
-                                    self.log_event('ERROR','InternalStateError',f"high_accuracy_precursors has a strange state '{stats['high_accuracy_precursors']}'")
-                                    break
-                            else:
-                                self.log_event('ERROR','UnknownPrecursorScanType',f"Unknown precursor scan type '{match.group(0)}'")
-                                break
-
-                    #### Else it's an MSn (n>1) scan so learn what we can from that
-                    else:
-                        match = re.search(' ms2 ',filter_string)
-                        if match:
-                            stats['n_ms2_spectra'] += 1
-                            match = re.search('@hcd',filter_string)
-                            if match:
-                                stats['n_HCD_spectra'] += 1
-                                spectrum_type = 'HCD'
-                            else:
-                                match = re.search('@cid',filter_string)
-                                if match:
-                                    stats['n_IT_spectra'] += 1
-                                    spectrum_type = 'IT'
-                                else:
-                                    self.log_event('ERROR','FragNotInFilterStr',f"Did not find @hcd or @cid in filter string '{filter_string}'")
-                                    break
-                        else:
-                            self.log_event('ERROR','CantParseFilterStr',f"Unable to parse filter string '{filter_string}'")
-                            break
+                #### If the ms level is 1, all we're going to do it parse the filter string for now
+                #if spectrum['ms level'] == 1:
+                #    spectra.append([stats,None,None])
 
                 #### If the ms level is greater than 2, fail
                 if spectrum['ms level'] > 2:
@@ -151,38 +109,36 @@ class MzMLAssessor:
                 #### If the ms level is 2, then examine it for information
                 if spectrum['ms level'] == 2:
                     precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
-                    self.add_spectrum(spectrum,spectrum_type,precursor_mz)
-
-                    #### Record the fragmentation type for this run
-                    #print(stats['fragmentation_type'])
-                    if spectrum_type != stats['fragmentation_type']:
-                        if stats['fragmentation_type'] == 'unknown':
-                            stats['fragmentation_type'] = spectrum_type
-                        elif stats['fragmentation_type'] == 'mixed!':
-                            pass
-                        else:
-                            stats['fragmentation_type'] = 'mixed!'
-                            self.log_event('ERROR','MixedFragTypes',f"There are multiple fragmentation types in this MS run. Split them.")
-
+                    #self.add_spectrum(spectrum,spectrum_type,precursor_mz)
+                    peaklist = { 'm/z array': spectrum['m/z array'], 'intensity array': spectrum['intensity array'] }
+                    #spectra.append([stats,precursor_mz,peaklist])
+                    self.add_spectrum([stats,precursor_mz,peaklist])
 
                 #### Update counters and print progress
                 stats['n_spectra'] += 1
                 if self.verbose >= 1:
                     if stats['n_spectra']/1000 == int(stats['n_spectra']/1000):
                         if not progress_intro:
-                            eprint("INFO: Processing spectra.. ", end='')
+                            eprint("INFO: Reading spectra.. ", end='')
                             progress_intro = True
                         eprint(f"{stats['n_spectra']}.. ", end='', flush=True)
 
         infile.close()
+        if self.verbose >= 1: eprint("")
 
-        #### Send newline if we were printing progress information
-        if self.verbose >= 1:
-            eprint("")
+        #### Now that we've read anything, try to process the data multithreaded
+        #n_threads = 8
+        #if self.verbose >= 1: eprint(f"INFO: processing {len(spectra)} spectra multithreaded with {n_threads} threads")
+        #pool = ThreadPool(n_threads)
+        #results = pool.imap_unordered(self.add_spectrum, spectra)
+        #results = pool.map(self.add_spectrum, spectra)
+        #pool.close()
+        #pool.join()
+        #if self.verbose >= 1: eprint(f"INFO: Done.")
 
         #### Write the composite spectrum to a file
-        with open('zzcomposite_spectrum.pickle','wb') as outfile:
-            pickle.dump(self.composite,outfile)
+        #with open('zzcomposite_spectrum.pickle','wb') as outfile:
+        #    pickle.dump(self.composite,outfile)
 
         #### Print final timing information
         t1 = timeit.default_timer()
@@ -192,14 +148,89 @@ class MzMLAssessor:
 
 
     ####################################################################################################
+    #### Parse the filter string
+    def parse_filter_string(self,filter_string,stats):
+
+        match = re.search(' ms ',filter_string)
+
+        #### If this is an MS1 scan, learn what we can from it
+        if match:
+            stats['n_ms1_spectra'] += 1
+            spectrum_type = 'MS1'
+            match = re.search('^(\S+)',filter_string)
+            if match:
+                if match.group(0) == 'FTMS':
+                    if stats['high_accuracy_precursors'] == 'unknown':
+                        stats['high_accuracy_precursors'] = 'true'
+                    elif stats['high_accuracy_precursors'] == 'true' or stats['high_accuracy_precursors'] == 'mixed':
+                        pass
+                    elif stats['high_accuracy_precursors'] == 'false':
+                        stats['high_accuracy_precursors'] = 'mixed'
+                    else:
+                        self.log_event('ERROR','InternalStateError',f"high_accuracy_precursors has a strange state '{stats['high_accuracy_precursors']}'")
+                        return
+                elif match.group(0) == 'ITMS':
+                    if stats['high_accuracy_precursors'] == 'unknown':
+                        stats['high_accuracy_precursors'] = 'false'
+                    elif stats['high_accuracy_precursors'] == 'false' or stats['high_accuracy_precursors'] == 'mixed':
+                        pass
+                    elif stats['high_accuracy_precursors'] == 'true':
+                        stats['high_accuracy_precursors'] = 'mixed'
+                    else:
+                        self.log_event('ERROR','InternalStateError',f"high_accuracy_precursors has a strange state '{stats['high_accuracy_precursors']}'")
+                        return
+                else:
+                    self.log_event('ERROR','UnknownPrecursorScanType',f"Unknown precursor scan type '{match.group(0)}'")
+                    return
+
+        #### Else it's an MSn (n>1) scan so learn what we can from that
+        else:
+            match = re.search(' ms2 ',filter_string)
+            if match:
+                stats['n_ms2_spectra'] += 1
+                match = re.search('@hcd',filter_string)
+                if match:
+                    stats['n_HCD_spectra'] += 1
+                    spectrum_type = 'HCD'
+                else:
+                    match = re.search('@cid',filter_string)
+                    if match:
+                        stats['n_IT_spectra'] += 1
+                        spectrum_type = 'IT'
+                    else:
+                        self.log_event('ERROR','FragNotInFilterStr',f"Did not find @hcd or @cid in filter string '{filter_string}'")
+                        return
+                #### Record the fragmentation type for this run
+                #print(stats['fragmentation_type'])
+                if spectrum_type != stats['fragmentation_type']:
+                    if stats['fragmentation_type'] == 'unknown':
+                        stats['fragmentation_type'] = spectrum_type
+                    elif stats['fragmentation_type'] == 'mixed!':
+                        pass
+                    else:
+                        stats['fragmentation_type'] = 'mixed!'
+                        self.log_event('ERROR','MixedFragTypes',f"There are multiple fragmentation types in this MS run. Split them.")
+
+            else:
+                self.log_event('ERROR','CantParseFilterStr',f"Unable to parse filter string '{filter_string}'")
+                return
+
+
+
+    ####################################################################################################
     #### Add spectrum
-    def add_spectrum(self,spectrum,spectrum_type,precursor_mz):
+    #def add_spectrum(self,spectrum,spectrum_type,precursor_mz):
+    def add_spectrum(self,params):
+
+        stats, precursor_mz, peaklist = params
+        spectrum_type = stats['fragmentation_type']
+
         if 'n_spectra_examined' not in self.metadata['files'][self.mzml_file]['spectra_stats']:
             self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra_examined'] = 0
         self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra_examined'] += 1
 
         destination = f"lowend_{spectrum_type}"
-        destination2 = f"neutral_loss_{spectrum_type}"
+        #destination2 = f"neutral_loss_{spectrum_type}"
 
         if destination not in self.composite:
             if spectrum_type == 'HCD':
@@ -212,17 +243,17 @@ class MzMLAssessor:
                 self.composite[destination]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
                 self.composite[destination]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
 
-                print(f"INFO: Creating a composite spectrum {destination2}")
-                minimum = 0
-                maximum = 165
-                binsize = 0.001
-                array_size = int( (maximum - minimum ) / binsize ) + 1
-                self.composite[destination2] = { 'minimum': minimum, 'maximum': maximum, 'binsize': binsize }
-                self.composite[destination2]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
-                self.composite[destination2]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
+                #print(f"INFO: Creating a composite spectrum {destination2}")
+                # minimum = 0
+                # maximum = 165
+                # binsize = 0.001
+                # array_size = int( (maximum - minimum ) / binsize ) + 1
+                # self.composite[destination2] = { 'minimum': minimum, 'maximum': maximum, 'binsize': binsize }
+                # self.composite[destination2]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
+                # self.composite[destination2]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
 
             elif spectrum_type == 'IT':
-                print(f"INFO: Creating a composite spectrum {destination}")
+                #print(f"INFO: Creating a composite spectrum {destination}")
                 minimum = 100
                 maximum = 400
                 binsize = 0.05
@@ -231,77 +262,63 @@ class MzMLAssessor:
                 self.composite[destination]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
                 self.composite[destination]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
 
-                print(f"INFO: Creating a composite spectrum {destination2}")
-                minimum = 0
-                maximum = 120
-                binsize = 0.2
-                array_size = int( (maximum - minimum ) / binsize ) + 1
-                self.composite[destination2] = { 'minimum': minimum, 'maximum': maximum, 'binsize': binsize }
-                self.composite[destination2]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
-                self.composite[destination2]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
+                #print(f"INFO: Creating a composite spectrum {destination2}")
+                # minimum = 0
+                # maximum = 120
+                # binsize = 0.2
+                # array_size = int( (maximum - minimum ) / binsize ) + 1
+                # self.composite[destination2] = { 'minimum': minimum, 'maximum': maximum, 'binsize': binsize }
+                # self.composite[destination2]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
+                # self.composite[destination2]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
 
             else:
                 print("ERROR: Unrecognized spectrum type {spectrum_type}")
                 return
 
-        ipeak = -1
-        mz_intensity = []
-        ipeak_subarray = 0
-        for mz in spectrum['m/z array']:
-            ipeak += 1
-            if mz >= self.composite[destination]['minimum'] and mz <= self.composite[destination]['maximum']:
-                bin = int( ( mz - self.composite[destination]['minimum'] ) / self.composite[destination]['binsize'])
-                #print(bin,self.regions[region]['n_peaks'],mz)
-                self.composite[destination]['n_peaks'][bin] += 1
-                self.composite[destination]['intensities'][bin] += spectrum['intensity array'][ipeak]
+        #### Convert the peak lists to numpy arrays
+        intensity_array = numpy.asarray(peaklist['intensity array'])
+        mz_array = numpy.asarray(peaklist['m/z array'])
 
-            intensity = spectrum['intensity array'][ipeak]
-            if mz > 132 and abs(mz - precursor_mz) > 5:
-                mz_intensity.append( [ipeak_subarray,mz,intensity] )
-                ipeak_subarray += 1
-            #print("* ",ipeak,mz,intensity)
+        #### Limit the numpy arrays to the region we're interested in
+        intensity_array = intensity_array[ ( mz_array > self.composite[destination]['minimum'] ) & ( mz_array < self.composite[destination]['maximum'] ) ]
+        mz_array = mz_array[ ( mz_array > self.composite[destination]['minimum'] ) & ( mz_array < self.composite[destination]['maximum'] ) ]
 
-            # if mz >= (precursor_mz + self.composite[destination2]['minimum']) and mz <= (precursor_mz + self.composite[destination2]['maximum']):
-                # bin = int( ( mz - (precursor_mz + self.composite[destination2]['minimum']) ) / self.composite[destination2]['binsize'])
-                # #print(bin,self.regions[region]['n_peaks'],mz)
+        #### Compute their bin locations and store n_peaks and intensities
+        bin_array = (( mz_array - self.composite[destination]['minimum'] ) / self.composite[destination]['binsize']).astype(int)
+        self.composite[destination]['n_peaks'][bin_array] += 1
+        self.composite[destination]['intensities'][bin_array] += intensity_array
+
+        #### The stuff below was trying to compute neutral losses. It works, but it's too slow. Need a Cython implementation I guess
+
+        # sorted_mz_intensity = sorted(mz_intensity, key=lambda pair: pair[2], reverse=True)
+        # length = 30
+        # if len(mz_intensity) < 30:
+            # length = len(mz_intensity)
+        # clipped_mz_intensity = sorted_mz_intensity[0:(length-1)]
+        # mz_intensity = sorted(clipped_mz_intensity, key=lambda pair: pair[1], reverse=False)
+        # i = 0
+        # while i < length-1:
+            # mz_intensity[i][0] = i
+            # i += 1
+        # sorted_mz_intensity = sorted(mz_intensity, key=lambda pair: pair[2], reverse=True)
+
+
+        # imajor_peak = 0
+        # while imajor_peak < 20 and imajor_peak < len(mz_intensity):
+            # ipeak,mz,major_intensity = sorted_mz_intensity[imajor_peak]
+            # #print(ipeak,mz,major_intensity)
+            # if major_intensity == 0.0:
+                # major_intensity = 1.0
+            # imz = mz
+            # while ipeak > 0 and mz - imz < self.composite[destination2]['maximum'] and imz > 132 and abs(imz - precursor_mz) > 5:
+                # bin = int( ( mz - imz ) / self.composite[destination2]['binsize'])
+                # #print("  - ",ipeak,imz,bin,intensity)
                 # self.composite[destination2]['n_peaks'][bin] += 1
-                # self.composite[destination2]['intensities'][bin] += spectrum['intensity array'][ipeak]
-            # if mz > self.composite[destination2]['maximum'] and mz > (precursor_mz + self.composite[destination2]['maximum']):
-                # break
-
-        if len(mz_intensity) < 8:
-            return
-
-        sorted_mz_intensity = sorted(mz_intensity, key=lambda pair: pair[2], reverse=True)
-        length = 30
-        if len(mz_intensity) < 30:
-            length = len(mz_intensity)
-        clipped_mz_intensity = sorted_mz_intensity[0:(length-1)]
-        mz_intensity = sorted(clipped_mz_intensity, key=lambda pair: pair[1], reverse=False)
-        i = 0
-        while i < length-1:
-            mz_intensity[i][0] = i
-            i += 1
-        sorted_mz_intensity = sorted(mz_intensity, key=lambda pair: pair[2], reverse=True)
-
-
-        imajor_peak = 0
-        while imajor_peak < 20 and imajor_peak < len(mz_intensity):
-            ipeak,mz,major_intensity = sorted_mz_intensity[imajor_peak]
-            #print(ipeak,mz,major_intensity)
-            if major_intensity == 0.0:
-                major_intensity = 1.0
-            imz = mz
-            while ipeak > 0 and mz - imz < self.composite[destination2]['maximum'] and imz > 132 and abs(imz - precursor_mz) > 5:
-                bin = int( ( mz - imz ) / self.composite[destination2]['binsize'])
-                #print("  - ",ipeak,imz,bin,intensity)
-                self.composite[destination2]['n_peaks'][bin] += 1
-                self.composite[destination2]['intensities'][bin] += intensity
-                ipeak -= 1
-                imz = mz_intensity[ipeak][1]
-                intensity = mz_intensity[ipeak][2]
-            imajor_peak += 1
-
+                # self.composite[destination2]['intensities'][bin] += intensity
+                # ipeak -= 1
+                # imz = mz_intensity[ipeak][1]
+                # intensity = mz_intensity[ipeak][2]
+            # imajor_peak += 1
 
 
     ####################################################################################################
@@ -412,7 +429,7 @@ class MzMLAssessor:
             'iTRAQ8_113': { 'type': 'iTRAQ8', 'mz': 113.107325, 'initial_window': 0.01 },
         }
 
-        #### What should be look at for ion trap data?
+        #### What should we look at for ion trap data?
         if composite_type == 'lowend_IT':
             ROIs = {
                 'TMT6_nterm': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 1.0 },
