@@ -61,7 +61,7 @@ class MzMLAssessor:
 
         #### Set up information
         t0 = timeit.default_timer()
-        stats = { 'n_spectra': 0, 'n_ms1_spectra': 0, 'n_ms2_spectra': 0, 'n_HCD_spectra': 0, 'n_IT_spectra': 0,
+        stats = { 'n_spectra': 0, 'n_ms1_spectra': 0, 'n_ms2_spectra': 0, 'n_HCD_spectra': 0, 'n_IT_spectra': 0, 'n_ETD_spectra': 0,
             'high_accuracy_precursors': 'unknown', 'fragmentation_type': 'unknown' }
         self.metadata['files'][self.mzml_file]['spectra_stats'] = stats
 
@@ -107,7 +107,7 @@ class MzMLAssessor:
                     break
 
                 #### If the ms level is 2, then examine it for information
-                if spectrum['ms level'] == 2:
+                if spectrum['ms level'] == 2 and 'm/z array' in spectrum:
                     precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
                     #self.add_spectrum(spectrum,spectrum_type,precursor_mz)
                     peaklist = { 'm/z array': spectrum['m/z array'], 'intensity array': spectrum['intensity array'] }
@@ -198,8 +198,14 @@ class MzMLAssessor:
                         stats['n_IT_spectra'] += 1
                         spectrum_type = 'IT'
                     else:
-                        self.log_event('ERROR','FragNotInFilterStr',f"Did not find @hcd or @cid in filter string '{filter_string}'")
-                        return
+                        match = re.search('@etd',filter_string)
+                        if match:
+                            stats['n_ETD_spectra'] += 1
+                            spectrum_type = 'ETD'
+                        else:
+                            self.log_event('ERROR','FragNotInFilterStr',f"Did not find @hcd or @cid in filter string '{filter_string}'")
+                            return
+
                 #### Record the fragmentation type for this run
                 #print(stats['fragmentation_type'])
                 if spectrum_type != stats['fragmentation_type']:
@@ -262,17 +268,18 @@ class MzMLAssessor:
                 self.composite[destination]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
                 self.composite[destination]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
 
-                #print(f"INFO: Creating a composite spectrum {destination2}")
-                # minimum = 0
-                # maximum = 120
-                # binsize = 0.2
-                # array_size = int( (maximum - minimum ) / binsize ) + 1
-                # self.composite[destination2] = { 'minimum': minimum, 'maximum': maximum, 'binsize': binsize }
-                # self.composite[destination2]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
-                # self.composite[destination2]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
+            elif spectrum_type == 'ETD':
+                #print(f"INFO: Creating a composite spectrum {destination}")
+                minimum = 100
+                maximum = 400
+                binsize = 0.05
+                array_size = int( (maximum - minimum ) / binsize ) + 1
+                self.composite[destination] = { 'minimum': minimum, 'maximum': maximum, 'binsize': binsize }
+                self.composite[destination]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
+                self.composite[destination]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
 
             else:
-                print("ERROR: Unrecognized spectrum type {spectrum_type}")
+                #print(f"ERROR: Unrecognized spectrum type {spectrum_type}")
                 return
 
         #### Convert the peak lists to numpy arrays
@@ -362,12 +369,16 @@ class MzMLAssessor:
         #### Get the root of the XML and the namespace
         xmlroot = etree.fromstring(buffer)
         namespace = xmlroot.nsmap
-        namespace = namespace[None]
+        #print(namespace)
+        if None in namespace:
+            namespace = '{'+namespace[None]+'}'
+        else:
+            namespace = ''
 
         #### Create a reference of instruments we know
         instrument_by_category = { 'pureHCD': [ 'MS:1001911|Q Exactive' ],
             'variable': [ 'MS:1001910|LTQ Orbitrap Elite', 'MS:1001742|LTQ Orbitrap Velos', 'MS:1000556|LTQ Orbitrap XL',
-                'MS:1000555|LTQ Orbitrap Discovery' ] }
+                'MS:1000555|LTQ Orbitrap Discovery', 'MS:1002416|Orbitrap Fusion' ] }
 
         #### Restructure it into a dict by PSI-MS identifier
         instrument_attributes = {}
@@ -377,7 +388,7 @@ class MzMLAssessor:
                 instrument_attributes[accession] = { 'category': instrument_category, 'accession': accession, 'name': name }
 
         #### Get all the CV params in the header and look for ones we know about
-        cv_params = xmlroot.findall('.//{http://psi.hupo.org/ms/mzml}cvParam')
+        cv_params = xmlroot.findall(f'.//{namespace}cvParam')
         found_instrument = 0
         for cv_param in cv_params:
             accession = cv_param.get('accession')
