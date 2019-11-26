@@ -82,46 +82,49 @@ class MzMLAssessor:
 
         #### Read spectra from the file
         with mzml.read(infile) as reader:
-            for spectrum in reader:
+            try:
+                for spectrum in reader:
 
-                #### Testing. Print the data structure of the first spectrum
-                #if stats['n_spectra'] == 0:
-                #    auxiliary.print_tree(spectrum)
+                    #### Testing. Print the data structure of the first spectrum
+                    #if stats['n_spectra'] == 0:
+                    #    auxiliary.print_tree(spectrum)
 
-                #### Set a default spectrum type
-                spectrum_type = 'default'
-                filter_string = None
+                    #### Set a default spectrum type
+                    spectrum_type = 'default'
+                    filter_string = None
 
-                #### Look for a filter string and parse it
-                if 'filter string' in spectrum['scanList']['scan'][0]:
-                    filter_string = spectrum['scanList']['scan'][0]['filter string']
-                self.parse_filter_string(filter_string,stats)
+                    #### Look for a filter string and parse it
+                    if 'filter string' in spectrum['scanList']['scan'][0]:
+                        filter_string = spectrum['scanList']['scan'][0]['filter string']
+                        self.parse_filter_string(filter_string,stats)
 
-                #### If the ms level is 1, all we're going to do it parse the filter string for now
-                #if spectrum['ms level'] == 1:
-                #    spectra.append([stats,None,None])
+                    #### If the ms level is 1, all we're going to do it parse the filter string for now
+                    #if spectrum['ms level'] == 1:
+                    #    spectra.append([stats,None,None])
 
-                #### If the ms level is greater than 2, fail
-                if spectrum['ms level'] > 2:
-                    self.log_event('ERROR','MSnTooHigh',f"MS level is greater than we can handle at '{spectrum['ms level']}'")
-                    break
+                    #### If the ms level is greater than 2, fail
+                    if spectrum['ms level'] > 2:
+                        self.log_event('ERROR','MSnTooHigh',f"MS level is greater than we can handle at '{spectrum['ms level']}'")
+                        break
 
-                #### If the ms level is 2, then examine it for information
-                if spectrum['ms level'] == 2 and 'm/z array' in spectrum:
-                    precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
-                    #self.add_spectrum(spectrum,spectrum_type,precursor_mz)
-                    peaklist = { 'm/z array': spectrum['m/z array'], 'intensity array': spectrum['intensity array'] }
-                    #spectra.append([stats,precursor_mz,peaklist])
-                    self.add_spectrum([stats,precursor_mz,peaklist])
+                    #### If the ms level is 2, then examine it for information
+                    if spectrum['ms level'] == 2 and 'm/z array' in spectrum:
+                        precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
+                        #self.add_spectrum(spectrum,spectrum_type,precursor_mz)
+                        peaklist = { 'm/z array': spectrum['m/z array'], 'intensity array': spectrum['intensity array'] }
+                        #spectra.append([stats,precursor_mz,peaklist])
+                        self.add_spectrum([stats,precursor_mz,peaklist])
 
-                #### Update counters and print progress
-                stats['n_spectra'] += 1
-                if self.verbose >= 1:
-                    if stats['n_spectra']/1000 == int(stats['n_spectra']/1000):
-                        if not progress_intro:
-                            eprint("INFO: Reading spectra.. ", end='')
-                            progress_intro = True
-                        eprint(f"{stats['n_spectra']}.. ", end='', flush=True)
+                    #### Update counters and print progress
+                    stats['n_spectra'] += 1
+                    if self.verbose >= 1:
+                        if stats['n_spectra']/1000 == int(stats['n_spectra']/1000):
+                            if not progress_intro:
+                                eprint("INFO: Reading spectra.. ", end='')
+                                progress_intro = True
+                            eprint(f"{stats['n_spectra']}.. ", end='', flush=True)
+            except:
+                self.log_event('ERROR','MzMLCorrupt',f"Pyteomics threw an error reading mzML file! File may be corrupt. Check file '{self.mzml_file}'")
 
         infile.close()
         if self.verbose >= 1: eprint("")
