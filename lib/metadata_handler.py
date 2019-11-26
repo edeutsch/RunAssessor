@@ -162,12 +162,14 @@ class MetadataHandler:
             if 'labeling' not in criteria: criteria['labeling'] = 'unknown'
             labeling = fileinfo['summary']['labeling']['call']
             if criteria['labeling'] == 'unknown':
-                criteria['labeling'] = labeling
+                if labeling != 'ambiguous':
+                    criteria['labeling'] = labeling
             elif criteria['labeling'] == labeling:
                 pass
             else:
-                criteria['labeling'] = 'multiple'
-                self.log_event('ERROR','MixedLabelingTypes',f"There are multiple labeling types in this MS run group. Split them.")
+                if labeling != 'ambiguous':
+                    criteria['labeling'] = 'multiple'
+                    self.log_event('ERROR','MixedLabelingTypes',f"There are multiple labeling types in this MS run group. Split them.")
 
 
     ####################################################################################################
