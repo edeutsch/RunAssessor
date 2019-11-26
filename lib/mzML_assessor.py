@@ -264,7 +264,7 @@ class MzMLAssessor:
             elif spectrum_type == 'IT':
                 #print(f"INFO: Creating a composite spectrum {destination}")
                 minimum = 100
-                maximum = 400
+                maximum = 460
                 binsize = 0.05
                 array_size = int( (maximum - minimum ) / binsize ) + 1
                 self.composite[destination] = { 'minimum': minimum, 'maximum': maximum, 'binsize': binsize }
@@ -448,7 +448,9 @@ class MzMLAssessor:
         if composite_type == 'lowend_IT':
             ROIs = {
                 'TMT6_nterm': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 1.0 },
-                'iTRAQ4_nterm': { 'type': 'iTRAQ4', 'mz': 145.109, 'initial_window': 1.0 },
+                'TMT6_y1K': { 'type': 'TMT', 'mz': 376.2757, 'initial_window': 1.0 },
+                'iTRAQ4_y1K': { 'type': 'iTRAQ4', 'mz': 376.2757, 'initial_window': 1.0 },
+                'iTRAQ8_y1K': { 'type': 'iTRAQ8', 'mz': 451.3118, 'initial_window': 1.0 },
             }
 
 
