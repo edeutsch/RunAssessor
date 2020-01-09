@@ -379,9 +379,10 @@ class MzMLAssessor:
             namespace = ''
 
         #### Create a reference of instruments we know
-        instrument_by_category = { 'pureHCD': [ 'MS:1001911|Q Exactive' ],
+        instrument_by_category = { 'pureHCD': [ 'MS:1001911|Q Exactive', 'MS:1002523|Q Exactive HF' ],
             'variable': [ 'MS:1001910|LTQ Orbitrap Elite', 'MS:1001742|LTQ Orbitrap Velos', 'MS:1000556|LTQ Orbitrap XL',
-                'MS:1000555|LTQ Orbitrap Discovery', 'MS:1002416|Orbitrap Fusion' ] }
+                'MS:1000555|LTQ Orbitrap Discovery', 'MS:1002416|Orbitrap Fusion', 'MS:1000449|LTQ Orbitrap',
+                'MS:1000483|Thermo Fisher Scientific instrument model','MS:1000448|LTQ FT' ] }
 
         #### Restructure it into a dict by PSI-MS identifier
         instrument_attributes = {}

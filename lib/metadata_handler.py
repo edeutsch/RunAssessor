@@ -126,15 +126,19 @@ class MetadataHandler:
             fileinfo = self.metadata['files'][file]
 
             #### Assemble consensus instrument
-            file_instrument = fileinfo['instrument_model']['name']
-            if 'instrument_model' not in knowledge: knowledge['instrument_model'] = 'unknown'
-            if knowledge['instrument_model'] == 'unknown':
-                knowledge['instrument_model'] = file_instrument
-            elif knowledge['instrument_model'] == file_instrument:
-                pass
+            if 'instrument_model' in fileinfo:
+                file_instrument = fileinfo['instrument_model']['name']
+                if 'instrument_model' not in knowledge: knowledge['instrument_model'] = 'unknown'
+                if knowledge['instrument_model'] == 'unknown':
+                    knowledge['instrument_model'] = file_instrument
+                elif knowledge['instrument_model'] == file_instrument:
+                    pass
+                else:
+                    knowledge['instrument_model'] = 'multiple'
+                    self.log_event('ERROR','MixedInstruments',f"There are multiple instruments in this MS run. Split them.")
             else:
-                knowledge['instrument_model'] = 'multiple'
-                self.log_event('ERROR','MixedInstruments',f"There are multiple instruments in this MS run. Split them.")
+                knowledge['instrument_model'] = 'unknown'
+                self.log_event('ERROR','UnknownInstrument',f"The instrument was not determined. This should be handled better.")
 
             #### Assemble fragmentation type
             if 'fragmentation_type' not in criteria: criteria['fragmentation_type'] = 'unknown'
