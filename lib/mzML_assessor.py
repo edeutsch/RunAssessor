@@ -129,6 +129,11 @@ class MzMLAssessor:
         infile.close()
         if self.verbose >= 1: eprint("")
 
+        #### If there are no spectra that were saved, then we're done with this file
+        if len(self.composite) == 0:
+            self.log_event('ERROR','NoMS2Scans',f"This mzML file has no MS2 scans. Check file '{self.mzml_file}'")
+
+
         #### Now that we've read anything, try to process the data multithreaded
         #n_threads = 8
         #if self.verbose >= 1: eprint(f"INFO: processing {len(spectra)} spectra multithreaded with {n_threads} threads")
@@ -382,7 +387,8 @@ class MzMLAssessor:
         instrument_by_category = { 'pureHCD': [ 'MS:1001911|Q Exactive', 'MS:1002523|Q Exactive HF' ],
             'variable': [ 'MS:1001910|LTQ Orbitrap Elite', 'MS:1001742|LTQ Orbitrap Velos', 'MS:1000556|LTQ Orbitrap XL',
                 'MS:1000555|LTQ Orbitrap Discovery', 'MS:1002416|Orbitrap Fusion', 'MS:1000449|LTQ Orbitrap',
-                'MS:1000483|Thermo Fisher Scientific instrument model','MS:1000448|LTQ FT' ] }
+                'MS:1000483|Thermo Fisher Scientific instrument model','MS:1000448|LTQ FT', 
+                'MS:1002732|Orbitrap Fusion Lumos' ] }
 
         #### Restructure it into a dict by PSI-MS identifier
         instrument_attributes = {}
@@ -404,7 +410,8 @@ class MzMLAssessor:
 
         #### If none are an instrument we know about about, ask for help
         if not found_instrument:
-            print("ERROR: Did not recognize the instrument. Please teach me about this instrument.")
+            self.log_event('ERROR','UnrecogInstr',f"Did not recognize the instrument. Please teach me about this instrument.")
+            return
 
 
     ####################################################################################################
@@ -418,8 +425,11 @@ class MzMLAssessor:
         if composite_type not in spec:
             if 'lowend_IT' in spec:
                 composite_type = 'lowend_IT'
+            elif 'lowend_ETD' in spec:
+                composite_type = 'lowend_ETD'
             else:
-                print("ERROR: Unrecognized fragmentation type. Need more training")
+                self.log_event('ERROR','UnknownFragmentation',f"Did not find HCD or ITCID or ETD MS2 spectra in this file. Something is wrong.")
+                return
 
         minimum = spec[composite_type]['minimum']
         maximum = spec[composite_type]['maximum']
@@ -674,10 +684,13 @@ def main():
         if not params.use_cache:
             assessor.read_spectra()
         assessor.assess_composite_spectra()
-        assessor.assess_ROIs()
+        print(assessor.metadata['state']['status'])
+        if assessor.metadata['state']['status'] != 'ERROR':
+            assessor.assess_ROIs()
 
     #### Infer parameters based on the latest data
-    study.infer_search_criteria()
+    if assessor.metadata['state']['status'] != 'ERROR':
+        study.infer_search_criteria()
 
     #### Write out our state of mind
     study.store()
