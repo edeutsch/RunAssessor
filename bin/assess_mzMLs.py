@@ -58,10 +58,12 @@ def main():
         if not params.use_cache:
             assessor.read_spectra()
         assessor.assess_composite_spectra()
-        assessor.assess_ROIs()
+        if assessor.metadata['state']['status'] != 'ERROR':
+            assessor.assess_ROIs()
 
     #### Infer parameters based on the latest data
-    study.infer_search_criteria()
+    if assessor.metadata['state']['status'] != 'ERROR':
+        study.infer_search_criteria()
 
     #### Write out our state of mind
     study.store()
