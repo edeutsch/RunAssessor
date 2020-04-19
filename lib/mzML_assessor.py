@@ -23,7 +23,7 @@ from multiprocessing.pool import ThreadPool
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 from scipy.optimize import curve_fit
-#from scipy import exp
+from scipy import exp
 from pyteomics import mzml, auxiliary
 
 #### Import the metadata handler
@@ -640,10 +640,12 @@ class MzMLAssessor:
             binsize = x[center]-x[center-1]
 
             try:
+            #if 1:
                 popt,pcov = curve_fit(gaussian_function,x,y,p0=[y[center],x[center],binsize])
                 peak['fit'] = { 'mz': popt[1], 'intensity': popt[0], 'sigma': popt[2], 'delta_mz': popt[1]-ROIs[ROI]['mz'], 'delta_ppm': (popt[1]-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6 }
                 peak['assessment'] = { 'is_found': True, 'fraction': 0.0, 'comment': 'Peak found and fit' }
             except:
+            #else:
                 peak['assessment'] = { 'is_found': False, 'fraction': 0.0, 'comment': 'Gaussian fit failed to converge' }
 
             if 0:
