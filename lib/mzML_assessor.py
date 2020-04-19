@@ -23,7 +23,7 @@ from multiprocessing.pool import ThreadPool
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 from scipy.optimize import curve_fit
-from scipy import exp
+#from scipy import exp
 from pyteomics import mzml, auxiliary
 
 #### Import the metadata handler
@@ -57,50 +57,59 @@ class MzMLAssessor:
 
     ####################################################################################################
     #### Read spectra
-    def read_spectra(self):
+    def read_spectra(self, write_fragmentation_type_file=None):
 
         #### Set up information
         t0 = timeit.default_timer()
-        stats = { 'n_spectra': 0, 'n_ms1_spectra': 0, 'n_ms2_spectra': 0, 'n_HCD_spectra': 0, 'n_IT_spectra': 0, 'n_ETD_spectra': 0,
-            'high_accuracy_precursors': 'unknown', 'fragmentation_type': 'unknown' }
+        stats = { 'n_spectra': 0, 'n_ms1_spectra': 0, 'n_ms2_spectra': 0,
+            'n_HR_HCD_spectra': 0,
+            'n_LR_HCD_spectra': 0,
+            'n_HR_IT_CID_spectra': 0,
+            'n_LR_IT_CID_spectra': 0,
+            'n_HR_IT_ETD_spectra': 0,
+            'n_LR_IT_ETD_spectra': 0,
+            'n_HR_EThcD_spectra': 0,
+            'n_LR_EThcD_spectra': 0,
+            'n_HR_ETciD_spectra': 0,
+            'n_LR_ETciD_spectra': 0,
+            'high_accuracy_precursors': 'unknown', 'fragmentation_type': 'unknown', 'fragmentation_tag': 'unknown' }
         self.metadata['files'][self.mzml_file]['spectra_stats'] = stats
+
+        #### Store the fragmentation types in a list for storing in the fragmentation_type_file
+        scan_fragmentation_list = []
 
         #### Show information
         if self.verbose >= 1:
-            eprint(f"INFO: Assessing mzML file {self.mzml_file}")
+            eprint(f"\nINFO: Assessing mzML file {self.mzml_file}", end='', flush=True)
             progress_intro = False
 
         #### If the mzML is gzipped, then open with zlib, else a plain open
-        match = re.search('\.gz$',self.mzml_file)
+        match = re.search(r'\.gz$',self.mzml_file)
         if match:
             infile = gzip.open(self.mzml_file)
         else:
             infile = open(self.mzml_file, 'rb')
 
         #### Try storing all spectra for multithreaded processing
-        spectra = []
+        #spectra = []
 
         #### Read spectra from the file
         with mzml.read(infile) as reader:
             try:
                 for spectrum in reader:
 
-                    #### Testing. Print the data structure of the first spectrum
+                    #### Debugging. Print the data structure of the first spectrum
                     #if stats['n_spectra'] == 0:
                     #    auxiliary.print_tree(spectrum)
 
                     #### Set a default spectrum type
-                    spectrum_type = 'default'
+                    #spectrum_type = 'default'
                     filter_string = None
 
                     #### Look for a filter string and parse it
                     if 'filter string' in spectrum['scanList']['scan'][0]:
                         filter_string = spectrum['scanList']['scan'][0]['filter string']
                         self.parse_filter_string(filter_string,stats)
-
-                    #### If the ms level is 1, all we're going to do it parse the filter string for now
-                    #if spectrum['ms level'] == 1:
-                    #    spectra.append([stats,None,None])
 
                     #### If the ms level is greater than 2, fail
                     if spectrum['ms level'] > 2:
@@ -115,19 +124,45 @@ class MzMLAssessor:
                         #spectra.append([stats,precursor_mz,peaklist])
                         self.add_spectrum([stats,precursor_mz,peaklist])
 
+                        # If the user requested writing of a fragmentation_type_file, record that information
+                        if write_fragmentation_type_file is not None:
+                            nativeId = spectrum['id']
+                            scan_number = -1
+                            match = re.search(r'scan=(\d+)',nativeId)
+                            if match:
+                                scan_number = match.group(1)
+                            scan_fragmentation_list.append(f"{scan_number}\t{stats['fragmentation_tag']}")
+
                     #### Update counters and print progress
                     stats['n_spectra'] += 1
                     if self.verbose >= 1:
-                        if stats['n_spectra']/1000 == int(stats['n_spectra']/1000):
+                        if stats['n_spectra']/500 == int(stats['n_spectra']/500):
                             if not progress_intro:
-                                eprint("INFO: Reading spectra.. ", end='')
+                                #eprint("INFO: Reading spectra.. ", end='')
                                 progress_intro = True
-                            eprint(f"{stats['n_spectra']}.. ", end='', flush=True)
+                            #eprint(f"{stats['n_spectra']}.. ", end='', flush=True)
+                            eprint(".", end='', flush=True)
             except:
                 self.log_event('ERROR','MzMLCorrupt',f"Pyteomics threw an error reading mzML file! File may be corrupt. Check file '{self.mzml_file}'")
 
         infile.close()
-        if self.verbose >= 1: eprint("")
+        #if self.verbose >= 1: eprint("")
+
+        # If the user requested writing of a fragmentation_type_file, write it out
+        if write_fragmentation_type_file is not None:
+            filename = self.mzml_file
+            filename = re.sub(r'\.gz','',filename)
+            filename = re.sub(r'\.mzML','',filename)
+            filename += '.fragmentation_types.tsv'
+            eprint(f"\nINFO: Writing fragmentation type file {filename}", end='', flush=True)
+            with open(filename,'w') as outfile:
+                if stats['fragmentation_type'] != 'multiple':
+                    scan_fragmentation = scan_fragmentation_list[0]
+                    scan_fragmentation = re.sub(r'^\d+','*',scan_fragmentation)
+                    outfile.write(scan_fragmentation+'\n')
+                else:
+                    for scan_fragmentation in scan_fragmentation_list:
+                        outfile.write(scan_fragmentation+'\n')
 
         #### If there are no spectra that were saved, then we're done with this file
         if len(self.composite) == 0:
@@ -150,84 +185,148 @@ class MzMLAssessor:
 
         #### Print final timing information
         t1 = timeit.default_timer()
-        print(f"INFO: Read {stats['n_spectra']} spectra from {self.mzml_file}")
-        print(f"INFO: Elapsed time: {t1-t0}")
-        print(f"INFO: Processed {stats['n_spectra']/(t1-t0)} spectra per second")
+        print(f"\nINFO: Read {stats['n_spectra']} spectra from {self.mzml_file} in {int(t1-t0)} sec ({stats['n_spectra']/(t1-t0)} spectra per sec)", end='', flush=True)
 
 
     ####################################################################################################
     #### Parse the filter string
     def parse_filter_string(self,filter_string,stats):
 
-        match = re.search(' ms ',filter_string)
+        fragmentation_tag = '??'
+
+        mass_accuracy = '??'
+        match = re.search(r'^(\S+)',filter_string)
+        if match.group(0) == 'FTMS':
+            mass_accuracy = 'HR'
+        elif match.group(0) == 'ITMS':
+            mass_accuracy = 'LR'
+        else:
+            self.log_event('ERROR','UnrecognizedDetector',f"Unrecognized detector '{match.group(0)}' in filter string {filter_string}")
+            return
+
+        ms_level = 0
+        match = re.search(r' ms ',filter_string)
+        if match:
+            ms_level = 1
+        else:
+            match = re.search(r' ms(\d) ',filter_string)
+            if match:
+                ms_level = int(match.group(1))
+            else:
+                self.log_event('ERROR','UnrecognizedMSLevel',f"Unrecognized MS level in filter string {filter_string}")
+                return
+
+        # See if there's fragmentation of a known type
+        have_cid = 0
+        have_etd = 0
+        have_hcd = 0
+        have_fragmentation = 0
+        match = re.search(r'@hcd',filter_string)
+        if match: have_hcd = 1
+        match = re.search(r'@cid',filter_string)
+        if match: have_cid = 1
+        match = re.search(r'@etd',filter_string)
+        if match: have_etd = 1
+        match = re.search(r'@',filter_string)
+        if match: have_fragmentation = 1
+        dissociation_sum = have_cid + have_etd + have_hcd
+        if have_fragmentation > dissociation_sum:
+            self.log_event('ERROR','UnrecognizedFragmentation',f"Unrecognized string after @ in filter string '{filter_string}'")
+            return
 
         #### If this is an MS1 scan, learn what we can from it
-        if match:
+        if ms_level == 0:
+            if 'n_ms0_spectra' not in stats:
+                stats['n_ms0_spectra'] = 0
+            stats['n_ms0_spectra'] += 1
+            self.log_event('ERROR','UnknownMSLevel',f"Unable to determine MS level in filter string '{filter_string}'")
+            return
+
+        #### If this is an MS1 scan, learn what we can from it
+        if ms_level == 1:
             stats['n_ms1_spectra'] += 1
             spectrum_type = 'MS1'
-            match = re.search('^(\S+)',filter_string)
-            if match:
-                if match.group(0) == 'FTMS':
-                    if stats['high_accuracy_precursors'] == 'unknown':
-                        stats['high_accuracy_precursors'] = 'true'
-                    elif stats['high_accuracy_precursors'] == 'true' or stats['high_accuracy_precursors'] == 'mixed':
-                        pass
-                    elif stats['high_accuracy_precursors'] == 'false':
-                        stats['high_accuracy_precursors'] = 'mixed'
-                    else:
-                        self.log_event('ERROR','InternalStateError',f"high_accuracy_precursors has a strange state '{stats['high_accuracy_precursors']}'")
-                        return
-                elif match.group(0) == 'ITMS':
-                    if stats['high_accuracy_precursors'] == 'unknown':
-                        stats['high_accuracy_precursors'] = 'false'
-                    elif stats['high_accuracy_precursors'] == 'false' or stats['high_accuracy_precursors'] == 'mixed':
-                        pass
-                    elif stats['high_accuracy_precursors'] == 'true':
-                        stats['high_accuracy_precursors'] = 'mixed'
-                    else:
-                        self.log_event('ERROR','InternalStateError',f"high_accuracy_precursors has a strange state '{stats['high_accuracy_precursors']}'")
-                        return
+            if mass_accuracy == 'HR':
+                if stats['high_accuracy_precursors'] == 'unknown':
+                    stats['high_accuracy_precursors'] = 'true'
+                elif stats['high_accuracy_precursors'] == 'true' or stats['high_accuracy_precursors'] == 'multiple':
+                    pass
+                elif stats['high_accuracy_precursors'] == 'false':
+                    stats['high_accuracy_precursors'] = 'multiple'
                 else:
-                    self.log_event('ERROR','UnknownPrecursorScanType',f"Unknown precursor scan type '{match.group(0)}'")
+                    self.log_event('ERROR','InternalStateError',f"high_accuracy_precursors has a strange state '{stats['high_accuracy_precursors']}'")
                     return
+            elif mass_accuracy == 'LR':
+                if stats['high_accuracy_precursors'] == 'unknown':
+                    stats['high_accuracy_precursors'] = 'false'
+                elif stats['high_accuracy_precursors'] == 'false' or stats['high_accuracy_precursors'] == 'multiple':
+                    pass
+                elif stats['high_accuracy_precursors'] == 'true':
+                    stats['high_accuracy_precursors'] = 'multiple'
+                else:
+                    self.log_event('ERROR','InternalStateError',f"high_accuracy_precursors has a strange state '{stats['high_accuracy_precursors']}'")
+                    return
+            else:
+                self.log_event('ERROR','UnknownPrecursorScanType',f"Unknown precursor scan type '{match.group(0)}'")
+                return
 
         #### Else it's an MSn (n>1) scan so learn what we can from that
-        else:
-            match = re.search(' ms2 ',filter_string)
-            if match:
-                stats['n_ms2_spectra'] += 1
-                match = re.search('@hcd',filter_string)
-                if match:
-                    stats['n_HCD_spectra'] += 1
-                    spectrum_type = 'HCD'
+        elif ms_level == 2:
+            dissociation_sum = have_cid + have_etd + have_hcd
+            stats['n_ms2_spectra'] += 1
+            if dissociation_sum == 1:
+                if have_hcd:
+                    stats[f"n_{mass_accuracy}_HCD_spectra"] += 1
+                    spectrum_type = f"{mass_accuracy}_HCD"
+                    fragmentation_tag = f"{mass_accuracy} HCD"
+                elif have_cid:
+                    stats[f"n_{mass_accuracy}_IT_CID_spectra"] += 1
+                    spectrum_type = f"{mass_accuracy}_IT_CID"
+                    fragmentation_tag = f"{mass_accuracy} IT CID"
+                elif have_etd:
+                    stats[f"n_{mass_accuracy}_IT_ETD_spectra"] += 1
+                    spectrum_type = f"{mass_accuracy}_IT_ETD"
+                    fragmentation_tag = f"{mass_accuracy} IT ETD"
                 else:
-                    match = re.search('@cid',filter_string)
-                    if match:
-                        stats['n_IT_spectra'] += 1
-                        spectrum_type = 'IT'
-                    else:
-                        match = re.search('@etd',filter_string)
-                        if match:
-                            stats['n_ETD_spectra'] += 1
-                            spectrum_type = 'ETD'
-                        else:
-                            self.log_event('ERROR','FragNotInFilterStr',f"Did not find @hcd or @cid in filter string '{filter_string}'")
-                            return
+                    self.log_event('ERROR','UnrecognizedFragmentation',f"Did not find @hcd, @cid, @etd in filter string '{filter_string}'")
+                    return
 
-                #### Record the fragmentation type for this run
-                #print(stats['fragmentation_type'])
-                if spectrum_type != stats['fragmentation_type']:
-                    if stats['fragmentation_type'] == 'unknown':
-                        stats['fragmentation_type'] = spectrum_type
-                    elif stats['fragmentation_type'] == 'mixed!':
-                        pass
-                    else:
-                        stats['fragmentation_type'] = 'mixed!'
-                        self.log_event('ERROR','MixedFragTypes',f"There are multiple fragmentation types in this MS run. Split them.")
+            elif dissociation_sum == 2:
+                if have_etd and have_hcd:
+                    stats[f"n_{mass_accuracy}_EThcD_spectra"] += 1
+                    spectrum_type = f"{mass_accuracy}_EThcD"
+                    fragmentation_tag = f"{mass_accuracy} EThcD"
+                elif have_etd and have_cid:
+                    stats[f"n_{mass_accuracy}_ETciD_spectra"] += 1
+                    spectrum_type = f"{mass_accuracy}_ETciD"
+                    fragmentation_tag = f"{mass_accuracy} ETciD"
+                else:
+                    self.log_event('ERROR','UnrecognizedFragmentation',f"Did not find known fragmentation combination in filter string '{filter_string}'")
+                    return
 
             else:
-                self.log_event('ERROR','CantParseFilterStr',f"Unable to parse filter string '{filter_string}'")
+                self.log_event('ERROR','CantParseFilterStr',f"Unable to determine dissociation type in filter string '{filter_string}'")
                 return
+
+            #### Record the fragmentation type for this run
+            if spectrum_type != stats['fragmentation_type']:
+                if stats['fragmentation_type'] == 'unknown':
+                    stats['fragmentation_type'] = spectrum_type
+                elif stats['fragmentation_type'] == 'multiple':
+                    pass
+                else:
+                    stats['fragmentation_type'] = 'multiple'
+                    self.log_event('ERROR','MultipleFragTypes',f"There are multiple fragmentation types in this MS run. Split them.")
+
+
+        # If we have ms_level > 2, then make a note, but this is uncharted waters
+        else:
+            if 'n_ms3+_spectra' not in stats:
+                stats['n_ms3+_spectra'] = 0
+            stats['n_ms3+_spectra'] += 1
+
+        # Store the fragmentation_tag for use by the caller
+        stats['fragmentation_tag'] = fragmentation_tag
 
 
 
@@ -247,7 +346,7 @@ class MzMLAssessor:
         #destination2 = f"neutral_loss_{spectrum_type}"
 
         if destination not in self.composite:
-            if spectrum_type == 'HCD':
+            if spectrum_type == 'HR_HCD':
                 #print(f"INFO: Creating a composite spectrum {destination}")
                 minimum = 100
                 maximum = 400
@@ -266,7 +365,7 @@ class MzMLAssessor:
                 # self.composite[destination2]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
                 # self.composite[destination2]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
 
-            elif spectrum_type == 'IT':
+            elif spectrum_type == 'LR_IT_CID':
                 #print(f"INFO: Creating a composite spectrum {destination}")
                 minimum = 100
                 maximum = 460
@@ -276,7 +375,7 @@ class MzMLAssessor:
                 self.composite[destination]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
                 self.composite[destination]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
 
-            elif spectrum_type == 'ETD':
+            elif spectrum_type == 'LR_IT_ETD':
                 #print(f"INFO: Creating a composite spectrum {destination}")
                 minimum = 100
                 maximum = 400
@@ -342,7 +441,7 @@ class MzMLAssessor:
     def read_header(self):
 
         #### If the mzML is gzipped, then open with zlib, else a plain open
-        match = re.search('\.gz$',self.mzml_file)
+        match = re.search(r'\.gz$',self.mzml_file)
         if match:
             infile = gzip.open(self.mzml_file)
         else:
@@ -421,20 +520,21 @@ class MzMLAssessor:
         #    spec = pickle.load(infile)
         spec = self.composite
 
-        composite_type = 'lowend_HCD'
-        if composite_type not in spec:
-            if 'lowend_IT' in spec:
-                composite_type = 'lowend_IT'
-            elif 'lowend_ETD' in spec:
-                composite_type = 'lowend_ETD'
-            else:
-                self.log_event('ERROR','UnknownFragmentation',f"Did not find HCD or ITCID or ETD MS2 spectra in this file. Something is wrong.")
-                return
+        supported_composite_type_list = [ 'lowend_HR_HCD', 'lowend_LR_IT_CID' ]
+
+        composite_type = None
+        for supported_composite_type in supported_composite_type_list:
+            if supported_composite_type in spec:
+                composite_type = supported_composite_type
+
+        if composite_type is None:
+            self.log_event('WARNING','UnknownFragmentation',f"Not able to determine more about these spectra yet.")
+            return
 
         minimum = spec[composite_type]['minimum']
         maximum = spec[composite_type]['maximum']
         binsize = spec[composite_type]['binsize']
-        spec[composite_type]['mz'] = numpy.arange(spec[composite_type]['minimum'],spec[composite_type]['maximum'] + spec[composite_type]['binsize'],spec[composite_type]['binsize'])
+        spec[composite_type]['mz'] = numpy.arange(minimum, maximum + binsize, binsize)
 
         ROIs = {
             'TMT6_126': { 'type': 'TMT', 'mz': 126.127725, 'initial_window': 0.01 },
@@ -456,7 +556,7 @@ class MzMLAssessor:
         }
 
         #### What should we look at for ion trap data?
-        if composite_type == 'lowend_IT':
+        if composite_type == 'lowend_LR_IT_CID':
             ROIs = {
                 'TMT6_nterm': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 1.0 },
                 'TMT6_y1K': { 'type': 'TMT', 'mz': 376.2757, 'initial_window': 1.0 },
@@ -467,10 +567,10 @@ class MzMLAssessor:
 
         for ROI in ROIs:
             #print(f"INFO: Looking for {ROI} at {ROIs[ROI]['mz']}")
-            center = ROIs[ROI]['mz']
-            range = ROIs[ROI]['initial_window']
-            first_bin = int((center - range/2.0 - minimum) / binsize)
-            last_bin = int((center + range/2.0 - minimum) / binsize)
+            #center = ROIs[ROI]['mz']
+            #range = ROIs[ROI]['initial_window']
+            #first_bin = int((center - range/2.0 - minimum) / binsize)
+            #last_bin = int((center + range/2.0 - minimum) / binsize)
 
             #### Look for the largest peak
             peak = self.find_peak(spec,ROIs,ROI,composite_type)
@@ -484,7 +584,7 @@ class MzMLAssessor:
     #### Peak finding routine
     def find_peak(self,spec,ROIs,ROI,composite_type):
         minimum = spec[composite_type]['minimum']
-        maximum = spec[composite_type]['maximum']
+        #maximum = spec[composite_type]['maximum']
         binsize = spec[composite_type]['binsize']
         center = ROIs[ROI]['mz']
         range = ROIs[ROI]['initial_window']
