@@ -121,35 +121,56 @@ class MetadataHandler:
         verbose = self.verbose
         if verbose >= 1: eprint("INFO: Inferring search criteria from the available information")
 
+        # Since we will recompute the numbers, zero out all the counters
+        knowledge['instrument_model'] = 'unknown'
+        if 'instrument_models' in knowledge:
+            for instrument_model in knowledge['instrument_models']:
+                knowledge['instrument_models'][instrument_model] = 0
+
+        criteria['fragmentation_type'] = 'unknown'
+        if 'fragmentation_types' in criteria:
+            for fragmentation_type in criteria['fragmentation_types']:
+                criteria['fragmentation_types'][fragmentation_type] = 0
+
         #### Loop over all the files and decide on search criteria
         for file in self.metadata['files']:
             fileinfo = self.metadata['files'][file]
 
             #### Assemble consensus instrument
             if 'instrument_model' in fileinfo:
-                file_instrument = fileinfo['instrument_model']['name']
-                if 'instrument_model' not in knowledge: knowledge['instrument_model'] = 'unknown'
+                file_instrument = fileinfo['instrument_model']['name'] or 'unknown'
+                if 'instrument_model' not in knowledge: knowledge['instrument_model'] = file_instrument
+                if 'instrument_models' not in knowledge: knowledge['instrument_models'] = {}
+                if file_instrument not in knowledge['instrument_models']: knowledge['instrument_models'][file_instrument] = 0
+                knowledge['instrument_models'][file_instrument] += 1
                 if knowledge['instrument_model'] == 'unknown':
                     knowledge['instrument_model'] = file_instrument
                 elif knowledge['instrument_model'] == file_instrument:
                     pass
                 else:
                     knowledge['instrument_model'] = 'multiple'
-                    self.log_event('ERROR','MixedInstruments',f"There are multiple instruments in this MS run. Split them.")
+                    self.log_event('ERROR','MultipleInstruments',f"There are multiple instruments in this group of MS runs. Unless they are highly similar, it may be best to separate them.")
             else:
                 knowledge['instrument_model'] = 'unknown'
-                self.log_event('ERROR','UnknownInstrument',f"The instrument was not determined. This should be handled better.")
+                self.log_event('ERROR','MissingInstrument',f"The instrument was not determined. This should be handled better.")
 
             #### Assemble fragmentation type
-            if 'fragmentation_type' not in criteria: criteria['fragmentation_type'] = 'unknown'
-            fragmentation_type = fileinfo['spectra_stats']['fragmentation_type']
-            if criteria['fragmentation_type'] == 'unknown':
-                criteria['fragmentation_type'] = fragmentation_type
-            elif criteria['fragmentation_type'] == fragmentation_type:
-                pass
+            if 'fragmentation_type' in fileinfo['spectra_stats']:
+                fragmentation_type = fileinfo['spectra_stats']['fragmentation_type'] or 'unknown'
+                if 'fragmentation_type' not in criteria: criteria['fragmentation_type'] = fragmentation_type
+                if 'fragmentation_types' not in criteria: criteria['fragmentation_types'] = {}
+                if fragmentation_type not in criteria['fragmentation_types']: criteria['fragmentation_types'][fragmentation_type] = 0
+                criteria['fragmentation_types'][fragmentation_type] += 1
+                if criteria['fragmentation_type'] == 'unknown':
+                    criteria['fragmentation_type'] = fragmentation_type
+                elif criteria['fragmentation_type'] == fragmentation_type:
+                    pass
+                else:
+                    criteria['fragmentation_type'] = 'multiple'
+                    self.log_event('ERROR','MultipleFragTypes',f"There are multiple fragmentation types in this group of MS runs. Unless your search engine can handle this, you should split them.")
             else:
-                criteria['fragmentation_type'] = 'multiple'
-                self.log_event('ERROR','MixedFragTypes',f"There are multiple fragmentation types in this MS run group. Split them.")
+                criteria['fragmentation_type'] = 'unknown'
+                self.log_event('ERROR','MissingFragType',f"The instrufragmentation type was not determined. This should be handled better.")
 
             #### Assemble high_accuracy_precursors
             if 'high_accuracy_precursors' not in criteria: criteria['high_accuracy_precursors'] = 'unknown'
@@ -160,7 +181,7 @@ class MetadataHandler:
                 pass
             else:
                 criteria['high_accuracy_precursors'] = 'multiple'
-                self.log_event('ERROR','MixedFragTypes',f"There are multiple fragmentation types in this MS run group. Split them.")
+                self.log_event('ERROR','MultipleFragTypes',f"There are multiple precursor accuracy types in this group of MS runs. They should probably be separated.")
 
             #### Assemble labeling
             if 'labeling' not in criteria: criteria['labeling'] = 'unknown'
@@ -173,7 +194,7 @@ class MetadataHandler:
             else:
                 if labeling != 'ambiguous':
                     criteria['labeling'] = 'multiple'
-                    self.log_event('ERROR','MixedLabelingTypes',f"There are multiple labeling types in this MS run group. Split them.")
+                    self.log_event('ERROR','MultipleLabelingTypes',f"There are multiple labeling types in this MS run group. Split them.")
 
 
     ####################################################################################################
