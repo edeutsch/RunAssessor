@@ -483,11 +483,41 @@ class MzMLAssessor:
             namespace = ''
 
         #### Create a reference of instruments we know
-        instrument_by_category = { 'pureHCD': [ 'MS:1001911|Q Exactive', 'MS:1002523|Q Exactive HF' ],
-            'variable': [ 'MS:1001910|LTQ Orbitrap Elite', 'MS:1001742|LTQ Orbitrap Velos', 'MS:1000556|LTQ Orbitrap XL',
-                'MS:1000555|LTQ Orbitrap Discovery', 'MS:1002416|Orbitrap Fusion', 'MS:1000449|LTQ Orbitrap',
-                'MS:1000483|Thermo Fisher Scientific instrument model','MS:1000448|LTQ FT', 
-                'MS:1002732|Orbitrap Fusion Lumos' ] }
+        instrument_by_category = {
+            'pureHCD': [
+                'MS:1001911|Q Exactive',
+                'MS:1002526|Q Exactive Plus',
+                'MS:1002523|Q Exactive HF',
+                'MS:1002877|Q Exactive HF-X'
+             ],
+            'ion_trap': [
+                'MS:1000447|LTQ',
+                'MS:1000638|LTQ XL ETD',
+                'MS:1000854|LTQ XL',
+                'MS:1000855|LTQ Velos',
+                'MS:1000856|LTQ Velos ETD',
+                'MS:1000167|LCQ Advantage',
+                'MS:1000168|LCQ Classic',
+                'MS:1000169|LCQ Deca XP Plus',
+                'MS:1000554|LCQ Deca',
+                'MS:1000578|LCQ Fleet'
+             ],
+            'variable': [ 
+                'MS:1000448|LTQ FT', 
+                'MS:1000557|LTQ FT Ultra', 
+                'MS:1000449|LTQ Orbitrap',
+                'MS:1000555|LTQ Orbitrap Discovery', 
+                'MS:1000556|LTQ Orbitrap XL',
+                'MS:1000639|LTQ Orbitrap XL ETD',
+                'MS:1001910|LTQ Orbitrap Elite', 
+                'MS:1001742|LTQ Orbitrap Velos', 
+                'MS:1002835|LTQ Orbitrap Classic', 
+                'MS:1002416|Orbitrap Fusion', 
+                'MS:1002417|Orbitrap Fusion ETD', 
+                'MS:1002732|Orbitrap Fusion Lumos',
+                'MS:1003028|Orbitrap Exploris 480',
+                'MS:1000483|Thermo Fisher Scientific instrument model'
+             ] }
 
         #### Restructure it into a dict by PSI-MS identifier
         instrument_attributes = {}
