@@ -165,7 +165,7 @@ class MzMLAssessor:
                         outfile.write(scan_fragmentation+'\n')
 
         #### If there are no spectra that were saved, then we're done with this file
-        if len(self.composite) == 0:
+        if stats['n_ms2_spectra'] == 0:
             self.log_event('ERROR','NoMS2Scans',f"This mzML file has no MS2 scans. Check file '{self.mzml_file}'")
 
 
