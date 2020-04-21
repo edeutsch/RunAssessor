@@ -12,7 +12,7 @@ import argparse
 import multiprocessing
 import copy
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/../lib")
+sys.path.append(os.path.dirname(os.path.realpath(__file__))+"/../lib")
 from mzML_assessor import MzMLAssessor
 from metadata_handler import MetadataHandler
 
