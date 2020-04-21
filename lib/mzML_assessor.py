@@ -703,7 +703,15 @@ class MzMLAssessor:
                 self.metadata['files'][self.mzml_file]['spectra_stats']['n_HCD_spectra'] <
                 self.metadata['files'][self.mzml_file]['spectra_stats']['n_ms2_spectra'] ):
             n_ms2_spectra = self.metadata['files'][self.mzml_file]['spectra_stats']['n_HCD_spectra']
- 
+
+        #### Determine the fragmentation_type
+        results['fragmentation_type'] = self.metadata['files'][self.mzml_file]['spectra_stats']['fragmentation_type']
+        self.metadata['files'][self.mzml_file]['summary'] = results
+
+        #### If no ROIs were computed, cannot continue
+        if 'ROIs' not in self.metadata['files'][self.mzml_file]:
+            return
+
         for ROI in self.metadata['files'][self.mzml_file]['ROIs']:
             ROIobj = self.metadata['files'][self.mzml_file]['ROIs'][ROI]
             if ROIobj['peak']['assessment']['is_found']:
@@ -731,8 +739,6 @@ class MzMLAssessor:
             else:
                 results['labeling']['call'] = 'ambiguous'
 
-        results['fragmentation_type'] = self.metadata['files'][self.mzml_file]['spectra_stats']['fragmentation_type']
-        self.metadata['files'][self.mzml_file]['summary'] = results
 
 
     ####################################################################################################
