@@ -77,10 +77,10 @@ class PepXmlReader:
                 sequence = psm['search_hit'][0]['peptide']
                 charge = psm['assumed_charge']
                 spectrum_name = psm['spectrum']
-                match = re.search("_(pool\d)_",spectrum_name)
+                match = re.search(r"_(pool\d)_",spectrum_name)
                 if match:
                     pool = match.group(1)
-                match = re.match("(.+)\.\d+\.\d+\.\d+$",spectrum_name)
+                match = re.match(r"(.+)\.\d+\.\d+\.\d+$",spectrum_name)
                 if match:
                     msrun_name = match.group(1)
 

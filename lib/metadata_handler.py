@@ -101,6 +101,8 @@ class MetadataHandler:
             'state': { 'status': 'OK', 'message': 'No problems detected', 'code': 'OK', 'version': 'v0.1' }
         }
 
+        return self.metadata
+
 
     ####################################################################################################
     #### Store study metadata file
