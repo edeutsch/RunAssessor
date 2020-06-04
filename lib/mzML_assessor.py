@@ -516,6 +516,7 @@ class MzMLAssessor:
                 'MS:1002417|Orbitrap Fusion ETD', 
                 'MS:1002732|Orbitrap Fusion Lumos',
                 'MS:1003028|Orbitrap Exploris 480',
+                'MS:1003029|Orbitrap Eclipse',
                 'MS:1000483|Thermo Fisher Scientific instrument model'
              ] }
 
