@@ -1,0 +1,19 @@
+
+Notes developing RunAssessor et al.
+
+Overview of files:
+
+Old RunAssessor files:
+- metadata_handler.py		- RunAssessor related. Handles study metadata files. infers search criteria
+- mzML_assessor.py		- RunAssessor really. Haven't touched a while. Some methods stale perhaps
+
+New SpectrumAnnotator:
+- mass_reference.py		- Quite modern: to do: organize a bit better. Can parse chem formulas now
+- peptidoform.py		- Over simple peptidoform class. Should be merged with USI peptidoforms
+- spectrum_annotator.py		- Quite modern spectrum annotator. Has the most modern methods
+- spectrum.py			- Modernish general spectrum class. Basic data. can fetch. opposite spectralLibraries spectrum.py
+
+
+- pepXMLreader.py		- Unrelated pepXML reader plopped here
+- spectrum_processor.py		- My de novo engine. Has grown stale against spectrum_annotator. Update it!
+
