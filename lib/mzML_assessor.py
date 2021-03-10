@@ -485,8 +485,10 @@ class MzMLAssessor:
         #### Create a reference of instruments we know
         instrument_by_category = {
             'pureHCD': [
+                'MS:1000649|Exactive',
                 'MS:1001911|Q Exactive',
-                'MS:1002526|Q Exactive Plus',
+                'MS:1002526|Exactive Plus',
+                'MS:1002634|Q Exactive Plus',
                 'MS:1002523|Q Exactive HF',
                 'MS:1002877|Q Exactive HF-X'
              ],
