@@ -112,7 +112,7 @@ class MzMLAssessor:
                         self.parse_filter_string(filter_string,stats)
 
                     #### If the ms level is greater than 2, fail
-                    if spectrum['ms level'] > 2:
+                    if spectrum['ms level'] > 4:
                         self.log_event('ERROR','MSnTooHigh',f"MS level is greater than we can handle at '{spectrum['ms level']}'")
                         break
 
@@ -519,7 +519,8 @@ class MzMLAssessor:
                 'MS:1002732|Orbitrap Fusion Lumos',
                 'MS:1003028|Orbitrap Exploris 480',
                 'MS:1003029|Orbitrap Eclipse',
-                'MS:1000483|Thermo Fisher Scientific instrument model'
+                'MS:1000483|Thermo Fisher Scientific instrument model',
+                'MS:1000126|Waters instrument model'
              ] }
 
         #### Restructure it into a dict by PSI-MS identifier
