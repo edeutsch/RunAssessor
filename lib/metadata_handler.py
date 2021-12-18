@@ -88,6 +88,7 @@ class MetadataHandler:
             'files': {},
             'knowledge': {},
             'search_criteria': {},
+            'spectra_stats': {},
             'problems': {
                 'warnings': {
                     'count': 0,
@@ -120,6 +121,7 @@ class MetadataHandler:
         #### Short handle for the search criteria information
         criteria = self.metadata['search_criteria']
         knowledge = self.metadata['knowledge']
+        spectra_stats = self.metadata['spectra_stats']
         verbose = self.verbose
         if verbose >= 1: eprint("INFO: Inferring search criteria from the available information")
 
@@ -199,6 +201,15 @@ class MetadataHandler:
                     if labeling != 'ambiguous':
                         criteria['labeling'] = 'multiple'
                         self.log_event('ERROR','MultipleLabelingTypes',f"There are multiple labeling types in this MS run group. Split them.")
+
+
+            #### Roll up the spectra counts
+            if 'spectra_stats' in fileinfo:
+                for key,value in fileinfo['spectra_stats'].items():
+                    if key.startswith('n_'):
+                        if key not in spectra_stats:
+                            spectra_stats[key] = 0
+                        spectra_stats[key] += value
 
 
     ####################################################################################################
