@@ -78,7 +78,7 @@ class MzMLAssessor:
             'n_LR_EThcD_spectra': 0,
             'n_HR_ETciD_spectra': 0,
             'n_LR_ETciD_spectra': 0,
-            'n_HR_TOF_spectra': 0,
+            'n_HR_QTOF_spectra': 0,
             'high_accuracy_precursors': 'unknown',
             'fragmentation_type': 'unknown',
             'fragmentation_tag': 'unknown'
@@ -124,12 +124,12 @@ class MzMLAssessor:
                     #### There's only a filter string for Thermo data, so for others, record a subset of information
                     else:
                         stats[f"n_ms{spectrum['ms level']}_spectra"] += 1
-                        if self.metadata['files'][self.mzml_file]['instrument_model']['category'] == 'TOF':
+                        if self.metadata['files'][self.mzml_file]['instrument_model']['category'] == 'QTOF':
                             stats['high_accuracy_precursors'] = 'true'
-                            stats['fragmentation_type'] = 'HR_TOF'
-                            stats['fragmentation_tag'] = 'HR TOF'
+                            stats['fragmentation_type'] = 'HR_QTOF'
+                            stats['fragmentation_tag'] = 'HR QTOF'
                             if spectrum['ms level'] > 1:
-                                stats['n_HR_TOF_spectra'] += 1
+                                stats['n_HR_QTOF_spectra'] += 1
 
                     #### If the ms level is greater than 2, fail
                     if spectrum['ms level'] > 4:
@@ -562,7 +562,7 @@ class MzMLAssessor:
                 'MS:1003029|Orbitrap Eclipse',
                 'MS:1000483|Thermo Fisher Scientific instrument model'
             ],
-            'TOF': [
+            'QTOF': [
                 'MS:1000126|Waters instrument model',
                 'MS:1000122|Bruker Daltonics instrument model'
             ]
