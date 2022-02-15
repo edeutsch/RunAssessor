@@ -61,7 +61,13 @@ class MzMLAssessor:
 
         #### Set up information
         t0 = timeit.default_timer()
-        stats = { 'n_spectra': 0, 'n_ms1_spectra': 0, 'n_ms2_spectra': 0,
+        stats = {
+            'n_spectra': 0,
+            'n_ms1_spectra': 0,
+            'n_ms2_spectra': 0,
+            'n_ms3_spectra': 0,
+            'n_length_zero_spectra': 0,
+            'n_length_lt6_spectra': 0,
             'n_HR_HCD_spectra': 0,
             'n_LR_HCD_spectra': 0,
             'n_HR_IT_CID_spectra': 0,
@@ -111,6 +117,10 @@ class MzMLAssessor:
                         filter_string = spectrum['scanList']['scan'][0]['filter string']
                         self.parse_filter_string(filter_string,stats)
 
+                    #### There's only a filter string for Thermo data, so for others, record a subset of information
+                    else:
+                        stats[f"n_ms{spectrum['ms level']}_spectra"] += 1
+
                     #### If the ms level is greater than 2, fail
                     if spectrum['ms level'] > 4:
                         self.log_event('ERROR','MSnTooHigh',f"MS level is greater than we can handle at '{spectrum['ms level']}'")
@@ -121,6 +131,13 @@ class MzMLAssessor:
                         precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
                         #self.add_spectrum(spectrum,spectrum_type,precursor_mz)
                         peaklist = { 'm/z array': spectrum['m/z array'], 'intensity array': spectrum['intensity array'] }
+
+                        #### Check for zero length and very sparse spectra
+                        if len(spectrum['m/z array']) == 0:
+                            stats['n_length_zero_spectra'] += 1
+                        if len(spectrum['m/z array']) < 6:
+                            stats['n_length_lt6_spectra'] += 1
+
                         #spectra.append([stats,precursor_mz,peaklist])
                         self.add_spectrum([stats,precursor_mz,peaklist])
 
@@ -451,6 +468,9 @@ class MzMLAssessor:
         buffer = ''
         counter = 0
 
+        #### Keep a dict of random recognized things
+        recognized_things = {}
+
         #### Read line by line
         for line in infile:
 
@@ -458,13 +478,21 @@ class MzMLAssessor:
                 line = str(line, 'utf-8', 'ignore')
 
             #### Completely skip the <indexedmzML> tag if present
-            match = re.search('<indexedmzML ',line)
-            if match: continue
+            if '<indexedmzML ' in line:
+                continue
 
             #### Look for first tag after the header and end when found
-            match = re.search('<run ',line)
-            if match: break
-            if counter > 0: buffer += line
+            if '<run ' in line:
+                break
+
+            #### Look for some known artificts that are useful to record
+            if 'softwareRef="tdf2mzml"' in line:
+                recognized_things['converted with tdf2mzml'] = True
+                recognized_things['likely a timsTOF'] = True
+
+            #### Update the buffer and counter
+            if counter > 0:
+                buffer += line
             counter += 1
 
         #### Close file and process the XML in the buffer
@@ -491,7 +519,7 @@ class MzMLAssessor:
                 'MS:1002634|Q Exactive Plus',
                 'MS:1002523|Q Exactive HF',
                 'MS:1002877|Q Exactive HF-X'
-             ],
+            ],
             'ion_trap': [
                 'MS:1000447|LTQ',
                 'MS:1000638|LTQ XL ETD',
@@ -503,7 +531,7 @@ class MzMLAssessor:
                 'MS:1000169|LCQ Deca XP Plus',
                 'MS:1000554|LCQ Deca',
                 'MS:1000578|LCQ Fleet'
-             ],
+            ],
             'variable': [ 
                 'MS:1000448|LTQ FT', 
                 'MS:1000557|LTQ FT Ultra', 
@@ -519,9 +547,13 @@ class MzMLAssessor:
                 'MS:1002732|Orbitrap Fusion Lumos',
                 'MS:1003028|Orbitrap Exploris 480',
                 'MS:1003029|Orbitrap Eclipse',
-                'MS:1000483|Thermo Fisher Scientific instrument model',
-                'MS:1000126|Waters instrument model'
-             ] }
+                'MS:1000483|Thermo Fisher Scientific instrument model'
+            ],
+            'TOF': [
+                'MS:1000126|Waters instrument model',
+                'MS:1000122|Bruker Daltonics instrument model'
+            ]
+        }
 
         #### Restructure it into a dict by PSI-MS identifier
         instrument_attributes = {}
