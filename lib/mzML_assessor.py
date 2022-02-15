@@ -78,7 +78,10 @@ class MzMLAssessor:
             'n_LR_EThcD_spectra': 0,
             'n_HR_ETciD_spectra': 0,
             'n_LR_ETciD_spectra': 0,
-            'high_accuracy_precursors': 'unknown', 'fragmentation_type': 'unknown', 'fragmentation_tag': 'unknown' }
+            'high_accuracy_precursors': 'unknown',
+            'fragmentation_type': 'unknown',
+            'fragmentation_tag': 'unknown'
+        }
         self.metadata['files'][self.mzml_file]['spectra_stats'] = stats
 
         #### Store the fragmentation types in a list for storing in the fragmentation_type_file
@@ -120,6 +123,10 @@ class MzMLAssessor:
                     #### There's only a filter string for Thermo data, so for others, record a subset of information
                     else:
                         stats[f"n_ms{spectrum['ms level']}_spectra"] += 1
+                        if self.metadata['files'][self.mzml_file]['instrument_model']['category'] == 'TOF':
+                            stats['high_accuracy_precursors'] = 'true'
+                            stats['fragmentation_type'] = 'HR_TOF'
+                            stats['fragmentation_tag'] = 'HR TOF'
 
                     #### If the ms level is greater than 2, fail
                     if spectrum['ms level'] > 4:
@@ -569,7 +576,13 @@ class MzMLAssessor:
             accession = cv_param.get('accession')
             if accession in instrument_attributes:
                 #### Store the attributes about this instrument model
-                model_data = { 'accession': accession, 'name': instrument_attributes[accession]['name'], 'category': instrument_attributes[accession]['category'] }
+                model_data = {
+                    'accession': accession,
+                    'name': instrument_attributes[accession]['name'],
+                    'category': instrument_attributes[accession]['category']
+                }
+                if 'likely a timsTOF' in recognized_things:
+                    model_data['inferred_name'] = 'timsTOF'
                 self.metadata['files'][self.mzml_file]['instrument_model'] = model_data
                 found_instrument = 1
 
