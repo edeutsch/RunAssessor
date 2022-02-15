@@ -78,6 +78,7 @@ class MzMLAssessor:
             'n_LR_EThcD_spectra': 0,
             'n_HR_ETciD_spectra': 0,
             'n_LR_ETciD_spectra': 0,
+            'n_HR_TOF_spectra': 0,
             'high_accuracy_precursors': 'unknown',
             'fragmentation_type': 'unknown',
             'fragmentation_tag': 'unknown'
@@ -127,6 +128,8 @@ class MzMLAssessor:
                             stats['high_accuracy_precursors'] = 'true'
                             stats['fragmentation_type'] = 'HR_TOF'
                             stats['fragmentation_tag'] = 'HR TOF'
+                            if spectrum['ms level'] > 1:
+                                stats['n_HR_TOF_spectra'] += 1
 
                     #### If the ms level is greater than 2, fail
                     if spectrum['ms level'] > 4:
@@ -137,7 +140,10 @@ class MzMLAssessor:
                     if spectrum['ms level'] == 2 and 'm/z array' in spectrum:
                         precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
                         #self.add_spectrum(spectrum,spectrum_type,precursor_mz)
-                        peaklist = { 'm/z array': spectrum['m/z array'], 'intensity array': spectrum['intensity array'] }
+                        peaklist = {
+                            'm/z array': spectrum['m/z array'],
+                            'intensity array': spectrum['intensity array']
+                        }
 
                         #### Check for zero length and very sparse spectra
                         if len(spectrum['m/z array']) == 0:
