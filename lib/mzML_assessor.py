@@ -94,8 +94,7 @@ class MzMLAssessor:
             progress_intro = False
 
         #### If the mzML is gzipped, then open with zlib, else a plain open
-        match = re.search(r'\.gz$',self.mzml_file)
-        if match:
+        if self.mzml_file.endswith('.gz'):
             infile = gzip.open(self.mzml_file)
         else:
             infile = open(self.mzml_file, 'rb')
@@ -139,6 +138,16 @@ class MzMLAssessor:
                     #### If the ms level is 2, then examine it for information
                     if spectrum['ms level'] == 2 and 'm/z array' in spectrum:
                         precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
+                        #### Try to get the charge information
+                        try:
+                            charge_state = int(spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['charge state'])
+                        except:
+                            charge_state = 'unknown'
+                        charge_stat = f"n_charge_{charge_state}_precursors"
+                        if charge_stat not in stats:
+                            stats[charge_stat] = 0
+                        stats[charge_stat] += 1
+
                         #self.add_spectrum(spectrum,spectrum_type,precursor_mz)
                         peaklist = {
                             'm/z array': spectrum['m/z array'],
