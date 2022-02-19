@@ -63,11 +63,12 @@ class MzMLAssessor:
         t0 = timeit.default_timer()
         stats = {
             'n_spectra': 0,
+            'n_ms0_spectra': 0,
             'n_ms1_spectra': 0,
             'n_ms2_spectra': 0,
             'n_ms3_spectra': 0,
             'n_length_zero_spectra': 0,
-            'n_length_lt6_spectra': 0,
+            'n_length_lt10_spectra': 0,
             'n_HR_HCD_spectra': 0,
             'n_LR_HCD_spectra': 0,
             'n_HR_IT_CID_spectra': 0,
@@ -104,12 +105,18 @@ class MzMLAssessor:
 
         #### Read spectra from the file
         with mzml.read(infile) as reader:
-            try:
+            #try:
+            if True:
                 for spectrum in reader:
 
                     #### Debugging. Print the data structure of the first spectrum
                     #if stats['n_spectra'] == 0:
                     #    auxiliary.print_tree(spectrum)
+
+                    try:
+                        ms_level = spectrum['ms level']
+                    except:
+                        ms_level = 0
 
                     #### Set a default spectrum type
                     #spectrum_type = 'default'
@@ -122,21 +129,21 @@ class MzMLAssessor:
 
                     #### There's only a filter string for Thermo data, so for others, record a subset of information
                     else:
-                        stats[f"n_ms{spectrum['ms level']}_spectra"] += 1
+                        stats[f"n_ms{ms_level}_spectra"] += 1
                         if self.metadata['files'][self.mzml_file]['instrument_model']['category'] == 'QTOF':
                             stats['high_accuracy_precursors'] = 'true'
                             stats['fragmentation_type'] = 'HR_QTOF'
                             stats['fragmentation_tag'] = 'HR QTOF'
-                            if spectrum['ms level'] > 1:
+                            if ms_level > 1:
                                 stats['n_HR_QTOF_spectra'] += 1
 
                     #### If the ms level is greater than 2, fail
-                    if spectrum['ms level'] > 4:
+                    if ms_level > 4:
                         self.log_event('ERROR','MSnTooHigh',f"MS level is greater than we can handle at '{spectrum['ms level']}'")
                         break
 
                     #### If the ms level is 2, then examine it for information
-                    if spectrum['ms level'] == 2 and 'm/z array' in spectrum:
+                    if ms_level == 2 and 'm/z array' in spectrum:
                         precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
                         #### Try to get the charge information
                         try:
@@ -157,8 +164,8 @@ class MzMLAssessor:
                         #### Check for zero length and very sparse spectra
                         if len(spectrum['m/z array']) == 0:
                             stats['n_length_zero_spectra'] += 1
-                        if len(spectrum['m/z array']) < 6:
-                            stats['n_length_lt6_spectra'] += 1
+                        if len(spectrum['m/z array']) < 10:
+                            stats['n_length_lt10_spectra'] += 1
 
                         #spectra.append([stats,precursor_mz,peaklist])
                         self.add_spectrum([stats,precursor_mz,peaklist])
@@ -181,7 +188,8 @@ class MzMLAssessor:
                                 progress_intro = True
                             #eprint(f"{stats['n_spectra']}.. ", end='', flush=True)
                             eprint(".", end='', flush=True)
-            except:
+            #except:
+            else:
                 self.log_event('ERROR','MzMLCorrupt',f"Pyteomics threw an error reading mzML file! File may be corrupt. Check file '{self.mzml_file}'")
 
         infile.close()
@@ -573,7 +581,8 @@ class MzMLAssessor:
             ],
             'QTOF': [
                 'MS:1000126|Waters instrument model',
-                'MS:1000122|Bruker Daltonics instrument model'
+                'MS:1000122|Bruker Daltonics instrument model',
+                'MS:1000121|AB SCIEX instrument model'
             ]
         }
 
@@ -604,6 +613,12 @@ class MzMLAssessor:
         #### If none are an instrument we know about about, ask for help
         if not found_instrument:
             self.log_event('ERROR','UnrecogInstr',f"Did not recognize the instrument. Please teach me about this instrument.")
+            model_data = {
+                'accession': None,
+                'name': 'unknown',
+                'category': 'unknown'
+            }
+            self.metadata['files'][self.mzml_file]['instrument_model'] = model_data
             return
 
 
