@@ -50,6 +50,9 @@ class MzMLAssessor:
         #### Create a place to store our composite spectra for analysis
         self.composite = {}
 
+        #### Create a storage area for referenceable param groups, which are not really handled by pyteomics
+        self.referenceable_param_group_list = {}
+
         #### Set verbosity
         if verbose is None: verbose = 0
         self.verbose = verbose
@@ -112,15 +115,19 @@ class MzMLAssessor:
                     #### Debugging. Print the data structure of the first spectrum
                     #if stats['n_spectra'] == 0:
                     #    auxiliary.print_tree(spectrum)
+                    #    print(spectrum)
+                    #    return
 
+                    #### Extract the MS level of the spectrum
                     try:
                         ms_level = spectrum['ms level']
+                    #### If no MS level is found, see if it can be extracted from a referenceable param group
                     except:
                         ms_level = 0
-
-                    #### Set a default spectrum type
-                    #spectrum_type = 'default'
-                    filter_string = None
+                        if 'ref' in spectrum:
+                            group_id = spectrum['ref']
+                            if group_id in self.referenceable_param_group_list and 'ms level' in self.referenceable_param_group_list[group_id]:
+                                ms_level = int(self.referenceable_param_group_list[group_id]['ms level'])
 
                     #### Look for a filter string and parse it
                     if 'filter string' in spectrum['scanList']['scan'][0]:
@@ -620,6 +627,18 @@ class MzMLAssessor:
             }
             self.metadata['files'][self.mzml_file]['instrument_model'] = model_data
             return
+
+
+        #### Read and store the referenceable param groups
+        referenceable_param_group_list = xmlroot.findall(f'.//{namespace}referenceableParamGroup')
+        for referenceable_param_group in referenceable_param_group_list:
+            group_id = referenceable_param_group.get('id')
+            self.referenceable_param_group_list[group_id] = {}
+            for subelement in list(referenceable_param_group):
+                name = subelement.get('name')
+                value = subelement.get('value')
+                self.referenceable_param_group_list[group_id][name] = value
+
 
 
     ####################################################################################################
