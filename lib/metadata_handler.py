@@ -174,7 +174,7 @@ class MetadataHandler:
                     self.log_event('ERROR','MultipleFragTypes',f"There are multiple fragmentation types in this group of MS runs. Unless your search engine can handle this, you should split them.")
             else:
                 criteria['fragmentation_type'] = 'unknown'
-                self.log_event('ERROR','MissingFragType',f"The instrufragmentation type was not determined. This should be handled better.")
+                self.log_event('ERROR','MissingFragType',f"The fragmentation type was not determined. This should be handled better.")
 
             #### Assemble high_accuracy_precursors
             if 'high_accuracy_precursors' not in criteria: criteria['high_accuracy_precursors'] = 'unknown'
