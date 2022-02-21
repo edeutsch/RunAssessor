@@ -79,7 +79,7 @@ def main():
 
     #### Now process the jobs in parallel
     n_threads = params.n_threads or multiprocessing.cpu_count()
-    eprint(f"Processing files with n_threads={n_threads}", end='', flush=True)
+    eprint(f"Processing files with n_threads={n_threads} (one mzML per thread)", end='', flush=True)
     pool = multiprocessing.Pool(processes=n_threads)
     results = pool.map_async(process_job, jobs)
     #results = pool.map(process_job, jobs)
