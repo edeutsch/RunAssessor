@@ -223,7 +223,8 @@ def main():
     log_file_handle = open(params.output_filename+'.log', 'w')
 
     print(f"INFO: Opening {params.output_filename} for writing")
-    MyMzMLTransformer(infile, outfile, scan_information=reader.scans, log_file_handle=log_file_handle).write()
+    MyMzMLTransformer(infile, outfile, scan_information=reader.scans, log_file_handle=log_file_handle,
+        transform_description='Transfer Monocle precursor refinements to proper mzML').write()
 
 
 #### For command line usage
