@@ -132,10 +132,12 @@ class MonocleReader:
 
                     #### If the ms level is 2, then examine it for information
                     if ms_level == 2 and 'm/z array' in spectrum:
-                        #precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['isolation window target m/z']
-                        #charge_state = int(spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['possible charge state'])
-                        precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
-                        charge_state = int(spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['charge state'])
+                        #### Monocle outputs the wrong terms
+                        #precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
+                        #charge_state = int(spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['charge state'])
+                        precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['isolation window target m/z']
+                        charge_state = int(spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['possible charge state'])
+
                         charge_stat = f"n_charge_{charge_state}_precursors"
                         if charge_stat not in stats:
                             stats[charge_stat] = 0
