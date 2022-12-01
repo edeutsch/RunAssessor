@@ -48,6 +48,10 @@ class MyMzMLTransformer(MzMLTransformer):
             previous_charge = new_spectrum['precursor_information'][0]['charge']
             new_precursor = self.scan_information[scan_number]['precursor_mz']
             new_charge = self.scan_information[scan_number]['charge_state']
+
+            new_spectrum['precursor_information'][0]['mz'] = new_precursor
+            new_spectrum['precursor_information'][0]['charge'] = new_charge
+
             print(f"{scan_number:6d}\t{previous_precursor_mz:10.4f}\t{previous_charge}\t{new_precursor:10.4f}\t" +
                 f"{new_charge}\t{float(new_precursor)-float(previous_precursor_mz):10.4f}\t{int(new_charge)-int(previous_charge):2d}",file=self.log_file_handle )
             #print(self.scan_information[scan_number])
