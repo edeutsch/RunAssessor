@@ -203,6 +203,19 @@ class MetadataHandler:
                         self.log_event('ERROR','MultipleLabelingTypes',f"There are multiple labeling types in this MS run group. Split them.")
 
 
+            #### Review the acquisition types
+            if 'acquisition_type' not in criteria:
+                criteria['acquisition_type'] = 'unknown'
+            acquisition_type = fileinfo['spectra_stats']['acquisition_type']
+            if criteria['acquisition_type'] == 'unknown':
+                criteria['acquisition_type'] = acquisition_type
+            elif criteria['acquisition_type'] == acquisition_type:
+                pass
+            else:
+                criteria['acquisition_type'] = 'multiple'
+                self.log_event('ERROR','MultipleAcquisitionTypes',f"There are multiple acquisition types in this group of MS runs. They should probably be separated.")
+
+
             #### Roll up the spectra counts
             if 'spectra_stats' in fileinfo:
                 for key,value in fileinfo['spectra_stats'].items():

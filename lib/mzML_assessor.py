@@ -162,6 +162,9 @@ class MzMLAssessor:
                             stats[charge_stat] = 0
                         stats[charge_stat] += 1
 
+                        #### Extract the isolation window information
+                        self.record_isolation_window_stats(spectrum, stats)
+
                         #self.add_spectrum(spectrum,spectrum_type,precursor_mz)
                         peaklist = {
                             'm/z array': spectrum['m/z array'],
@@ -222,6 +225,25 @@ class MzMLAssessor:
         if stats['n_ms2_spectra'] == 0:
             self.log_event('ERROR','NoMS2Scans',f"This mzML file has no MS2 scans. Check file '{self.mzml_file}'")
 
+        #### Try to distinguish DDA vs DIA
+        if 'isolation_window_full_widths' in stats:
+            smallest_window = 999999
+            largest_window = 0
+            for window_size in stats['isolation_window_full_widths']:
+                window_size = float(window_size)
+                if  window_size < smallest_window:
+                    smallest_window = window_size
+                if window_size > largest_window:
+                    largest_window = window_size
+            if largest_window <= 3.0:
+                stats['acquisition_type'] = 'DDA'
+            elif largest_window >= 15.0:
+                stats['acquisition_type'] = 'DIA'
+            else:
+                stats['acquisition_type'] = 'ambiguous'
+        else:
+            stats['acquisition_type'] = 'unknown'
+
 
         #### Now that we've read anything, try to process the data multithreaded
         #n_threads = 8
@@ -240,6 +262,28 @@ class MzMLAssessor:
         #### Print final timing information
         t1 = timeit.default_timer()
         print(f"\nINFO: Read {stats['n_spectra']} spectra from {self.mzml_file} in {int(t1-t0)} sec ({stats['n_spectra']/(t1-t0)} spectra per sec)", end='', flush=True)
+
+
+    ####################################################################################################
+    #### Record the isolation window information
+    def record_isolation_window_stats(self, spectrum, stats):
+        isolation_window_target_mz = None
+        isolation_window_lower_offset = None
+        isolation_window_upper_offset = None
+        try:
+            isolation_window_target_mz = spectrum['precursorList']['precursor'][0]['isolationWindow']['isolation window target m/z']
+            isolation_window_lower_offset = spectrum['precursorList']['precursor'][0]['isolationWindow']['isolation window lower offset']
+            isolation_window_upper_offset = spectrum['precursorList']['precursor'][0]['isolationWindow']['isolation window upper offset']
+        except:
+            # Cannot get the isolation window information. oh well
+            pass
+        if 'isolation_window_full_widths' not in stats:
+            stats['isolation_window_full_widths'] = {}
+        if isolation_window_lower_offset is not None and isolation_window_upper_offset is not None:
+            full_width = isolation_window_lower_offset + isolation_window_upper_offset
+            if full_width not in stats['isolation_window_full_widths']:
+                stats['isolation_window_full_widths'][full_width] = 0
+            stats['isolation_window_full_widths'][full_width] += 1
 
 
     ####################################################################################################
