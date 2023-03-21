@@ -637,6 +637,20 @@ class MzMLAssessor:
             ]
         }
 
+        #### Some special cases to look out for
+        special_cases = {
+            'MS:1000566': {
+                'exact_name': 'ISB mzXML format',
+                'rank': '5',
+                'category': 'unknown',
+                'final_name': 'Conversion to mzML from mzXML from unknown instrument' },
+            'MS:1000562': {
+                'exact_name': 'ABI WIFF format',
+                'rank': '2',
+                'category': 'QTOF',
+                'final_name': 'SCIEX instrument model' }
+        }
+
         #### Restructure it into a dict by PSI-MS identifier
         instrument_attributes = {}
         for instrument_category in instrument_by_category:
@@ -647,6 +661,7 @@ class MzMLAssessor:
         #### Get all the CV params in the header and look for ones we know about
         cv_params = xmlroot.findall(f'.//{namespace}cvParam')
         found_instrument = 0
+        model_data = None
         for cv_param in cv_params:
             accession = cv_param.get('accession')
             if accession in instrument_attributes:
@@ -654,12 +669,25 @@ class MzMLAssessor:
                 model_data = {
                     'accession': accession,
                     'name': instrument_attributes[accession]['name'],
-                    'category': instrument_attributes[accession]['category']
+                    'category': instrument_attributes[accession]['category'],
+                    'rank': '1'
                 }
                 if 'likely a timsTOF' in recognized_things:
                     model_data['inferred_name'] = 'timsTOF'
                 self.metadata['files'][self.mzml_file]['instrument_model'] = model_data
                 found_instrument = 1
+
+            #### Handle some special cases
+            if accession in special_cases:
+                if model_data is None or special_cases[accession]['rank'] < model_data['rank']:
+                    model_data = {
+                        'accession': accession,
+                        'name': special_cases[accession]['final_name'],
+                        'category': special_cases[accession]['category'],
+                        'rank': special_cases[accession]['rank']
+                    }
+                    self.metadata['files'][self.mzml_file]['instrument_model'] = model_data
+                    found_instrument = 1
 
         #### If none are an instrument we know about about, ask for help
         if not found_instrument:
