@@ -24,6 +24,7 @@ class Peptidoform:
 
         self.nterm = { 'string': '' }
         self.cterm = { 'string': '' }
+        self.unlocalized_mods = []
         self.residues = []
         self.stripped_sequence = ''
 
@@ -39,6 +40,7 @@ class Peptidoform:
 
         self.nterm = { 'string': '', 'name': '' }
         self.cterm = { 'string': '', 'name': '' }
+        self.unlocalized_mods = []
         self.residues = []
 
         # Use the passed peptidoform_string or else the previously supplied one or return None
@@ -50,7 +52,19 @@ class Peptidoform:
         else:
             simplified_string = peptidoform_string
             self.peptidoform_string = peptidoform_string
-        
+
+        # Identify and strip labile or unlocalized components
+        done = False
+        while not done:
+            match = re.match(r'({.+?})',simplified_string)
+            if match:
+                unlocalized_mod = match.group(1)
+                self.unlocalized_mods.append( { 'string': unlocalized_mod, 'name': unlocalized_mod[1:-1] } )
+                simplified_string = simplified_string[len(unlocalized_mod):]
+            else:
+                done = True
+
+
         # Identify and strip N terminal components
         match = re.match(r'n-',simplified_string)
         if match:
@@ -103,6 +117,8 @@ class Peptidoform:
 
         buf = ''
         buf += f"Peptidoform_string={self.peptidoform_string}\n"
+        for mod in self.unlocalized_mods:
+            buf += f"unlocalized: {mod['string']}\n"
         buf += f"   n: {self.nterm['string']}\n"
         for residue in self.residues:
             buf += '  ' + '{:2d}'.format(residue['index']) + f": {residue['string']}\n"
@@ -128,7 +144,8 @@ def main():
     # If there are supplied peptidoform strings, use those, else set a default example
     peptidoform_strings_list = params.peptidoform_string
     if len(peptidoform_strings_list) == 0:
-        peptidoform_strings_list = [ 'SNACK', 'n-GQEY[phospho]LLLEK-c', '[Acetyl]-GQEY[phospho]LLSWLEK-c' ]
+        peptidoform_strings_list = [ 'SNACK', 'n-GQEY[phospho]LLLEK-c', '[Acetyl]-GQEY[phospho]LLSWLEK-c', '{Phospho}HANGRYISHM[Oxidation]ACK',
+                                     'DINNE[+27.9949]R' ]
 
     #### Loop over all the peptidoform strings and decompose them
     for peptidoform_string in peptidoform_strings_list:
