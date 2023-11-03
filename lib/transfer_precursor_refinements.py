@@ -18,7 +18,7 @@ def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 
 ####################################################################################################
-class MyMzMLTransformer(MzMLTransformer):
+class CustomMzMLTransformer(MzMLTransformer):
     def __init__(self, input_stream, output_stream, transform=None, transform_description=None,
                  sort_by_scan_time=False, scan_information=None, log_file_handle=None):
         super().__init__(input_stream, output_stream, transform=transform, transform_description=transform_description,
@@ -53,15 +53,94 @@ class MyMzMLTransformer(MzMLTransformer):
             new_spectrum['precursor_information'][0]['charge'] = new_charge
 
             print(f"{scan_number:6d}\t{previous_precursor_mz:10.4f}\t{previous_charge:2d}\t{new_precursor:10.4f}\t" +
-                f"{new_charge:2d}\t{float(new_precursor)-float(previous_precursor_mz):10.4f}\t{int(new_charge)-int(previous_charge):2d}",file=self.log_file_handle )
+                f"{new_charge:2d}\t{float(new_precursor)-float(previous_precursor_mz):10.4f}\t{int(new_charge)-int(previous_charge):2d}", file=self.log_file_handle )
             #print(self.scan_information[scan_number])
 
         return new_spectrum
 
 
+
+
 ####################################################################################################
-#### mzML Assessor class
-class MonocleReader:
+#### Monocle CSV Reader class reads a Monocle CSV and extracts the precursor m/z values and charge values
+class MonocleCsvReader:
+
+
+    ####################################################################################################
+    #### Constructor
+    def __init__(self, csv_file, verbose=None):
+
+        self.csv_file = csv_file
+
+        #### General stats
+        self.stats = {}
+
+        #### Information about each scan
+        self.scans = {}
+
+        #### Set verbosity
+        if verbose is None: verbose = 0
+        self.verbose = verbose
+
+
+    ####################################################################################################
+    #### Read spectra
+    def read_spectra(self):
+
+        #### Set up information
+        t0 = timeit.default_timer()
+        stats = {
+            'n_spectra': 0,
+            'n_ms0_spectra': 0,
+            'n_ms1_spectra': 0,
+            'n_ms2_spectra': 0,
+            'n_ms3_spectra': 0,
+            'n_length_zero_spectra': 0
+        }
+        self.stats = stats
+
+        #### Show information
+        if self.verbose >= 1:
+            eprint(f"INFO: Reading Monocle CSV file {self.mzml_file}")
+
+        #### Read spectra from the file
+        with open(self.csv_file) as infile:
+            for line in infile:
+
+                columns = line.strip().split(',')
+
+                #### Extract the MS level of the spectrum
+                scan_number = columns[0]
+                ms_level = columns[1]
+                ms_level_stat = f"n_ms{ms_level}_spectra"
+                stats[ms_level_stat] += 1
+
+                precursor_mz = float(columns[2])
+                charge_state = int(columns[4])
+
+                charge_stat = f"n_charge_{charge_state}_precursors"
+                if charge_stat not in stats:
+                    stats[charge_stat] = 0
+                stats[charge_stat] += 1
+
+                #### Store the supplied precursor_ms and charge state in the cache
+                self.scans[scan_number] = {'precursor_mz': precursor_mz, 'charge_state': charge_state }
+
+                #### Update counters
+                stats['n_spectra'] += 1
+
+        infile.close()
+
+        #### Print final timing information
+        t1 = timeit.default_timer()
+        print(f"INFO: Read {stats['n_spectra']} spectra from {self.csv_file} in {int(t1-t0)} sec ({stats['n_spectra']/(t1-t0)} spectra per sec)")
+
+
+
+
+####################################################################################################
+#### Monocle mzML Reader class reads an mzML and extracts the precursor m/z values and charge values
+class MonocleMzmlReader:
 
 
     ####################################################################################################
@@ -183,7 +262,7 @@ def main():
     argparser = argparse.ArgumentParser(description='Read and write an mzML file')
     argparser.add_argument('--verbose', action='count', help='If set, print more information about ongoing processing' )
     argparser.add_argument('--input_filename', type=str, action='store', required=True, help='Name of the input ThermoRawFileParser mzML file')
-    argparser.add_argument('--monocle_filename', type=str, action='store', required=True, help='Name of the Monocle mzML output from which to get precursor information')
+    argparser.add_argument('--monocle_filename', type=str, action='store', required=True, help='Name of the Monocle csv or mzML output from which to get precursor information')
     argparser.add_argument('--output_filename', type=str, action='store', required=True, help='Name of the output mzML based on the TRFP mzML but with Monocle precursor information')
     params = argparser.parse_args()
 
@@ -208,12 +287,19 @@ def main():
         print(f"ERROR: --monocle_filename '{params.monocle_filename}' may not be the same as the --input_filename")
         return
 
-    #### Extract the Monocle information
-    reader = MonocleReader(params.monocle_filename, verbose=verbose)
-    reader.read_spectra()
+    #### If the Monocle file is an mzML, read and extract information from that
+    if params.monocle_filename.endswith('.mzML') or params.monocle_filename.endswith('.mzML.gz'):
+        reader = MonocleMzmlReader(params.monocle_filename, verbose=verbose)
+        reader.read_spectra()
+    elif params.monocle_filename.endswith('.csv'):
+        reader = MonocleCsvReader(params.monocle_filename, verbose=verbose)
+        reader.read_spectra()
+    else:
+        print(f"ERROR: Expected Monocle file to have extensions .csv or .mzML or .mzML.gz but '{params.monocle_filename}' does not")
+        return
 
     #### Open in the input file
-    print(f"INFO: Opening {params.input_filename} for reading")
+    print(f"INFO: Opening mzML file '{params.input_filename}' for reading")
     if params.input_filename.endswith('.gz'):
         infile = gzip.open(params.input_filename)
     else:
@@ -229,8 +315,8 @@ def main():
     log_file_handle = open(params.output_filename+'.log', 'w')
 
     print(f"INFO: Opening {params.output_filename} for writing")
-    MyMzMLTransformer(infile, outfile, scan_information=reader.scans, log_file_handle=log_file_handle,
-        transform_description='Transfer Monocle precursor refinements to proper mzML').write()
+    CustomMzMLTransformer(infile, outfile, scan_information=reader.scans, log_file_handle=log_file_handle,
+        transform_description='Transfer Monocle precursor refinements to well-formed mzML').write()
 
 
 #### For command line usage
