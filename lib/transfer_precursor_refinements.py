@@ -339,6 +339,8 @@ def main():
         return
 
     log_file_handle = open(params.output_filename+'.log', 'w')
+    print("scan_number\tprevious_precursor_mz\tprevious_charge\tnew_precursor_mz\t" +
+          "new_charge\tprecursor_mz_delta\tcharge_delta", file=log_file_handle )
 
     print(f"INFO: Opening {params.output_filename} for writing")
     CustomMzMLTransformer(infile, outfile, scan_information=reader.scans, log_file_handle=log_file_handle,
