@@ -16,6 +16,12 @@ from psims.transform.mzml import MzMLTransformer
 
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
+def fmt(obj, formatstr):
+    if obj is None:
+        return ''
+    else:
+        return format(obj, formatstr)
+
 
 ####################################################################################################
 class CustomMzMLTransformer(MzMLTransformer):
@@ -46,15 +52,27 @@ class CustomMzMLTransformer(MzMLTransformer):
             #print(f"scan={scan_number}")
             previous_precursor_mz = new_spectrum['precursor_information'][0]['mz']
             previous_charge = new_spectrum['precursor_information'][0]['charge']
-            new_precursor = self.scan_information[scan_number]['precursor_mz']
-            new_charge = self.scan_information[scan_number]['charge_state']
+            if scan_number in self.scan_information:
+                new_precursor = self.scan_information[scan_number]['precursor_mz']
+                new_charge = self.scan_information[scan_number]['charge_state']
 
-            new_spectrum['precursor_information'][0]['mz'] = new_precursor
-            new_spectrum['precursor_information'][0]['charge'] = new_charge
+                new_spectrum['precursor_information'][0]['mz'] = new_precursor
+                new_spectrum['precursor_information'][0]['charge'] = new_charge
+            else:
+                print(f"WARNING: Did not have recorded updated information for scan {scan_number}")
 
-            print(f"{scan_number:6d}\t{previous_precursor_mz:10.4f}\t{previous_charge:2d}\t{new_precursor:10.4f}\t" +
-                f"{new_charge:2d}\t{float(new_precursor)-float(previous_precursor_mz):10.4f}\t{int(new_charge)-int(previous_charge):2d}", file=self.log_file_handle )
-            #print(self.scan_information[scan_number])
+            #### This fails if the previous_charge is None
+            #print(f"{scan_number:6d}\t{previous_precursor_mz:10.4f}\t{previous_charge:2d}\t{new_precursor:10.4f}\t" +
+            #    f"{new_charge:2d}\t{float(new_precursor)-float(previous_precursor_mz):10.4f}\t{int(new_charge)-int(previous_charge):2d}", file=self.log_file_handle )
+
+            #### Special handling for a charge that is null
+            fixed_previous_charge = previous_charge
+            if previous_charge is None:
+                fixed_previous_charge = 0
+
+            #### Write details of the before and after to the log file
+            print(f"{fmt(scan_number,'6d')}\t{fmt(previous_precursor_mz,'10.4f')}\t{fmt(previous_charge,'2d')}\t{fmt(new_precursor,'10.4f')}\t" +
+                f"{fmt(new_charge,'2d')}\t{fmt(float(new_precursor)-float(previous_precursor_mz),'10.4f')}\t{fmt(int(new_charge)-int(fixed_previous_charge),'2d')}", file=self.log_file_handle )
 
         return new_spectrum
 
@@ -101,17 +119,25 @@ class MonocleCsvReader:
 
         #### Show information
         if self.verbose >= 1:
-            eprint(f"INFO: Reading Monocle CSV file {self.mzml_file}")
+            eprint(f"INFO: Reading Monocle CSV file {self.csv_file}")
 
         #### Read spectra from the file
         with open(self.csv_file) as infile:
+            iline = 0
             for line in infile:
+                iline += 1
+                if iline == 1:
+                    if not line.startswith('scan number,ms level'):
+                        print(f"ERROR: CSV file header line not as expected: {line}")
+                        exit()
+                    else:
+                        continue
 
                 columns = line.strip().split(',')
 
                 #### Extract the MS level of the spectrum
-                scan_number = columns[0]
-                ms_level = columns[1]
+                scan_number = int(columns[0])
+                ms_level = int(columns[1])
                 ms_level_stat = f"n_ms{ms_level}_spectra"
                 stats[ms_level_stat] += 1
 
