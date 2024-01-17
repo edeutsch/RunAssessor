@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 import sys
-def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
-
-#### Import some standard modules
 import os
 import argparse
 import os.path
 import re
 import json
+import numpy
+def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 #sys.path.append("G:\Repositories\GitHub\SpectralLibraries\lib")
 #from universal_spectrum_identifier import UniversalSpectrumIdentifier
@@ -71,6 +70,7 @@ class Spectrum:
         self.peak_index = {}
 
         self.network = {}
+        self.metrics = {}
 
 
     ####################################################################################################
@@ -90,6 +90,9 @@ class Spectrum:
 
         url = f"http://www.peptideatlas.org/api/proxi/v0.1/spectra?resultType=full&usi={usi_string}"
 
+        if usi_string.startswith('http'):
+            url = usi_string
+
         response_content = requests.get(url)
         status_code = response_content.status_code
         if status_code != 200:
@@ -98,7 +101,29 @@ class Spectrum:
             exit()
 
         #### Unpack the response spectrum into internal data
-        proxi_spectrum = response_content.json()
+        if usi_string.startswith('http'):
+            proxi_spectrum = [ { 'mzs': [], 'intensities': [], 'attributes': [] } ]
+            lines = str(response_content.content).split(r'\n')
+            for line in lines:
+                print(line)
+                if line[0] >= '0' and line[0] <= '9':
+                    values = line.split(r'\t')
+                    proxi_spectrum[0]['mzs'].append(values[0])
+                    proxi_spectrum[0]['intensities'].append(values[1])
+                else:
+                    match = re.match(r'CHARGE=(\d+)',line)
+                    if match:
+                        attribute = { 'accession': 'MS:1000041', 'name': 'charge state', 'value': match.group(1) }
+                        proxi_spectrum[0]['attributes'].append(attribute)
+                    match = re.match(r'PEPMASS ([\d\.]+)',line)
+                    if match:
+                        attribute = { 'accession': 'MS:1000827', 'name': 'isolation window target m/z', 'value': match.group(1) }
+                        proxi_spectrum[0]['attributes'].append(attribute)
+
+        else:
+            proxi_spectrum = response_content.json()
+
+
         self.peak_list = []
         n_peaks = len(proxi_spectrum[0]['mzs'])
         for i_peak in range(n_peaks):
@@ -148,10 +173,271 @@ class Spectrum:
             'best_tolerance': 4.0,
             'middle_tolerance': 8.0,
             'outer_tolerance': 12.0,
+#            'best_tolerance': 19.0,
+#            'middle_tolerance': 19.1,
+#            'outer_tolerance': 19.2,
             'max_tolerance': 20.0,
         }
 
         return self
+
+
+    ####################################################################################################
+    #### Fill a spectrum object with a basic set of data elements
+    def fill(self, mzs=None, intensities=None, interpretations=None, precursor_mz=None, charge_state=None, usi_string=None):
+
+        #### Check the input
+        if mzs is None or intensities is None:
+            eprint(f"ERROR: Spectrum.fill is missing mzs or intensities")
+            return
+        if len(mzs) != len(intensities) is None:
+            eprint(f"ERROR: Spectrum.fill: Length of mzs does not match length of intensities")
+            return
+
+        #### Fill the peak list in the correct format
+        self.peak_list = []
+        n_peaks = len(mzs)
+        for i_peak in range(n_peaks):
+
+            # mz should always be there
+            mz = float(mzs[i_peak])
+
+            # Extract the intensity value for the peak
+            intensity = float(intensities[i_peak])
+
+            # Extract the interpretation_string value for the peak if present
+            interpretation_string = '?'
+            if interpretations is not None:
+                interpretation_string = interpretations[i_peak]
+
+            # Current PROXI spectrum doesn't have aggregation information, interpretations as a list or peak attributes,
+            # so just set those to empty
+            aggregation_info = ''
+            peak_interpretations = []
+            attributes = [ 0, 0, 0, 0, -1, 0, 0, 0, 0, 'unexplained' ]
+
+            # Store the peak data as a data list in the peak_list
+            self.peak_list.append( [ i_peak, mz, intensity, interpretation_string, aggregation_info, peak_interpretations, attributes ] )
+
+        # Set up the attribute list from the proided information
+        self.attribute_list = []
+        if precursor_mz is not None:
+            self.attributes['isolation window target m/z'] = float(precursor_mz)
+            self.analytes['1']['precursor_mz'] = float(precursor_mz)
+        if charge_state is not None:
+            self.analytes['1']['charge state'] = int(charge_state)
+
+        # Add a few attributes by key
+        self.attributes['usi'] = usi_string
+        self.attributes['number of peaks'] = n_peaks
+        self.attributes['n_identified_peptide_low_mass_ions'] = 0
+        self.attributes['n_identified_reporter_ions'] = 0
+        self.attributes['mass_accuracy'] = {
+            'offset': 0.0,
+            'siqr': 4.0,
+            'is_optimized': False,
+            'best_tolerance': 4.0,
+            'middle_tolerance': 8.0,
+            'outer_tolerance': 12.0,
+            'max_tolerance': 20.0,
+        }
+
+        return self
+
+
+    ####################################################################################################
+    #### Compute a set of metrics from the spectrum such as SNR and quality score
+    def compute_spectrum_metrics(self):
+
+        spectrum = self
+        n_peaks = spectrum.attributes['number of peaks']
+        precursor_mz = None
+        selection_mz = None
+
+        selection_half_width = 1.5          #### FIXME hardcoded for the moment
+        isobaric_label_mode = 'TMTpro'      #### FIXME hardcoded to TMTpro for the moment
+
+        if 'isolation window target m/z' in spectrum.attributes:
+            precursor_mz = spectrum.attributes['isolation window target m/z']
+            selection_mz = precursor_mz
+            selection_floor_mz = selection_mz - selection_half_width
+            selection_ceiling_mz = selection_mz + selection_half_width
+
+        charge = None
+        if 'charge state' in spectrum.analytes['1']:
+            charge = spectrum.analytes['1']['charge state']
+
+        #### TMT spectra tend to have a lot of junk within p^1 - 180, so just throw all that out
+        #### Probably should only do this in TMT mode, but hard-coded for now. FIXME
+        charge1_precursor_losses_floor = None
+        reporter_ion_floor = None
+        reporter_ion_ceiling = None
+        if isobaric_label_mode.startswith('TMT') and precursor_mz is not None and charge is not None:
+            charge1_precursor_losses_floor = precursor_mz * charge - ( charge - 1) - 180
+            reporter_ion_floor = 126
+            reporter_ion_ceiling = 135.5
+
+        intensity_list = []
+        mz_list = []
+
+        #### Loop through the peaks and create lists
+        for i_peak in range(n_peaks):
+
+            #### Add to the list of all peaks
+            mz = spectrum.peak_list[i_peak][PL_MZ]
+            intensity = spectrum.peak_list[i_peak][PL_INTENSITY]
+            mz_list.append(mz)
+            intensity_list.append(intensity)
+ 
+        #### Convert ms_list to numpy array and compute metrics
+        mz_array = numpy.asarray(mz_list)
+        sorted_array = numpy.sort(mz_array)
+        spectrum.attributes['minimum mz'] = sorted_array[0]
+        spectrum.attributes['maximum mz'] = sorted_array[-1]
+
+        #### Convert intensities list to numpy array and compute metrics
+        intensity_array = numpy.asarray(intensity_list)
+        sorted_array = numpy.sort(intensity_array)
+        if len(intensity_list) >= 10:
+            noise = sorted_array[3]
+            signal = sorted_array[-3]
+        else:
+            index = int(len(intensity_list)/5)
+            noise = sorted_array[index]
+            signal = sorted_array[-1*index]
+
+        spectrum.attributes['minimum intensity'] = sorted_array[0]
+        spectrum.attributes['maximum intensity'] = sorted_array[-1]
+        if spectrum.attributes['maximum intensity'] == 0:
+            spectrum.attributes['maximum intensity'] = 0.01
+
+        #### Prevent division by 0
+        if noise == 0:
+            noise = 0.03
+
+        # Assume that the smallest peaks are signal to noise of 3.0. An arbitrary guess
+        # At least in HCD spectra, the smallest peaks are usually not true noise but can be real signal.
+        # They're the smallest peaks above the noise that the peak-finding algorithm selected presumably
+        # Which might be around S/N of 3 maybe?
+        noise = noise / 3.0
+        signal_to_noise = signal / noise
+
+        spectrum.attributes['noise level'] = noise
+        spectrum.attributes['signal level'] = signal
+        spectrum.attributes['signal to noise level'] = signal_to_noise
+
+        #### Now that we know the noise level, compile per-bin S/N stats
+        stats_per_bin = {}
+        bin_size = 100
+        ibin = 0
+        bin_floor = 0
+        bin_ceiling = bin_floor + bin_size
+
+        informative_peak_intensities_list = []
+
+        for i_peak in range(n_peaks):
+
+            #### All to the list of all peaks
+            mz = spectrum.peak_list[i_peak][PL_MZ]
+            intensity = spectrum.peak_list[i_peak][PL_INTENSITY]
+
+            if precursor_mz is not None and mz > selection_floor_mz and mz < selection_ceiling_mz:
+                continue
+            if charge1_precursor_losses_floor is not None and mz > charge1_precursor_losses_floor:
+                continue
+
+            #### Add to the binned information stats
+            if mz >= bin_ceiling:
+                bin_floor += bin_size
+                bin_ceiling += bin_size
+                ibin += 1
+            if str(ibin) not in stats_per_bin:
+                stats_per_bin[str(ibin)] = { 'bin_floor': bin_floor, 'bin_ceiling': bin_ceiling, 'n_peaks': 0,
+                                       'n_peaks_sn5': 0, 'n_peaks_sn10': 0, 'n_peaks_sn20': 0 }
+            stats_per_bin[str(ibin)]['n_peaks'] += 1
+            for sn_factor in [ 5, 10, 20 ]:
+                if intensity > noise * sn_factor:
+                    stats_per_bin[str(ibin)][f"n_peaks_sn{sn_factor}"] += 1
+
+            #### Add the reporter ion information stats
+            if reporter_ion_floor is not None and mz < reporter_ion_ceiling and mz > reporter_ion_floor:
+                bin_name = 'reporter_ions'
+                if bin_name not in stats_per_bin:
+                    stats_per_bin[bin_name] = { 'bin_floor': reporter_ion_floor, 'bin_ceiling': reporter_ion_ceiling, 'n_peaks': 0,
+                                        'n_peaks_sn10': 0, 'n_peaks_sn30': 0, 'n_peaks_sn100': 0, 'snrs': [] }
+                stats_per_bin[bin_name]['n_peaks'] += 1
+                stats_per_bin[bin_name]['snrs'].append(intensity / noise)
+                for sn_factor in [ 10, 30, 100 ]:
+                    if intensity > noise * sn_factor:
+                        stats_per_bin[bin_name][f"n_peaks_sn{sn_factor}"] += 1
+
+            if ibin >= 2:
+                informative_peak_intensities_list.append(intensity)
+
+        if 'reporter_ions' in stats_per_bin:
+            n_peaks = stats_per_bin['reporter_ions']['n_peaks']
+            median_position = int(n_peaks / 2)
+            snrs_array = numpy.asarray(stats_per_bin[bin_name]['snrs'])
+            sorted_snrs_array = numpy.sort(snrs_array)
+            stats_per_bin['reporter_ions']['median_snr'] = sorted_snrs_array[median_position]
+
+        spectrum.metrics['stats_per_bin'] = stats_per_bin
+
+        informative_peak_intensities_array = numpy.asarray(informative_peak_intensities_list)
+        sorted_informative_peak_intensities_array = numpy.sort(informative_peak_intensities_array)
+        if len(informative_peak_intensities_array) == 0:
+            weighted_snr = 0.0
+        elif len(informative_peak_intensities_array) < 5:
+            weighted_snr = sorted_informative_peak_intensities_array[0] / noise
+        elif len(informative_peak_intensities_array) < 12:
+            weighted_snr = sorted_informative_peak_intensities_array[3] / noise
+        else:
+            weighted_snr = sorted_informative_peak_intensities_array[-10] / noise
+
+        #### Compute a spectrum quality score
+        start_bin = 2
+        end_bin= int(charge1_precursor_losses_floor / 100.0) - 1
+        if end_bin < 6:
+            end_bin = 6
+        if end_bin > 20:
+            end_bin = 20
+        ibin = start_bin
+        quality_score = 0.0
+        while ibin <= end_bin:
+            str_ibin = str(ibin)
+            bin_score = 0.0
+            if str_ibin in stats_per_bin:
+                n_great_peaks = stats_per_bin[str_ibin]['n_peaks_sn20']
+                n_good_peaks = stats_per_bin[str_ibin]['n_peaks_sn10'] - n_great_peaks
+                n_okay_peaks = stats_per_bin[str_ibin]['n_peaks_sn5'] - n_great_peaks - n_good_peaks
+                if n_great_peaks >= 4:
+                    bin_score = 1.0
+                elif n_great_peaks + n_good_peaks >= 4:
+                    bin_score = 0.5 + n_great_peaks * 0.1
+                elif n_great_peaks + n_good_peaks + n_okay_peaks >= 4:
+                    bin_score = 0.2 + n_great_peaks * 0.1 + n_good_peaks * 0.05
+                else:
+                    bin_score = n_great_peaks * 0.1 + n_good_peaks * 0.05 + n_okay_peaks * 0.025
+            quality_score += bin_score
+            #print(f"** For ibin {ibin}, bin_score = {bin_score}")
+            ibin += 1
+        quality_score = quality_score / (ibin - 2) * 100
+        #print(f"** Final score = {quality_score}")
+
+        spectrum.metrics['quality_score'] = quality_score
+        spectrum.metrics['weighted_snr'] = weighted_snr
+        spectrum.metrics['stats_per_bin'] = stats_per_bin
+        spectrum.metrics['isobaric_label_mode'] = isobaric_label_mode
+        spectrum.metrics['precursor_mz'] = precursor_mz
+        spectrum.metrics['selection_mz'] = selection_mz
+        spectrum.metrics['selection_half_width'] = selection_half_width
+        spectrum.metrics['selection_floor_mz'] = selection_floor_mz
+        spectrum.metrics['selection_ceiling_mz'] = selection_ceiling_mz
+        spectrum.metrics['charge1_precursor_losses_floor'] = charge1_precursor_losses_floor
+        spectrum.metrics['reporter_ion_floor'] = reporter_ion_floor
+        spectrum.metrics['reporter_ion_ceiling'] = reporter_ion_ceiling
+
+
 
 
     ####################################################################################################
@@ -161,12 +447,21 @@ class Spectrum:
         buf = ''
         if 'peptidoform sequence' in self.analytes['1']:
             buf += f"peptidoform sequence={self.analytes['1']['peptidoform sequence']}\n"
+
         if 'charge state' in self.analytes['1']:
             buf += f"charge state={self.analytes['1']['charge state']}\n"
-        for attribute,value in self.attributes.items():
-            buf += f"{attribute}={value}\n"
-        if 'psm_score' in self.attributes:
-            print(json.dumps(self.attributes['psm_score'], indent=2, sort_keys=True))
+
+        for attribute_name, value in self.attributes.items():
+            if attribute_name in [ 'psm_score', 'mass_accuracy' ]:
+                continue
+            buf += f"  - {attribute_name}={value}\n"
+
+        for attribute_name in [ 'psm_score', 'mass_accuracy' ]:
+            if attribute_name in self.attributes:
+                buf += f"  - {attribute_name} = " + json.dumps(self.attributes[attribute_name], indent=2, sort_keys=True) + "\n"
+
+        if len(self.metrics) > 0:
+            buf += f"  - {self.metrics} = " + json.dumps(self.metrics, indent=2, sort_keys=True) + "\n"
 
         for peak in self.peak_list:
             i_peak = peak[PL_I_PEAK]
@@ -217,6 +512,7 @@ def main():
 
     spectrum = Spectrum()
     spectrum.fetch_spectrum(usi)
+    spectrum.compute_spectrum_metrics()
     print(spectrum.show())
 
 
