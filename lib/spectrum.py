@@ -489,6 +489,22 @@ class Spectrum:
         return buf
 
 
+    ####################################################################################################
+    #### Get the mzs, intensities, and interpretations
+    def get_peaks(self):
+
+        mzs = []
+        intensities = []
+        interpretations = []
+
+        for peak in self.peak_list:
+            mzs.append(peak[PL_MZ])
+            intensities.append(peak[PL_INTENSITY])
+            interpretations.append(peak[PL_INTERPRETATION_STRING])
+
+        return mzs, intensities, interpretations
+
+
 ####################################################################################################
 #### For command-line usage
 def main():
