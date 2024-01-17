@@ -16,6 +16,10 @@ from scipy.optimize import curve_fit
 from numpy import exp
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
+sys.path.append("C:\local\Repositories\GitHub\SpectralLibraries\lib")
+from proforma_peptidoform import ProformaPeptidoform
+
+
 from peptidoform import Peptidoform
 from mass_reference import MassReference
 from spectrum import Spectrum
@@ -115,14 +119,14 @@ class SpectrumAnnotator:
 
     ####################################################################################################
     #### Annotate a spectrum by calling a series of methods given a peptidoform
-    def annotate(self, spectrum, peptidoform_string, charge):
+    def annotate(self, spectrum, peptidoform, charge):
 
         spectrum.compute_spectrum_metrics()
         self.identify_isotopes(spectrum)
-        self.identify_low_mass_ions(spectrum, peptidoform_string)
+        self.identify_low_mass_ions(spectrum, peptidoform)
         self.identify_reporter_ions(spectrum)
         #self.identify_neutral_losses(spectrum)
-        self.annotate_peptidoform(spectrum, peptidoform_string=peptidoform_string, charge=charge)
+        self.annotate_peptidoform(spectrum, peptidoform=peptidoform, charge=charge)
         self.identify_precursors(spectrum)
         self.analyze_residuals(spectrum)
         self.rescore_interpretations(spectrum)
@@ -132,7 +136,7 @@ class SpectrumAnnotator:
     #### Predict all potential fragment ions for the provided peptidoform
     def predict_fragment_ions(self, peptidoform=None, charge=1, fragmentation_type='HCD', skip_internal_fragments=False):
 
-        # Use the passed peptidoform or else the previously supplied one or return None
+        # Use the passed peptidoform object or else the previously supplied one or return None
         if peptidoform is None:
             if self.peptidoform is None:
                 return
@@ -173,29 +177,24 @@ class SpectrumAnnotator:
         neutral_losses = self.mass_reference.neutral_losses
         neutral_losses_by_residue = self.mass_reference.neutral_losses_by_residue
         neutral_losses_by_formula = self.mass_reference.neutral_losses_by_formula
-        terminal_modifications = self.mass_reference.terminal_modifications
+        ref_terminal_modifications = self.mass_reference.terminal_modifications
 
         # Determine the terminal modification masses
-        have_labile_nterm_mod = False
+        have_labile_nterm_mod = False                                       # FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         terminal_mass_modifications = { 'nterm': 0.0, 'cterm': 0.0 }
-        if peptidoform.nterm['name'] != '':
-            if peptidoform.nterm['name'] in terminal_modifications:
-                terminal_mass_modifications['nterm'] = terminal_modifications[peptidoform.nterm['name']]['mass']
-                if peptidoform.nterm['name'].startswith('TMT'):
-                    special_annotation_rules[peptidoform.nterm['name']] = True
-                if debug:
-                    print(f"INFO: Add terminal_mass_mod {peptidoform.nterm['name']} as {terminal_mass_modifications['nterm']}")
-                if terminal_modifications[peptidoform.nterm['name']]['is_labile']:
-                    have_labile_nterm_mod = True
-            else:
-                eprint(f"ERROR: Unrecognized nterm mod {peptidoform.nterm['name']}")
-                exit()
-        if peptidoform.cterm['name'] != '':
-            if peptidoform.cterm['name'] in terminal_modifications:
-                terminal_mass_modifications['cterm'] = terminal_modifications[peptidoform.cterm['name']]['mass']
-            else:
-                eprint(f"ERROR: Unrecognized cterm mod {peptidoform.cterm['name']}")
-                exit()
+        if peptidoform.terminal_modifications is not None and 'nterm' in peptidoform.terminal_modifications:
+            nterm_attrs = peptidoform.terminal_modifications['nterm']
+            terminal_mass_modifications['nterm'] = nterm_attrs['delta_mass']
+            if nterm_attrs['modification_name'].startswith('TMT'):
+                special_annotation_rules[nterm_attrs['modification_name']] = True
+            if debug:
+                eprint(f"INFO: Add n-terminal mass modification {nterm_attrs['modification_name']} as {terminal_mass_modifications['nterm']}")
+
+        if peptidoform.terminal_modifications is not None and 'cterm' in peptidoform.terminal_modifications:
+            cterm_attrs = peptidoform.terminal_modifications['cterm']
+            terminal_mass_modifications['cterm'] = cterm_attrs['delta_mass']
+            if debug:
+                eprint(f"INFO: Add c-terminal mass modification {cterm_attrs['modification_name']} as {terminal_mass_modifications['cterm']}")
 
         # Initialize data for each series
         cumulative_mass = {}
@@ -208,7 +207,7 @@ class SpectrumAnnotator:
             cumulative_residues[series] = 0
 
         # Prepare to loop through all residues
-        peptide_length = len(peptidoform.residues)
+        peptide_length = len(peptidoform.peptide_sequence)
         all_annotations = {}
 
         # Main loop: iterate through each position, working from both ends simultaneously
@@ -247,27 +246,21 @@ class SpectrumAnnotator:
                 for i_charge in charge_list:
 
                     # Get the next residue
-                    if ion_series_attr[series_type]['terminus_type'] == 'nterm':
-                        residue = peptidoform.residues[i_residue]['string']
-                    else:
-                        residue = peptidoform.residues[peptide_length - 1 - i_residue]['string']
-
-                    # If this residue is not recognized, this is a serious error
-                    if residue not in residue_masses:
-                        match = re.match(r'([A-Z])\[\+([\d\.]+)\]$', residue)
-                        if match:
-                            custom_delta_mass = float(match.group(2))
-                            custom_residue = match.group(1)
-                            custom_combined_mass = residue_masses[custom_residue] + custom_delta_mass
-                            residue_masses[residue] = custom_combined_mass
-                        else:
-                            eprint(f"ERROR: Unrecognized residue '{residue}'")
-                            return
+                    residue_offset = i_residue + 1
+                    if ion_series_attr[series_type]['terminus_type'] == 'cterm':
+                        residue_offset = peptide_length - i_residue
+                    residue = peptidoform.residues[residue_offset]['residue_string']
+                    base_residue = residue
+                    if len(residue) > 1:
+                        base_residue = peptidoform.residues[residue_offset]['base_residue']
+                    residue_mass = residue_masses[base_residue]
+                    if len(residue) > 1:
+                        residue_mass += peptidoform.residues[residue_offset]['delta_mass']
 
                     # Only compute certain things on the first pass
                     if i_charge == 1 or i_residue == peptide_length - 1:
                         # Update the cumulative mass
-                        cumulative_mass[series] += residue_masses[residue]
+                        cumulative_mass[series] += residue_mass
 
                         #### If this is the precursor pass, also add in the other terminus
                         if i_residue == peptide_length - 1:
@@ -317,7 +310,7 @@ class SpectrumAnnotator:
                             interpretation = f"p{loss_string}"
 
                         #### If there is an n-terminal mod, then add a precursor with a loss of the n-terminal mod during the y series
-                        if i_residue == peptide_length - 1 and series == 'y' and peptidoform.nterm['name'] is not None:
+                        if i_residue == peptide_length - 1 and series == 'y' and 'nterm' in peptidoform.terminal_mass_modifications:
 
                             #### If there are special annotation rules, apply those
                             apply_special_rules = None
@@ -333,7 +326,7 @@ class SpectrumAnnotator:
                                     self.predicted_fragments_list.append( [ mz, [ [ interpretation, interpretation_score ] ] ] )
                                     #print(mz,interpretation)
 
-                            interpretation = f"p-[{peptidoform.nterm['name']}]{loss_string}"
+                            interpretation = f"p-[{peptidoform.terminal_mass_modifications['modification_name']}]{loss_string}"
 
                         # But if this is an internal fragment, create that style
                         if series_type == 'm':
@@ -407,18 +400,16 @@ class SpectrumAnnotator:
 
 
     ####################################################################################################
-    #### Annotate the spectrum with the predicted fragments from a supplied peptidoform
-    def annotate_peptidoform(self, spectrum, peptidoform_string, charge, skip_internal_fragments=False):
+    #### Annotate the spectrum with the predicted fragments from a supplied proforma peptidoform string
+    def annotate_peptidoform(self, spectrum, peptidoform, charge, skip_internal_fragments=False):
 
         tolerance = 30.0
 
-        peptidoform = Peptidoform(peptidoform_string)
+        if not isinstance(peptidoform, ProformaPeptidoform):
+            eprint(f"ERROR: Passed peptidoform is not an object, but instead is type {type(peptidoform)}")
+            return
 
-        # Store the stripped sequence if present
-        stripped_sequence = ''
-        if peptidoform.stripped_sequence is not None:
-            stripped_sequence = peptidoform.stripped_sequence
-
+        stripped_sequence = peptidoform.peptide_sequence
         self.predict_fragment_ions(peptidoform=peptidoform, charge=charge, fragmentation_type='HCD', skip_internal_fragments=skip_internal_fragments)
 
         for peak in spectrum.peak_list:
@@ -449,11 +440,9 @@ class SpectrumAnnotator:
 
     ####################################################################################################
     #### FIXME Not quite clear what is going on here
-    def compute_spectrum_score(self, spectrum, peptidoform_string, charge):
+    def compute_spectrum_score(self, spectrum, peptidoform, charge):
 
         tolerance = 20.0
-
-        peptidoform = Peptidoform(peptidoform_string)
 
         # Store the stripped sequence if present
         stripped_sequence = ''
@@ -873,17 +862,16 @@ class SpectrumAnnotator:
 
     ####################################################################################################
     #### Identify all the low-mass ions in a spectrum that aren't specifically part of predicted fragments
-    def identify_low_mass_ions(self, spectrum, peptidoform_string=None):
+    def identify_low_mass_ions(self, spectrum, peptidoform=None):
 
         #### FIXME. Handle this better
         tolerance = 20
 
-        #### Parse the peptidoform string and create a dict of the residues it has
+        #### Create a dict of the residues that the peptide has
         contained_residues = {}
-        if peptidoform_string is not None:
-            peptidoform = Peptidoform(peptidoform_string)
-            for residue in peptidoform.residues:
-                contained_residues[residue['string']] = True
+        if peptidoform is not None:
+            for residue in list(peptidoform.peptide_sequence):
+                contained_residues[residue] = True
 
         #### If there is not yet a peak index, create one
         if len(spectrum.peak_index) == 0:
@@ -906,12 +894,12 @@ class SpectrumAnnotator:
 
                 #### Special handling for an immonium ions
                 if low_mass_ion_name[0] == 'I':
-                    # If they corespond to a residue in the peptidoform, they are considered nondiagnostic
+                    # If they correspond to a residue in the peptidoform, they are considered nondiagnostic
                     if low_mass_ion_name[1] in contained_residues:
                         match[INT_INTERPRETATION_STRING] = low_mass_ion_name
                         match[INT_COMMONNESS_SCORE] = 95
                         self.add_interpretation(spectrum.peak_list[i_match_peak], match, diagnostic_category='nondiagnostic', residual_type='absolute')
-                    #### But if they don't corespond to a residue in the peptidoform, they are considered contamination and annotated a little differently
+                    #### But if they don't correspond to a residue in the peptidoform, they are considered contamination and annotated a little differently
                     else:
                         match[INT_INTERPRETATION_STRING] = f"0@{low_mass_ion_name}"
                         match[INT_COMMONNESS_SCORE] = 40
@@ -1468,7 +1456,7 @@ def main():
         sys.path.append("C:\local\Repositories\GitHub\PSI\SpectralLibraryFormat\implementations\python\mzlib")
         from universal_spectrum_identifier import UniversalSpectrumIdentifier
         usi = UniversalSpectrumIdentifier(usi_string)
-        peptidoform_string = usi.peptidoform
+        peptidoform_string = usi.peptidoform['peptidoform_string']
         charge = int(usi.charge)
         if verbose:
             print("Parsed information from the USI:")
@@ -1482,19 +1470,24 @@ def main():
     spectrum = Spectrum()
     spectrum.fetch_spectrum(usi_string)
 
+    #### Need to do this as apparently the peptidoform that comes back from usi is a dict, not an object?
+    peptidoform = ProformaPeptidoform(peptidoform_string)
+
     #### Create an annotator object
     annotator = SpectrumAnnotator()
 
     # Annotate the spectrum
     if params.annotate:
-        annotator.annotate(spectrum, peptidoform_string=peptidoform_string, charge=charge)
+        print("goof")
+        print(peptidoform)
+        annotator.annotate(spectrum, peptidoform=peptidoform, charge=charge)
         print(spectrum.show(show_all_annotations=show_all_annotations))
         if params.plot:
             annotator.plot(spectrum, peptidoform_string=peptidoform_string, charge=charge)
 
     # Examine the spectrum
     if params.score:
-        annotator.compute_spectrum_score(spectrum, peptidoform_string=peptidoform_string, charge=charge)
+        annotator.compute_spectrum_score(spectrum, peptidoform=peptidoform, charge=charge)
 
     # Examine the spectrum
     if params.examine:
