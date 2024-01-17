@@ -10,6 +10,9 @@ import copy
 import re
 import json
 
+# Common background ions:
+# https://www.waters.com/webassets/cms/support/docs/bkgrnd_ion_mstr_list.pdf
+# 445 is a common one that Rob and Mike mention
 
 ####################################################################################################
 #### MassReference class
@@ -34,6 +37,7 @@ class MassReference:
         self.nterm_aa_masses = None
         self.nterm_double_aa_masses = None
         self.reporter_ions = None
+        self.special_label_losses = None
         self.terminal_modifications = None
 
         self.neutral_losses = {}
@@ -49,6 +53,7 @@ class MassReference:
         # Define a subset of useful atomic masses and the proton
         self.atomic_masses = {
             'proton': 1.00727646688,
+            'electron': 0.000548,
             'hydrogen': 1.007825035,
             'carbon': 12.0000000,
             'nitrogen': 14.0030740,
@@ -153,24 +158,34 @@ class MassReference:
 
         # Add some modifications
         modifications = {
-            'Carbamidomethyl': { 'delta_mass': 57.021464, 'formula': '+H3C2NO', 'residues': [ 'C' ] },
-            'Oxidation': { 'delta_mass': 15.994915, 'formula': '+O', 'residues': [ 'M', 'W', 'P', 'H' ] },
-            'Phospho': { 'delta_mass': 79.966331, 'formula': '+HPO3', 'residues': [ 'S', 'T', 'Y' ], 'neutral_losses': [ 97.976896 ] },
+            'Carbamidomethyl': { 'delta_mass': 57.021464, 'formula': '+H3C2NO', 'residues': [ 'C', 'K' ] },
+            'Oxidation': { 'delta_mass': 15.994915, 'formula': '+O', 'residues': [ 'M', 'W', 'P', 'H', 'Y' ] },
+            'Dioxidation': { 'delta_mass': 2 * 15.994915, 'formula': '+O2', 'residues': [ 'W' ] },
+            'Trp->Kynurenin': { 'delta_mass': 3.994915, 'formula': '+O-C', 'residues': [ 'W' ] },
+            'Trioxidation': { 'delta_mass': 3 * 15.994915, 'formula': '+O3', 'residues': [ 'C' ] },
+            'Phospho': { 'delta_mass': 79.966331, 'formula': '+HPO3', 'residues': [ 'S', 'T', 'Y', 'H' ], 'neutral_losses': [ 97.976896 ] },
             'Deamidated': { 'delta_mass': 0.984016, 'formula': '-HN+O', 'residues': [ 'N' ] }, # Q[Deamidated] is the same as E, so don't bother here
             'Acetyl': { 'delta_mass': 42.010565, 'formula': '+C2H2O', 'residues': [ 'K' ] },
+            'Dimethyl': { 'delta_mass': 28.031300, 'formula': '+C2H4', 'residues': [ 'K' ] },
+            #'Glycerinyl': { 'delta_mass': 88.016, 'formula': '+C', 'residues': [ 'K' ] },
+            'Formyl': { 'delta_mass': 27.9949, 'formula': '+CO', 'residues': [ 'S', 'T' ] },   #is K[Formyl] the same as R???
+            'Carbonyl': { 'delta_mass': 13.979265, 'formula': '+O-H2', 'residues': [ 'H' ] },
             #'Pyrophospho': { 'delta_mass': 159.932662, 'residues': [ 'S', 'T', 'Y' ], 'neutral_losses': [ 177.943227, 79.966331 ] },
             #'Beta-methythiolation': { 'delta_mass': 45.987721, 'residues': [ 'C' ] },
             #'Acetylation': { 'delta_mass': 42.010565, 'residues': [ 'K' ] },
             #'Methylthio': { 'delta_mass': 45.987721, 'residues': [ 'K', 'D', 'N', 'C' ] },
-            #'Methylation': { 'delta_mass': 14.015650, 'residues': [ 'K', 'R' ] },
+            'Methylation': { 'delta_mass': 14.015650, 'residues': [ 'K', 'R', 'H' ] },
             #'Ubiquitination': { 'delta_mass': 114.042927, 'residues': [ 'K' ] },
-            #'Carbamylation': { 'delta_mass': 43.005814, 'residues': [ 'K' ] },
+            'Carbamyl': { 'delta_mass': 43.005814, 'residues': [ 'K' ] },
+            'Sulfide': { 'delta_mass': 31.972071, 'residues': [ 'S' ] },
 
             #'TMT': { 'delta_mass': 224.152478, 'residues': [ 'K' ] },
             #'TMT6': { 'delta_mass': 229.162932, 'residues': [ 'K' ] },
             #'TMT6plex': { 'delta_mass': 229.162932, 'residues': [ 'K' ] },
+            'TMTpro': { 'delta_mass': 304.207146, 'residues': [ 'K', 'S', 'T', 'R' ] },
             #'iTRAQ4': { 'delta_mass': 144.102063, 'residues': [ 'K' ] },
-            'iTRAQ4plex': { 'delta_mass': 144.102063, 'residues': [ 'K' ] },
+            #'iTRAQ4plex': { 'delta_mass': 144.102063, 'residues': [ 'K' ] },
+            #'mtraq': { 'delta_mass': 140.094963, 'residues': [ 'K' ] },
         }
         for modification in modifications:
             for residue in modifications[modification]['residues']:
@@ -230,9 +245,9 @@ class MassReference:
                     self.mass_equivalencies['by_residue'][residue_pair] = [residue_pair]
                     self.nr_double_aa_masses[residue_pair] = { 'mass': mass, 'residues': [ aa1, aa2 ] }
 
-                self.double_aa_masses[residue_pair] = mass
+                self.double_aa_masses[residue_pair] = { 'mass': mass, 'residues': [ aa1, aa2 ] }
                 if '[' not in residue_pair:
-                    nomod_double_aa_masses[residue_pair] = mass
+                    nomod_double_aa_masses[residue_pair] = { 'mass': mass, 'residues': [ aa1, aa2 ] }
         #print(json.dumps(self.mass_equivalencies, indent=2, sort_keys=True))
         #exit()
 
@@ -250,9 +265,13 @@ class MassReference:
 
         # Define some potential neutral losses
         self.neutral_losses = {
+            'lysine +CO-H2O': { 'formula': 'H2O+CO', 'residues': [ 'K' ],
+                'delta_mass': self.atomic_masses['hydrogen'] * 2 - self.atomic_masses['carbon'] * 1 },
             #'water': { 'formula': 'H2O', 'residues': [ 'S', 'T', 'E', 'D' ],              # canonical
             'water': { 'formula': 'H2O', 'residues': [ 'S', 'T', 'E', 'D', 'K', 'A', 'Y', 'C[Carbamidomethyl]' ],          # observed
                 'delta_mass': self.atomic_masses['hydrogen'] * 2 + self.atomic_masses['oxygen'] },
+            #'weird': { 'formula': 'H2O+CO', 'residues': [ 'S', 'T', 'E', 'D', 'K', 'A', 'Y', 'C[Carbamidomethyl]' ],          # observed
+            #    'delta_mass': self.atomic_masses['hydrogen'] * 2 - self.atomic_masses['carbon'] },
             #'ammonia': { 'formula': 'NH3', 'residues': [ 'R', 'K', 'N', 'Q' ],              # canonical
             'ammonia': { 'formula': 'NH3', 'residues': [ 'R', 'K', 'N', 'Q', 'G' ],          # observed
                 'delta_mass': self.atomic_masses['nitrogen'] + self.atomic_masses['hydrogen'] * 3 },
@@ -260,7 +279,7 @@ class MassReference:
                 'delta_mass': self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
             #'phosphoric acid': { 'formula': 'H3PO4', 'residues': [ 'S[Phospho]', 'T[Phospho]', 'Y[Phospho]' ], # Removed this in favor of letting HPO3 and H2O work together. Otherwise, you can get both phosphoric acid and metaphosphoric acid on the same residue. You'd somehow need to encode which losses are exclusive and which are combinable
             #    'delta_mass': self.atomic_masses['hydrogen'] * 3 + self.atomic_masses['phosphorus'] + self.atomic_masses['oxygen'] * 4 },
-            'metaphosphoric acid': { 'formula': 'HPO3', 'residues': [ 'S[Phospho]', 'T[Phospho]', 'Y[Phospho]' ],
+            'metaphosphoric acid': { 'formula': 'HPO3', 'residues': [ 'S[Phospho]', 'T[Phospho]', 'Y[Phospho]', 'H[Phospho]' ],
                 'delta_mass': self.atomic_masses['hydrogen'] * 1 + self.atomic_masses['phosphorus'] + self.atomic_masses['oxygen'] * 3 },
             'methanesulfenic acid': { 'formula': 'CH4OS', 'residues': [ 'M[Oxidation]' ],
                 'delta_mass': self.atomic_masses['carbon'] * 1 + self.atomic_masses['hydrogen'] * 4 + self.atomic_masses['oxygen'] * 1 + self.atomic_masses['sulfur'] * 1 },
@@ -286,54 +305,91 @@ class MassReference:
 
         self.low_mass_ions = copy.deepcopy(self.immonium_ions)
         for residue in [ 'R', 'K' ]:
-            ion_name = f"y1({residue})"
+            ion_name = "y1" + "{" + residue +"}"
             ion_mass = self.aa_masses[residue] + 2 * self.atomic_masses['hydrogen'] + self.atomic_masses['oxygen'] + self.atomic_masses['proton']
             self.low_mass_ions[ion_name] = ion_mass
 
-            ion_name = f"y1({residue})-H20"
+            ion_name = "y1" + "{" + residue +"}-H2O"
             ion_mass = self.aa_masses[residue] + self.atomic_masses['proton']
             self.low_mass_ions[ion_name] = ion_mass
 
-        # Add to the low mass ions, all the b2 and a2 ions, which are very common and make for a nice calibrator
-        # But exclude a few that seem to generate some side noise
-        #double_aas_to_skip = { 'QH', 'YY', 'LW' }
-        for residue_pair,mass in nomod_double_aa_masses.items():
+        # Add to the low mass ions all the b2 and a2 ions, which are very common
+        for residue_pair_str,residue_pair in nomod_double_aa_masses.items():
+            mass = residue_pair['mass']
             #if residue_pair in double_aas_to_skip or 'M' in residue_pair:
             #    continue
-            ion_name = f"b2({residue_pair})"
+            ion_name = "b2" + "{" + residue_pair_str +"}"
             ion_mass = mass + self.atomic_masses['proton']
             self.low_mass_ions[ion_name] = ion_mass
 
-            ion_name = f"a2({residue_pair})"
+            ion_name = "a2" + "{" + residue_pair_str +"}"
             ion_mass = mass - self.atomic_masses['carbon'] - self.atomic_masses['oxygen'] + self.atomic_masses['proton']
             self.low_mass_ions[ion_name] = ion_mass
 
 
         # Define reporter ions to look for
         self.reporter_ions = {
-            'TMT6/10_126': { 'type': 'TMT', 'mz': 126.127726 },     # clean in TMT6
-            'TMT6/10_127N': { 'type': 'TMT', 'mz': 127.124761 },    # clean in TMT6
-            'TMT10_127C': { 'type': 'TMT', 'mz': 127.131081 },      # Need to first find and calibrate on TMT6 and only then do a narrow look here
-            'TMT10_128N': { 'type': 'TMT', 'mz': 128.128116 },
-            'TMT6/10_128C': { 'type': 'TMT', 'mz': 128.134436 },   # clean in TMT6
-            'TMT6/10_129N': { 'type': 'TMT', 'mz': 129.131471 },   # clean in TMT6
-            'TMT10_129C': { 'type': 'TMT', 'mz': 129.137790 },
-            'TMT10_130N': { 'type': 'TMT', 'mz': 130.134825 },
-            'TMT6/10_130C': { 'type': 'TMT', 'mz': 130.141145 },
-            'TMT6/10_131': { 'type': 'TMT', 'mz': 131.138180 },
-            'TMT11_131C': { 'type': 'TMT', 'mz': 131.138180 },
-            'TMT_nterm': { 'type': 'TMT', 'mz': 229.162932 + self.atomic_masses['proton'] },
-            'TMTzero_nterm': { 'type': 'TMT', 'mz': 224.152478 + self.atomic_masses['proton'] },
+            # Jimmy's numbers from https://proteomicsresource.washington.edu/protocols03/isotopic_labeling.php
+            'TMT126': { 'type': 'TMT', 'mz': 126.127726 },
+            'TMT127N': { 'type': 'TMT', 'mz': 127.124761 },
+            'TMT127C': { 'type': 'TMT', 'mz': 127.131081 },
+            'TMT128N': { 'type': 'TMT', 'mz': 128.128116 },
+            'TMT128C': { 'type': 'TMT', 'mz': 128.134436 },
+            'TMT129N': { 'type': 'TMT', 'mz': 129.131471 },
+            'TMT129C': { 'type': 'TMT', 'mz': 129.137790 },
+            'TMT130N': { 'type': 'TMT', 'mz': 130.134825 },
+            'TMT130C': { 'type': 'TMT', 'mz': 130.141145 },
+            'TMT131N': { 'type': 'TMT', 'mz': 131.138180 },
+            'TMT131C': { 'type': 'TMT', 'mz': 131.1445 },
+            'TMT132N': { 'type': 'TMT', 'mz': 132.141535 },
+            'TMT132C': { 'type': 'TMT', 'mz': 132.147855 },
+            'TMT133N': { 'type': 'TMT', 'mz': 133.14489 },
+            'TMT133C': { 'type': 'TMT', 'mz': 133.15121 },
+            'TMT134N': { 'type': 'TMT', 'mz': 134.148245 },
+            'TMT134C': { 'type': 'TMT', 'mz': 134.154565 },
+            'TMT135N': { 'type': 'TMT', 'mz': 135.151600 },
+
+            #### When dimethyl hangs on the TMTpro tag!
+            #'TMT126+C2H4': { 'type': 'TMT', 'mz': 126.127726 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT127N+C2H4': { 'type': 'TMT', 'mz': 127.124761 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT127C+C2H4': { 'type': 'TMT', 'mz': 127.131081 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT128N+C2H4': { 'type': 'TMT', 'mz': 128.128116 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT128C+C2H4': { 'type': 'TMT', 'mz': 128.134436 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT129N+C2H4': { 'type': 'TMT', 'mz': 129.131471 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT129C+C2H4': { 'type': 'TMT', 'mz': 129.137790 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT130N+C2H4': { 'type': 'TMT', 'mz': 130.134825 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT130C+C2H4': { 'type': 'TMT', 'mz': 130.141145 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT131N+C2H4': { 'type': 'TMT', 'mz': 131.138180 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT131C+C2H4': { 'type': 'TMT', 'mz': 131.1445 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT132N+C2H4': { 'type': 'TMT', 'mz': 132.141535 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT132C+C2H4': { 'type': 'TMT', 'mz': 132.147855 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT133N+C2H4': { 'type': 'TMT', 'mz': 133.14489 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT133C+C2H4': { 'type': 'TMT', 'mz': 133.15121 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT134N+C2H4': { 'type': 'TMT', 'mz': 134.148245 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT134C+C2H4': { 'type': 'TMT', 'mz': 134.154565 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMT135N+C2H4': { 'type': 'TMT', 'mz': 135.151600 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
+            #'TMTpro+C2H4': { 'type': 'TMT', 'mz': 304.207146 + self.atomic_masses['proton'] + 4 * self.atomic_masses['hydrogen'] + 2 * self.atomic_masses['carbon'] },
+
+            'TMTzero': { 'type': 'TMT', 'mz': 224.152478 + self.atomic_masses['proton'] },
+            'TMT2': { 'type': 'TMT', 'mz': 225.155833 + self.atomic_masses['proton'] },
+            'TMT6plex': { 'type': 'TMT', 'mz': 229.162932 + self.atomic_masses['proton'] },
+            'TMT6plex_H2O': { 'type': 'TMT', 'mz': 229.162932 + self.atomic_masses['proton'] + 2 * self.atomic_masses['hydrogen'] + self.atomic_masses['oxygen'] },
+            'TMTprozero': { 'type': 'TMT', 'mz': 295.189592 + self.atomic_masses['proton'] },
+            'TMTpro': { 'type': 'TMT', 'mz': 304.207146 + self.atomic_masses['proton'] },
+            'TMTpro+H20': { 'type': 'TMT', 'mz': 304.207146 + self.atomic_masses['proton'] + 2 * self.atomic_masses['hydrogen'] + self.atomic_masses['oxygen'] },
+            'TMTpro+NH3': { 'type': 'TMT', 'mz': 304.207146 + self.atomic_masses['proton'] + 3 * self.atomic_masses['hydrogen'] + self.atomic_masses['nitrogen'] },
+            'TMTpro+C2NH5': { 'type': 'TMT', 'mz': 304.207146 + self.atomic_masses['proton'] + 5 * self.atomic_masses['hydrogen'] + self.atomic_masses['nitrogen'] + 2 * self.atomic_masses['carbon'] },
 
             # My old numbers from somewhere
-            'iTRAQ4_114': { 'type': 'iTRAQ', 'mz': 114.11068 },
-            'iTRAQ4_115': { 'type': 'iTRAQ', 'mz': 115.107715 },
-            'iTRAQ4_116': { 'type': 'iTRAQ', 'mz': 116.111069 },
-            'iTRAQ4_117': { 'type': 'iTRAQ', 'mz': 117.114424 },
-            'iTRAQ4_nterm_114': { 'type': 'iTRAQ4', 'mz': 144.105918 + self.atomic_masses['proton'] },
-            'iTRAQ4_nterm_115': { 'type': 'iTRAQ4', 'mz': 144.099599 + self.atomic_masses['proton'] },
-            'iTRAQ4_nterm_1167': { 'type': 'iTRAQ4', 'mz': 144.102063 + self.atomic_masses['proton'] },
-            'iTRAQ4_nterm_H2O': { 'type': 'iTRAQ4', 'mz': 144.102063 + self.atomic_masses['proton'] + 2 * self.atomic_masses['hydrogen'] + self.atomic_masses['oxygen'] },
+            'iTRAQ114': { 'type': 'iTRAQ', 'mz': 114.11068 },
+            'iTRAQ115': { 'type': 'iTRAQ', 'mz': 115.107715 },
+            'iTRAQ116': { 'type': 'iTRAQ', 'mz': 116.111069 },
+            'iTRAQ117': { 'type': 'iTRAQ', 'mz': 117.114424 },
+            'iTRAQ4Nterm_114': { 'type': 'iTRAQ4', 'mz': 144.105918 + self.atomic_masses['proton'] },
+            'iTRAQ4Nterm_115': { 'type': 'iTRAQ4', 'mz': 144.099599 + self.atomic_masses['proton'] },
+            'iTRAQ4Nterm_1167': { 'type': 'iTRAQ4', 'mz': 144.102063 + self.atomic_masses['proton'] },
+            'iTRAQ4Nterm_H2O': { 'type': 'iTRAQ4', 'mz': 144.102063 + self.atomic_masses['proton'] + 2 * self.atomic_masses['hydrogen'] + self.atomic_masses['oxygen'] },
+
 
             # Jimmy's numbers from https://proteomicsresource.washington.edu/protocols03/isotopic_labeling.php
             #'iTRAQ4_114': { 'type': 'iTRAQ4', 'mz': 114.1112 },
@@ -343,22 +399,94 @@ class MassReference:
             #'iTRAQ4_nterm': { 'type': 'iTRAQ4', 'mz': (144.105918 + 144.099599 + 144.102063 + 144.102063)/4 + self.atomic_masses['proton'] },
 
             # My old numbers from somewhere
-            'iTRAQ8_118': { 'type': 'iTRAQ8', 'mz': 118.111459 },   #confounder?
-            'iTRAQ8_119': { 'type': 'iTRAQ8', 'mz': 119.114814 },
-            'iTRAQ8_121': { 'type': 'iTRAQ8', 'mz': 121.121524 },
-            'iTRAQ8_113': { 'type': 'iTRAQ8', 'mz': 113.107325 },   #confounder??
-
+            'iTRAQ113': { 'type': 'iTRAQ8', 'mz': 113.107325 },
+            'iTRAQ118': { 'type': 'iTRAQ8', 'mz': 118.111459 },   #confounder?
+            'iTRAQ119': { 'type': 'iTRAQ8', 'mz': 119.114814 },
+            'iTRAQ121': { 'type': 'iTRAQ8', 'mz': 121.121524 },
             # Numbers from Jimmy: 113.1078	114.1112	115.1082	116.1116	117.1149	118.1120	119.1153	121.1220
+
+            #'mTRAQNterm': { 'type': 'mTRAQ', 'mz': 140.094963 + self.atomic_masses['proton'] }, # this is the same as 0@_"a2(AP)" and it will rarely be mTRAQ. FIXME
         }
+
+
+        self.special_label_losses = {
+            'TMT6plex': {
+                '[TMT126]-CO': { 'type': 'TMT', 'mz': 126.127726 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT127N]-CO': { 'type': 'TMT', 'mz': 127.124761 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT127C]-CO': { 'type': 'TMT', 'mz': 127.131081 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT128N]-CO': { 'type': 'TMT', 'mz': 128.128116 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT128C]-CO': { 'type': 'TMT', 'mz': 128.134436 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT129N]-CO': { 'type': 'TMT', 'mz': 129.131471 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT129C]-CO': { 'type': 'TMT', 'mz': 129.137790 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT130N]-CO': { 'type': 'TMT', 'mz': 130.134825 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT130C]-CO': { 'type': 'TMT', 'mz': 130.141145 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT131N]-CO': { 'type': 'TMT', 'mz': 131.138180 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT131C]-CO': { 'type': 'TMT', 'mz': 131.1445 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT132N]-CO': { 'type': 'TMT', 'mz': 132.141535 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT132C]-CO': { 'type': 'TMT', 'mz': 132.147855 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT133N]-CO': { 'type': 'TMT', 'mz': 133.14489 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT133C]-CO': { 'type': 'TMT', 'mz': 133.15121 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT134N]-CO': { 'type': 'TMT', 'mz': 134.148245 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT134C]-CO': { 'type': 'TMT', 'mz': 134.154565 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT135N]-CO': { 'type': 'TMT', 'mz': 135.151600 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+           },
+            'TMTpro': {
+                '[TMT126]-CO': { 'type': 'TMT', 'mz': 126.127726 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT127N]-CO': { 'type': 'TMT', 'mz': 127.124761 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT127C]-CO': { 'type': 'TMT', 'mz': 127.131081 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT128N]-CO': { 'type': 'TMT', 'mz': 128.128116 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT128C]-CO': { 'type': 'TMT', 'mz': 128.134436 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT129N]-CO': { 'type': 'TMT', 'mz': 129.131471 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT129C]-CO': { 'type': 'TMT', 'mz': 129.137790 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT130N]-CO': { 'type': 'TMT', 'mz': 130.134825 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT130C]-CO': { 'type': 'TMT', 'mz': 130.141145 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT131N]-CO': { 'type': 'TMT', 'mz': 131.138180 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT131C]-CO': { 'type': 'TMT', 'mz': 131.1445 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT132N]-CO': { 'type': 'TMT', 'mz': 132.141535 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT132C]-CO': { 'type': 'TMT', 'mz': 132.147855 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT133N]-CO': { 'type': 'TMT', 'mz': 133.14489 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT133C]-CO': { 'type': 'TMT', 'mz': 133.15121 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT134N]-CO': { 'type': 'TMT', 'mz': 134.148245 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT134C]-CO': { 'type': 'TMT', 'mz': 134.154565 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT135N]-CO': { 'type': 'TMT', 'mz': 135.151600 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+                '[TMT126]': { 'type': 'TMT', 'mz': 126.127726 - self.atomic_masses['proton'] },
+                '[TMT127N]': { 'type': 'TMT', 'mz': 127.124761 - self.atomic_masses['proton'] },
+                '[TMT127C]': { 'type': 'TMT', 'mz': 127.131081 - self.atomic_masses['proton'] },
+                '[TMT128N]': { 'type': 'TMT', 'mz': 128.128116 - self.atomic_masses['proton'] },
+                '[TMT128C]': { 'type': 'TMT', 'mz': 128.134436 - self.atomic_masses['proton'] },
+                '[TMT129N]': { 'type': 'TMT', 'mz': 129.131471 - self.atomic_masses['proton'] },
+                '[TMT129C]': { 'type': 'TMT', 'mz': 129.137790 - self.atomic_masses['proton'] },
+                '[TMT130N]': { 'type': 'TMT', 'mz': 130.134825 - self.atomic_masses['proton'] },
+                '[TMT130C]': { 'type': 'TMT', 'mz': 130.141145 - self.atomic_masses['proton'] },
+                '[TMT131N]': { 'type': 'TMT', 'mz': 131.138180 - self.atomic_masses['proton'] },
+                '[TMT131C]': { 'type': 'TMT', 'mz': 131.1445 - self.atomic_masses['proton'] },
+                '[TMT132N]': { 'type': 'TMT', 'mz': 132.141535 - self.atomic_masses['proton'] },
+                '[TMT132C]': { 'type': 'TMT', 'mz': 132.147855 - self.atomic_masses['proton'] },
+                '[TMT133N]': { 'type': 'TMT', 'mz': 133.14489 - self.atomic_masses['proton'] },
+                '[TMT133C]': { 'type': 'TMT', 'mz': 133.15121 - self.atomic_masses['proton'] },
+                '[TMT134N]': { 'type': 'TMT', 'mz': 134.148245 - self.atomic_masses['proton'] },
+                '[TMT134C]': { 'type': 'TMT', 'mz': 134.154565 - self.atomic_masses['proton'] },
+                '[TMT135N]': { 'type': 'TMT', 'mz': 135.151600 - self.atomic_masses['proton'] },
+
+           }
+        }
+
+
+
+
 
         self.terminal_modifications = {
             'Acetyl': { 'terminus': 'nterm', 'name:': 'Acetyl', 'mass': 42.010565, 'formula': '+C2H2O', 'frequency': 'common', 'type': 'natural', 'is_labile': True },
             'Carbamyl': { 'terminus': 'nterm', 'name:': 'Carbamyl', 'mass': 43.0058, 'formula': '+HCNO', 'frequency': 'common', 'type': 'natural', 'is_labile': False },
             'Methyl': { 'terminus': 'cterm', 'name:': 'Methyl', 'mass': 14.0157, 'formula': '+H2C', 'frequency': 'common', 'type': 'natural', 'is_labile': False },
+            'Carbamidomethyl': { 'terminus': 'nterm', 'name:': 'Carbamidomethyl', 'mass': 57.021464, 'formula': '+H3C2NO', 'frequency': 'common', 'type': 'natural', 'is_labile': False },
+            'Formyl': { 'terminus': 'nterm', 'name:': 'Formyl', 'mass': 27.9949, 'formula': '+CO', 'frequency': 'common', 'type': 'natural', 'is_labile': False },
             #'TMT': { 'terminus': 'nterm', 'name:': 'TMT6plex', 'mass': 224.152478, 'frequency': 'high', 'type': 'label', 'is_labile': True },
             #'TMT6plex': { 'terminus': 'nterm', 'name:': 'TMT6plex', 'mass': 229.162932, 'frequency': 'high', 'type': 'label', 'is_labile': True },
-            'iTRAQ4plex': { 'terminus': 'nterm', 'name:': 'iTRAQ4plex', 'mass': 144.102063, 'frequency': 'high', 'type': 'label', 'is_labile': True },
+            'TMTpro': { 'terminus': 'nterm', 'name:': 'TMTpro', 'mass': 304.207146, 'frequency': 'high', 'type': 'label', 'is_labile': True },
+            #'iTRAQ4plex': { 'terminus': 'nterm', 'name:': 'iTRAQ4plex', 'mass': 144.102063, 'frequency': 'high', 'type': 'label', 'is_labile': True },
             #'iTRAQ8plex': { 'terminus': 'nterm', 'name:': 'iTRAQ8plex', 'mass': 304.205360, 'frequency': 'high', 'type': 'label', 'is_labile': True },
+            #'mtraq': { 'terminus': 'nterm', 'name:': 'mtraq', 'mass': 140.094963, 'frequency': 'high', 'type': 'label', 'is_labile': True },
         }
 
 
@@ -366,30 +494,43 @@ class MassReference:
 
         # Add in other misc low mass known ions: Use this: https://www.chemcalc.org/mf-finder
         other_ions = {
-            '_Cytosine': 112.050538,
-            '_Uracil': 113.034554,
-            '_Thymine': 127.050204,
-            '_Adenine': 136.061772,
-            '_Guanine': 152.056686,
-            '_UrocanicAcid': 139.050204,
-            '_Xanthine': 153.040702,
-            '_Dimethylglycine': self.calc_mass(self.parse_atomic_formula('C4H9NO2')) + self.atomic_masses['proton'],
-            '_Methyladenine': self.calc_mass(self.parse_atomic_formula('C6H7N5')) + self.atomic_masses['proton'],
-            '_C5H9NO': 100.07567,
-            '_C8H12NO4': 186.07608,
-            #'_C8H14NO5': 204.08665, HexNAc
-            '_C7H8NO2': 138.05495,
-            '_Hexose': 163.0601,
-            '_HexNAc': 204.0869,
-            '_Deoxyhexose': 147.0652,
-            '_Pentose': 133.0496,
-            '_NeuNAc': 292.1027,
-            '_NeuGc': 308.0976,
-            '_Oxonium-N': 204.0872,
-            '_Oxonium-NH': 366.1397,
-            '_Oxonium-NHH': 528.1935,
-            '_Oxonium-NHS': 657.2357,
-            '_C6H6O2': self.calc_mass(self.parse_atomic_formula('C6H6O2')) + self.atomic_masses['proton']
+            'Cytosine': 112.050538,
+            'Uracil': 113.034554,
+            'Thymine': 127.050204,
+            'Adenine': 136.061772,
+            'Guanine': 152.056686,
+            'UrocanicAcid': 139.050204,
+            'Xanthine': 153.040702,
+            'Dimethylglycine': self.calc_mass(self.parse_atomic_formula('C4H9NO2')) + self.atomic_masses['proton'],
+            'Methyladenine': self.calc_mass(self.parse_atomic_formula('C6H7N5')) + self.atomic_masses['proton'],
+
+            'f{C5H9NO}': self.calc_mass(self.parse_atomic_formula('C5H9NO')) + self.atomic_masses['proton'],
+            'f{C8H12NO4}': self.calc_mass(self.parse_atomic_formula('C8H12NO4')) + self.atomic_masses['proton'],
+            'f{C7H8NO2}': self.calc_mass(self.parse_atomic_formula('C7H8NO2')) + self.atomic_masses['proton'],
+            'f{C6H6O2}': self.calc_mass(self.parse_atomic_formula('C6H6O2')) + self.atomic_masses['proton'],
+
+            #Interesting monosaccharide web pages:
+            #https://www.ionsource.com/Card/carbo/sugar.htm
+            #https://www.shimadzu.co.jp/aboutus/ms_r/archive/files/OlgScchrdTable_11.pdf
+            'HexNAc-frag1': 126.05495,
+            'Pentose': 133.0496,
+            'HexNAc-frag2': 138.05495,
+            'HexNAc-frag3': 144.0661,
+            'Hexose-H2O': 145.04953,
+            'Deoxyhexose': 147.0652,
+            'Hexose': 163.0601,
+            'HexNAc-2H2O': 168.0655,
+            'HexNAc-H2O': 186.0761,
+            'HexNAc': 204.08666,
+            #'Oxonium-N': 204.08666, # Same as HexNAc
+            'Neu5Ac-2H2O': 256.08156,
+            'Neu5Ac-H2O': 274.0921,
+            'Neu5Ac': 292.1026915,   # Also NeuNAc
+            'NeuGc': 308.0976,
+            'HexHex': 325.1129,
+            'Oxonium-NH': 366.1397, # HexHexNAc
+            'Oxonium-NHH': 528.1935,
+            'Oxonium-NHS': 657.2357,
         }
         for other_ion_name,other_ion_mz in other_ions.items():
             self.low_mass_ions[other_ion_name] = other_ion_mz
@@ -408,7 +549,8 @@ class MassReference:
             'N': [ '-NH3' ],
             'D': [ '-H2O' ],
             'Q': [ '-CO-NH3', '-NH3', '+CO'],
-            'K': [ '+CO-NH3', '-NH3', '+CO', '-C2H4-NH3', '+CO+H2ON2', '-NH3', '-C4H7N', '+CO+CO-C2H3N3', '+CO+H2O'],
+            #'K': [ '+CO-NH3', '-NH3', '+CO', '-C2H4-NH3', '+CO+H2ON2', '-NH3', '-C4H7N', '+CO+CO-C2H3N3', '+CO+H2O', '+CO-H2O'],
+            'K': [ '+CO-NH3', '-NH3', '+CO', '-C2H4-NH3', '+CO+H2ON2', '-NH3', '-C4H7N', '+CO+CO-C2H3N3', '+CO-H2O'],
             'E': [],
             'M': [ '-C2H2-NH3'],
             'H': [ '-CH2N', '+CO-NH2', '+CO-NH3', '+CO-NH', '+CO+H2O' ],
@@ -503,6 +645,9 @@ def main():
     # Print out a few items
     print(f"Mass of a proton = {mass_reference.atomic_masses['proton']}")
 
+    print("Atom masses:")
+    for item,mass in mass_reference.atomic_masses.items():
+        print(f"{item}\t{mass}")
 
 #### For command line usage
 if __name__ == "__main__": main()
