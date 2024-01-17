@@ -168,7 +168,7 @@ class MassReference:
             'Acetyl': { 'delta_mass': 42.010565, 'formula': '+C2H2O', 'residues': [ 'K' ] },
             'Dimethyl': { 'delta_mass': 28.031300, 'formula': '+C2H4', 'residues': [ 'K' ] },
             #'Glycerinyl': { 'delta_mass': 88.016, 'formula': '+C', 'residues': [ 'K' ] },
-            'Formyl': { 'delta_mass': 27.9949, 'formula': '+CO', 'residues': [ 'S', 'T' ] },   #is K[Formyl] the same as R???
+            'Formyl': { 'delta_mass': 27.9949, 'formula': '+CO', 'residues': [ 'S', 'T', 'K' ] },   #is K[Formyl] the same as R???
             'Carbonyl': { 'delta_mass': 13.979265, 'formula': '+O-H2', 'residues': [ 'H' ] },
             #'Pyrophospho': { 'delta_mass': 159.932662, 'residues': [ 'S', 'T', 'Y' ], 'neutral_losses': [ 177.943227, 79.966331 ] },
             #'Beta-methythiolation': { 'delta_mass': 45.987721, 'residues': [ 'C' ] },
