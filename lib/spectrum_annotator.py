@@ -101,6 +101,7 @@ class SpectrumAnnotator:
 
         # Set up a dict for attributes related to the predicted spectrum
         self.spectrum_attributes = {}
+        self.tolerance = 20.0
 
         # Set up a data structure for residuals
         self.residuals = {
@@ -119,7 +120,12 @@ class SpectrumAnnotator:
 
     ####################################################################################################
     #### Annotate a spectrum by calling a series of methods given a peptidoform
-    def annotate(self, spectrum, peptidoform, charge):
+    def annotate(self, spectrum, peptidoform, charge, tolerance=None):
+
+        if tolerance is None:
+            tolerance = self.tolerance
+        else:
+            self.tolerance = tolerance
 
         spectrum.compute_spectrum_metrics()
         self.identify_isotopes(spectrum)
@@ -145,7 +151,7 @@ class SpectrumAnnotator:
         else:
             self.peptidoform = peptidoform
 
-        debug = True
+        debug = False
 
         special_annotation_rules = {}
 
@@ -229,11 +235,11 @@ class SpectrumAnnotator:
                     loss_type = 'CO'
                     potential_losses[series_name][loss_type] = 1
 
-            #### On the last pass for the whole peptide, just compute the b bion, which will become a p down below
-            charge_list = range(1,charge+1)
+            #### On the last pass for the whole peptide, just compute b and y bions, but they will be relabeled a p (precursor)
+            charge_list = range(1, charge + 1)
             if i_residue == peptide_length - 1 and have_labile_nterm_mod is False:
-                series_list = [ 'b' ]
-                charge_list = [ charge ]
+                series_list = [ 'b', 'y' ]
+                charge_list = [ 1 ]
 
 
             # Generate fragments for each ion series we expect to find
@@ -310,8 +316,8 @@ class SpectrumAnnotator:
                             interpretation = f"p{loss_string}"
 
                         #### If there is an n-terminal mod, then add a precursor with a loss of the n-terminal mod during the y series
-                        if i_residue == peptide_length - 1 and series == 'y' and 'nterm' in peptidoform.terminal_mass_modifications:
-
+                        #print(f"{i_residue}, {peptide_length - 1}. {series}, {list(peptidoform.terminal_modifications.keys())} -- {special_annotation_rules}")
+                        if i_residue == peptide_length - 1 and series == 'y' and 'nterm' in peptidoform.terminal_modifications:
                             #### If there are special annotation rules, apply those
                             apply_special_rules = None
                             possible_special_rules = [ 'TMT6plex', 'TMTpro' ]
@@ -326,13 +332,13 @@ class SpectrumAnnotator:
                                     self.predicted_fragments_list.append( [ mz, [ [ interpretation, interpretation_score ] ] ] )
                                     #print(mz,interpretation)
 
-                            interpretation = f"p-[{peptidoform.terminal_mass_modifications['modification_name']}]{loss_string}"
+                            interpretation = f"p-[{peptidoform.terminal_modifications['nterm']['modification_name']}]{loss_string}"
 
                         # But if this is an internal fragment, create that style
                         if series_type == 'm':
                             if cumulative_residues[series] > 1:
                                 interpretation = f"{series}:{i_residue+1}{loss_string}"
-                            # Unless it is only of length 1, then skip this entirely because immonium ions are handled staticly
+                            # Unless it is only of length 1, then skip this entirely because that is immonium, and immonium ions are handled statically
                             else:
                                 continue
 
@@ -358,14 +364,6 @@ class SpectrumAnnotator:
         #for frag in self.predicted_fragments_list:
         #    print(frag)
         #exit()
-
-        #### If there are special annotation rules, apply those
-        #if 'TMT6plex' in special_annotation_rules:
-
-
-
-
-
 
         # Now sort the fragments by mz
         self.predicted_fragments_list.sort(key = lambda x: x[0])
@@ -401,9 +399,12 @@ class SpectrumAnnotator:
 
     ####################################################################################################
     #### Annotate the spectrum with the predicted fragments from a supplied proforma peptidoform string
-    def annotate_peptidoform(self, spectrum, peptidoform, charge, skip_internal_fragments=False):
+    def annotate_peptidoform(self, spectrum, peptidoform, charge, skip_internal_fragments=False, tolerance=None):
 
-        tolerance = 30.0
+        if tolerance is None:
+            tolerance = self.tolerance
+        else:
+            self.tolerance = tolerance
 
         if not isinstance(peptidoform, ProformaPeptidoform):
             eprint(f"ERROR: Passed peptidoform is not an object, but instead is type {type(peptidoform)}")
@@ -425,7 +426,7 @@ class SpectrumAnnotator:
                             interpretation[INT_INTERPRETATION_STRING] = interpretation[INT_INTERPRETATION_STRING][2:]
 
             #print(f"Processing peak at {mz}")
-            matches = self.find_close_predicted_fragments(mz,tolerance)
+            matches = self.find_close_predicted_fragments(mz, tolerance)
             if matches:
                 diagnostic_category = 'diagnostic'
                 for match in matches:
@@ -442,7 +443,7 @@ class SpectrumAnnotator:
     #### FIXME Not quite clear what is going on here
     def compute_spectrum_score(self, spectrum, peptidoform, charge):
 
-        tolerance = 20.0
+        tolerance = self.tolerance
 
         # Store the stripped sequence if present
         stripped_sequence = ''
@@ -464,7 +465,7 @@ class SpectrumAnnotator:
                             interpretation[INT_INTERPRETATION_STRING] = interpretation[INT_INTERPRETATION_STRING][2:]
 
             #print(f"Processing peak at {mz}")
-            matches = self.find_close_predicted_fragments(mz,tolerance)
+            matches = self.find_close_predicted_fragments(mz, tolerance)
             if matches:
                 diagnostic_category = 'diagnostic'
                 for match in matches:
@@ -479,7 +480,7 @@ class SpectrumAnnotator:
 
     ####################################################################################################
     # For a given observed m/z, find all the potential matching predicted fragments within tolerance
-    def find_close_predicted_fragments(self,observed_mz,tolerance):
+    def find_close_predicted_fragments(self,observed_mz, tolerance):
 
         # Override the input tolerance with the reference tolerance
         #tolerance = self.stats['mz_calibration_tolerance_ppm']
@@ -604,7 +605,7 @@ class SpectrumAnnotator:
         # Define some basic parameters
         n_peaks = spectrum.attributes['number of peaks']
         #tolerance = self.stats['mz_calibration_tolerance_ppm']
-        tolerance = 20
+        tolerance = self.tolerance
 
         # Loop through and identify isotopes
         #i_peak = 0
@@ -736,7 +737,7 @@ class SpectrumAnnotator:
         # Define some basic parameters
         n_peaks = spectrum.attributes['number of peaks']
         #tolerance = self.stats['mz_calibration_tolerance_ppm']
-        tolerance = 10
+        tolerance = self.tolerance
 
         charge = spectrum.analytes['1']['charge state']
         charge_string = ''
@@ -812,7 +813,7 @@ class SpectrumAnnotator:
 
         n_peaks = spectrum.attributes['number of peaks']
         mzs_list = []
-        tolerance = 20
+        tolerance = self.tolerance
 
         if len(spectrum.peak_index) == 0:
             self.index_peaks(spectrum)
@@ -864,8 +865,7 @@ class SpectrumAnnotator:
     #### Identify all the low-mass ions in a spectrum that aren't specifically part of predicted fragments
     def identify_low_mass_ions(self, spectrum, peptidoform=None):
 
-        #### FIXME. Handle this better
-        tolerance = 20
+        tolerance = self.tolerance
 
         #### Create a dict of the residues that the peptide has
         contained_residues = {}
@@ -927,7 +927,7 @@ class SpectrumAnnotator:
     #### Identify known reporter ions, somewhat independently of whether they should be there or not
     def identify_reporter_ions(self, spectrum):
 
-        tolerance = 20.0
+        tolerance = self.tolerance
         if len(spectrum.peak_index) == 0:
             self.index_peaks(spectrum)
 
@@ -939,7 +939,7 @@ class SpectrumAnnotator:
         for reporter_ion_name,reporter_ion_attributes in reporter_ions.items():
 
             #print(f"Searching for {reporter_ion_name}")
-            matches = self.find_close_ions(spectrum,reporter_ion_attributes['mz'],tolerance)
+            matches = self.find_close_ions(spectrum, reporter_ion_attributes['mz'], tolerance)
 
             if len(matches) > 0:
                 spectrum.attributes['n_identified_reporter_ions'] += 1
@@ -982,7 +982,7 @@ class SpectrumAnnotator:
 
                 #print(f"Searching for p - {reporter_ion_name} {loss_name}")
                 search_mz = precursor_mz - reporter_ion_attributes['mz'] - loss_mass
-                matches = self.find_close_ions(spectrum,search_mz,tolerance)
+                matches = self.find_close_ions(spectrum, search_mz, tolerance)
 
                 if len(matches) > 0:
                     spectrum.attributes['n_identified_reporter_ions'] += 1
@@ -1428,6 +1428,7 @@ def main():
     argparser.add_argument('--verbose', action='count', help='If set, print more information about ongoing processing' )
     argparser.add_argument('--version', action='version', version='%(prog)s 0.5')
     argparser.add_argument('--usi', action='store', default=None, help='USI to process')
+    argparser.add_argument('--tolerance', action='store', default=None, type=float, help='Tolerance in ppm for annotation')
     argparser.add_argument('--annotate', action='count', help='If set, annotate the USI spectrum' )
     argparser.add_argument('--show_all_annotations', action='count', help='If set, show all the potential annotations, not just the final one' )
     argparser.add_argument('--examine', action='count', help='If set, examine the spectrum to see what can be learned' )
@@ -1478,9 +1479,7 @@ def main():
 
     # Annotate the spectrum
     if params.annotate:
-        print("goof")
-        print(peptidoform)
-        annotator.annotate(spectrum, peptidoform=peptidoform, charge=charge)
+        annotator.annotate(spectrum, peptidoform=peptidoform, charge=charge, tolerance=params.tolerance)
         print(spectrum.show(show_all_annotations=show_all_annotations))
         if params.plot:
             annotator.plot(spectrum, peptidoform_string=peptidoform_string, charge=charge)
