@@ -396,7 +396,10 @@ class Spectrum:
 
         #### Compute a spectrum quality score
         start_bin = 2
-        end_bin= int(charge1_precursor_losses_floor / 100.0) - 1
+        mz_ceiling = spectrum.attributes['maximum mz']
+        if charge1_precursor_losses_floor is not None:
+            mz_ceiling = charge1_precursor_losses_floor
+        end_bin= int(mz_ceiling / 100.0) - 1
         if end_bin < 6:
             end_bin = 6
         if end_bin > 20:
