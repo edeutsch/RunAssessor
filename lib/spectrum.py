@@ -253,6 +253,8 @@ class Spectrum:
         n_peaks = spectrum.attributes['number of peaks']
         precursor_mz = None
         selection_mz = None
+        selection_floor_mz = None
+        selection_ceiling_mz = None
 
         selection_half_width = 1.5          #### FIXME hardcoded for the moment
         isobaric_label_mode = 'TMTpro'      #### FIXME hardcoded to TMTpro for the moment
@@ -341,8 +343,9 @@ class Spectrum:
             mz = spectrum.peak_list[i_peak][PL_MZ]
             intensity = spectrum.peak_list[i_peak][PL_INTENSITY]
 
-            if precursor_mz is not None and mz > selection_floor_mz and mz < selection_ceiling_mz:
-                continue
+            if selection_floor_mz is not None and selection_ceiling_mz is not None:
+                if precursor_mz is not None and mz > selection_floor_mz and mz < selection_ceiling_mz:
+                    continue
             if charge1_precursor_losses_floor is not None and mz > charge1_precursor_losses_floor:
                 continue
 
