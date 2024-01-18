@@ -292,10 +292,16 @@ class SpectrumAnnotator:
 
                     # Create a list of all the possible combinations of neutral losses (including no loss)
                     all_combinations = []
+                    all_combinations_dict = {}
+                    #print(losses_list)
                     for r in range(len(losses_list) + 1):
                         combinations_object = itertools.combinations(losses_list, r)
                         combinations_list = list(combinations_object)
+                        #print('--',str(combinations_list))
+                        if str(combinations_list) in all_combinations_dict:
+                            continue
                         all_combinations += combinations_list
+                        all_combinations_dict[str(combinations_list)] = True
 
                     # Create the annotations for each combination of losses (including no loss)
                     for potential_neutral_loss_combination in all_combinations:
@@ -313,11 +319,16 @@ class SpectrumAnnotator:
 
                         #### If this is the final pass for the precursor
                         if i_residue == peptide_length - 1 and series == 'b':
+                            #interpretation = f"pc{loss_string}"
                             interpretation = f"p{loss_string}"
 
                         #### If there is an n-terminal mod, then add a precursor with a loss of the n-terminal mod during the y series
                         #print(f"{i_residue}, {peptide_length - 1}. {series}, {list(peptidoform.terminal_modifications.keys())} -- {special_annotation_rules}")
-                        if i_residue == peptide_length - 1 and series == 'y' and 'nterm' in peptidoform.terminal_modifications:
+                        if i_residue == peptide_length - 1 and series == 'y' and peptidoform.terminal_modifications is not None and 'nterm' in peptidoform.terminal_modifications:
+                            #print(losses_list)
+                            #print(all_combinations)
+                            #exit()
+
                             #### If there are special annotation rules, apply those
                             apply_special_rules = None
                             possible_special_rules = [ 'TMT6plex', 'TMTpro' ]
@@ -326,13 +337,16 @@ class SpectrumAnnotator:
                                     apply_special_rules = possible_special_rule
                             if apply_special_rules and i_charge == 1:
                                 for special_ion_name, special_ion_data in self.mass_reference.special_label_losses[apply_special_rules].items():
+                                    #interpretation = f"pa-{special_ion_name}{loss_string}"
                                     interpretation = f"p-{special_ion_name}{loss_string}"
                                     interpretation_score = 55
                                     mz = cumulative_mass[series] + terminal_mass_modifications['nterm'] - special_ion_data['mz'] - loss_mass + masses['proton'] * i_charge
                                     self.predicted_fragments_list.append( [ mz, [ [ interpretation, interpretation_score ] ] ] )
-                                    #print(mz,interpretation)
+                                    print(mz,interpretation)
 
+                            #interpretation = f"pb-[{peptidoform.terminal_modifications['nterm']['modification_name']}]{loss_string}"
                             interpretation = f"p-[{peptidoform.terminal_modifications['nterm']['modification_name']}]{loss_string}"
+                            #print(mz,interpretation)
 
                         # But if this is an internal fragment, create that style
                         if series_type == 'm':
@@ -358,6 +372,7 @@ class SpectrumAnnotator:
                             # Compute the final mz and score everything
                             mz = ( cumulative_mass[series] - loss_mass + masses['proton'] * i_charge ) / i_charge
                             self.predicted_fragments_list.append( [ mz, [ [ interpretation, interpretation_score ] ] ] )
+                            #print(mz,interpretation)
 
 
         # Print out the resulting fragment list for debugging
@@ -1102,7 +1117,7 @@ class SpectrumAnnotator:
         max_tolerance = mass_accuracy['max_tolerance']
 
         total_ion_current = 0.0
-        categories = [ 'contamination', 'nondiagnostic', 'diagnostic', 'unexplained', 'unknown' ]
+        categories = [ 'contamination', 'nondiagnostic', 'diagnostic', 'unexplained' ]
         metrics = [ 'intensity', 'count', 'fraction' ]
         psm_score = {}
         for category in categories:
