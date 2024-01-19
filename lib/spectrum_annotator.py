@@ -342,7 +342,7 @@ class SpectrumAnnotator:
                                     interpretation_score = 55
                                     mz = cumulative_mass[series] + terminal_mass_modifications['nterm'] - special_ion_data['mz'] - loss_mass + masses['proton'] * i_charge
                                     self.predicted_fragments_list.append( [ mz, [ [ interpretation, interpretation_score ] ] ] )
-                                    print(mz,interpretation)
+                                    #print(mz,interpretation)
 
                             #interpretation = f"pb-[{peptidoform.terminal_modifications['nterm']['modification_name']}]{loss_string}"
                             interpretation = f"p-[{peptidoform.terminal_modifications['nterm']['modification_name']}]{loss_string}"
@@ -973,8 +973,14 @@ class SpectrumAnnotator:
                 found_reporter_ions[reporter_ion_name] = reporter_ions[reporter_ion_name]
 
         # Now loop through again for the ones that we found looking for precursor losses
-        precursor_mz = spectrum.analytes['1']['precursor_mz']
-        precursor_charge = spectrum.analytes['1']['charge state']
+        precursor_mz = None
+        precursor_charge = None
+        try:
+            precursor_mz = spectrum.analytes['1']['precursor_mz']
+            precursor_charge = spectrum.analytes['1']['charge state']
+        except:
+            #### Can't go any farther without a precursor mz
+            return
         if precursor_charge < 2:
             return
 
@@ -1407,8 +1413,14 @@ class SpectrumAnnotator:
             counter += 1
 
         #### Plot a little P where the precursor m/z is
-        if spectrum.analytes['1']['precursor_mz']:
-            plot1.text(spectrum.analytes['1']['precursor_mz'], -0.003, 'P', fontsize='small', ha='center', va='top', color='red', fontname='Arial')
+        precursor_mz = None
+        try:
+            precursor_mz = spectrum.analytes['1']['precursor_mz']
+        except:
+            pass
+
+        if precursor_mz:
+            plot1.text(precursor_mz, -0.003, 'P', fontsize='small', ha='center', va='top', color='red', fontname='Arial')
 
 
         #### Set up the third plot, nominally for the precursor window
