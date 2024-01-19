@@ -16,9 +16,10 @@ from scipy.optimize import curve_fit
 from numpy import exp
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
+DEBUG = False
+
 sys.path.append("C:\local\Repositories\GitHub\SpectralLibraries\lib")
 from proforma_peptidoform import ProformaPeptidoform
-
 
 from peptidoform import Peptidoform
 from mass_reference import MassReference
@@ -52,6 +53,41 @@ INT_SCORE = 4
 INT_DELTA_SCORE = 5
 INT_COMMONNESS_SCORE = 6
 INT_DIAGNOSTIC_CATEGORY = 7
+
+
+####################################################################################################
+#### Calculate all non-redundant permutations of a list of potential neutral losses
+def get_nr_permutations(input_list, max_of_each=3):
+
+    #### Preparation
+    all_combinations = set()
+
+    #### Reduce the list of all possible losses to a maximum of N of each type
+    reduced_loss_list = []
+    loss_counts = {}
+    for item in input_list:
+        if item not in loss_counts:
+            loss_counts[item] = 0
+        loss_counts[item] += 1
+        if loss_counts[item] <= max_of_each:
+            reduced_loss_list.append(item)
+
+    sorted_losses_list = sorted(reduced_loss_list)
+
+    #### Generate permutations
+    for set_size in range(len(sorted_losses_list) + 1):
+        combinations_tuple_list = sorted(list(itertools.combinations(sorted_losses_list, set_size)))
+        combinations_set_list = [ list(i) for i in combinations_tuple_list ]
+        combinations_sorted_set_list = [ sorted(item) for item in combinations_set_list ]
+
+        for combination_set in combinations_sorted_set_list:
+            combination_set_str = ';'.join(combination_set)
+            all_combinations.add(combination_set_str)
+
+    all_combinations = [ item.split(';') for item in all_combinations ]
+    return(all_combinations)
+
+
 
 
 
@@ -142,6 +178,10 @@ class SpectrumAnnotator:
     #### Predict all potential fragment ions for the provided peptidoform
     def predict_fragment_ions(self, peptidoform=None, charge=1, fragmentation_type='HCD', skip_internal_fragments=False):
 
+        #skip_internal_fragments = True
+        if DEBUG:
+            eprint("DEBUG: Entering predict_fragment_ions")
+
         # Use the passed peptidoform object or else the previously supplied one or return None
         if peptidoform is None:
             if self.peptidoform is None:
@@ -219,6 +259,9 @@ class SpectrumAnnotator:
         # Main loop: iterate through each position, working from both ends simultaneously
         for i_residue in range(peptide_length):
 
+            if DEBUG:
+                eprint(f"DEBUG: Processing i_residue={i_residue} for peptide_length={peptide_length}")
+
             # Add additional series entries for internal ions
             if not skip_internal_fragments:
                 if (i_residue > 0 and i_residue < peptide_length-2) or (have_labile_nterm_mod is True and i_residue > 0 and i_residue < peptide_length-2):
@@ -236,10 +279,13 @@ class SpectrumAnnotator:
                     potential_losses[series_name][loss_type] = 1
 
             #### On the last pass for the whole peptide, just compute b and y bions, but they will be relabeled a p (precursor)
+            #### Also, just for charge 1 and the precursor charge. This is a little hokey. it should probably broken out to a
+            #### separate system that works independent of the peptidoform
             charge_list = range(1, charge + 1)
             if i_residue == peptide_length - 1 and have_labile_nterm_mod is False:
                 series_list = [ 'b', 'y' ]
-                charge_list = [ 1 ]
+                series_list = [ 'b' ]
+                charge_list = [ 1, charge ]
 
 
             # Generate fragments for each ion series we expect to find
@@ -250,6 +296,9 @@ class SpectrumAnnotator:
 
                 # And for each expected charge
                 for i_charge in charge_list:
+
+                    if DEBUG:
+                        eprint(f"DEBUG:   - Processing {series} in {series_list}, {i_charge} in {charge_list}")
 
                     # Get the next residue
                     residue_offset = i_residue + 1
@@ -264,12 +313,12 @@ class SpectrumAnnotator:
                         residue_mass += peptidoform.residues[residue_offset]['delta_mass']
 
                     # Only compute certain things on the first pass
-                    if i_charge == 1 or i_residue == peptide_length - 1:
+                    if i_charge == 1:
                         # Update the cumulative mass
                         cumulative_mass[series] += residue_mass
 
                         #### If this is the precursor pass, also add in the other terminus
-                        if i_residue == peptide_length - 1:
+                        if i_residue + 1 == peptide_length and series == 'b':
                             cumulative_mass[series] += terminal_mass_modifications['cterm']
                             cumulative_mass[series] += ion_series_attr['y']['mass']
 
@@ -291,40 +340,31 @@ class SpectrumAnnotator:
                             losses_list.append(potential_neutral_loss_formula)
 
                     # Create a list of all the possible combinations of neutral losses (including no loss)
-                    all_combinations = []
-                    all_combinations_dict = {}
-                    #print(losses_list)
-                    for r in range(len(losses_list) + 1):
-                        combinations_object = itertools.combinations(losses_list, r)
-                        combinations_list = list(combinations_object)
-                        #print('--',str(combinations_list))
-                        if str(combinations_list) in all_combinations_dict:
-                            continue
-                        all_combinations += combinations_list
-                        all_combinations_dict[str(combinations_list)] = True
+                    all_combinations = get_nr_permutations(losses_list, max_of_each=2)
 
                     # Create the annotations for each combination of losses (including no loss)
-                    for potential_neutral_loss_combination in all_combinations:
+                    if DEBUG:
+                        #eprint(f"DEBUG:       - Processing {len(all_combinations)} combinations")
+                        pass
+                    for potential_neutral_loss_combination_list in all_combinations:
                         loss_string = ''
                         loss_mass = 0.0
-                        potential_neutral_loss_combination_list = list(potential_neutral_loss_combination)
-                        potential_neutral_loss_combination_list.sort()
                         for potential_neutral_loss_formula in potential_neutral_loss_combination_list:
-                            if potential_neutral_loss_formula is not None:
+                            if potential_neutral_loss_formula != '':
                                 loss_string += f"-{potential_neutral_loss_formula}"
                                 loss_mass += neutral_losses_by_formula[potential_neutral_loss_formula]['delta_mass']
 
                         # Create the default interpretation
-                        interpretation = f"{series}{i_residue+1}{loss_string}"
+                        interpretation = f"{series}{i_residue + 1}{loss_string}"
 
                         #### If this is the final pass for the precursor
-                        if i_residue == peptide_length - 1 and series == 'b':
-                            #interpretation = f"pc{loss_string}"
+                        if i_residue + 1 == peptide_length:
                             interpretation = f"p{loss_string}"
 
                         #### If there is an n-terminal mod, then add a precursor with a loss of the n-terminal mod during the y series
                         #print(f"{i_residue}, {peptide_length - 1}. {series}, {list(peptidoform.terminal_modifications.keys())} -- {special_annotation_rules}")
-                        if i_residue == peptide_length - 1 and series == 'y' and peptidoform.terminal_modifications is not None and 'nterm' in peptidoform.terminal_modifications:
+                        #if i_residue + 1 == peptide_length and series == 'b' and i_charge == 1 and peptidoform.terminal_modifications is not None and 'nterm' in peptidoform.terminal_modifications:
+                        if i_residue + 1 == peptide_length and i_charge == 1 and peptidoform.terminal_modifications is not None and 'nterm' in peptidoform.terminal_modifications:
                             #print(losses_list)
                             #print(all_combinations)
                             #exit()
@@ -337,21 +377,20 @@ class SpectrumAnnotator:
                                     apply_special_rules = possible_special_rule
                             if apply_special_rules and i_charge == 1:
                                 for special_ion_name, special_ion_data in self.mass_reference.special_label_losses[apply_special_rules].items():
-                                    #interpretation = f"pa-{special_ion_name}{loss_string}"
-                                    interpretation = f"p-{special_ion_name}{loss_string}"
-                                    interpretation_score = 55
-                                    mz = cumulative_mass[series] + terminal_mass_modifications['nterm'] - special_ion_data['mz'] - loss_mass + masses['proton'] * i_charge
-                                    self.predicted_fragments_list.append( [ mz, [ [ interpretation, interpretation_score ] ] ] )
-                                    #print(mz,interpretation)
+                                    special_interpretation = f"p-{special_ion_name}{loss_string}"
+                                    special_interpretation_score = 55
+                                    mz = cumulative_mass[series] - special_ion_data['mz'] - loss_mass + masses['proton'] * i_charge
+                                    self.predicted_fragments_list.append( [ mz, [ [ special_interpretation, special_interpretation_score ] ] ] )
 
-                            #interpretation = f"pb-[{peptidoform.terminal_modifications['nterm']['modification_name']}]{loss_string}"
-                            interpretation = f"p-[{peptidoform.terminal_modifications['nterm']['modification_name']}]{loss_string}"
-                            #print(mz,interpretation)
+                            mz = cumulative_mass[series] - terminal_mass_modifications['nterm'] - loss_mass + masses['proton'] * i_charge
+                            special_interpretation = f"p-[{peptidoform.terminal_modifications['nterm']['modification_name']}]{loss_string}"
+                            special_interpretation_score = 56
+                            self.predicted_fragments_list.append( [ mz, [ [ special_interpretation, interpretation_score ] ] ] )
 
                         # But if this is an internal fragment, create that style
                         if series_type == 'm':
                             if cumulative_residues[series] > 1:
-                                interpretation = f"{series}:{i_residue+1}{loss_string}"
+                                interpretation = f"{series}:{i_residue + 1}{loss_string}"
                             # Unless it is only of length 1, then skip this entirely because that is immonium, and immonium ions are handled statically
                             else:
                                 continue
@@ -1456,6 +1495,7 @@ def main():
     argparser.add_argument('--version', action='version', version='%(prog)s 0.5')
     argparser.add_argument('--usi', action='store', default=None, help='USI to process')
     argparser.add_argument('--tolerance', action='store', default=None, type=float, help='Tolerance in ppm for annotation')
+    argparser.add_argument('--input_json_filename', action='store', default=None, type=float, help='Filename of an input json file')
     argparser.add_argument('--annotate', action='count', help='If set, annotate the USI spectrum' )
     argparser.add_argument('--show_all_annotations', action='count', help='If set, show all the potential annotations, not just the final one' )
     argparser.add_argument('--examine', action='count', help='If set, examine the spectrum to see what can be learned' )
@@ -1472,6 +1512,11 @@ def main():
     show_all_annotations = False
     if params.show_all_annotations is not None and params.show_all_annotations > 0:
         show_all_annotations = True
+
+    #### If there is a JSON to load from
+    #if params.input_json_filename:
+    #    with open(params.input_json_filename) as infile:
+
 
     #### Get the user-supplied USI
     if params.usi is None or params.usi == '':
