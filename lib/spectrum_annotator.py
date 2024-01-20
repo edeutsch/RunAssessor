@@ -455,6 +455,10 @@ class SpectrumAnnotator:
     #### Annotate the spectrum with the predicted fragments from a supplied proforma peptidoform string
     def annotate_peptidoform(self, spectrum, peptidoform, charge, skip_internal_fragments=False, tolerance=None):
 
+        #### If peptidoform is specified as None, then there's nothing we can do here
+        if peptidoform is None:
+            return
+
         if tolerance is None:
             tolerance = self.tolerance
         else:
@@ -1529,8 +1533,8 @@ def main():
         sys.path.append("C:\local\Repositories\GitHub\PSI\SpectralLibraryFormat\implementations\python\mzlib")
         from universal_spectrum_identifier import UniversalSpectrumIdentifier
         usi = UniversalSpectrumIdentifier(usi_string)
-        peptidoform_string = usi.peptidoform['peptidoform_string']
-        charge = int(usi.charge)
+        peptidoform_string = usi.peptidoform_string
+        charge = usi.charge
         if verbose:
             print("Parsed information from the USI:")
             print(json.dumps(usi.__dict__,sort_keys=True,indent=2))
@@ -1544,7 +1548,9 @@ def main():
     spectrum.fetch_spectrum(usi_string)
 
     #### Need to do this as apparently the peptidoform that comes back from usi is a dict, not an object?
-    peptidoform = ProformaPeptidoform(peptidoform_string)
+    peptidoform = None
+    if peptidoform_string is not None and peptidoform_string != '':
+        peptidoform = ProformaPeptidoform(peptidoform_string)
 
     #### Create an annotator object
     annotator = SpectrumAnnotator()

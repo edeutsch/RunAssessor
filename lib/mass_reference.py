@@ -180,11 +180,11 @@ class MassReference:
             'Sulfide': { 'delta_mass': 31.972071, 'residues': [ 'S' ] },
 
             #'TMT': { 'delta_mass': 224.152478, 'residues': [ 'K' ] },
-            #'TMT6': { 'delta_mass': 229.162932, 'residues': [ 'K' ] },
-            #'TMT6plex': { 'delta_mass': 229.162932, 'residues': [ 'K' ] },
+            'TMT6': { 'delta_mass': 229.162932, 'residues': [ 'K' ] },
+            'TMT6plex': { 'delta_mass': 229.162932, 'residues': [ 'K' ] },
             'TMTpro': { 'delta_mass': 304.207146, 'residues': [ 'K', 'S', 'T', 'R' ] },
-            #'iTRAQ4': { 'delta_mass': 144.102063, 'residues': [ 'K' ] },
-            #'iTRAQ4plex': { 'delta_mass': 144.102063, 'residues': [ 'K' ] },
+            'iTRAQ4': { 'delta_mass': 144.102063, 'residues': [ 'K' ] },
+            'iTRAQ4plex': { 'delta_mass': 144.102063, 'residues': [ 'K' ] },
             #'mtraq': { 'delta_mass': 140.094963, 'residues': [ 'K' ] },
         }
         for modification in modifications:
@@ -268,7 +268,7 @@ class MassReference:
             'lysine +CO-H2O': { 'formula': 'H2O+CO', 'residues': [ 'K' ],
                 'delta_mass': self.atomic_masses['hydrogen'] * 2 - self.atomic_masses['carbon'] * 1 },
             #'water': { 'formula': 'H2O', 'residues': [ 'S', 'T', 'E', 'D' ],              # canonical
-            'water': { 'formula': 'H2O', 'residues': [ 'S', 'T', 'E', 'D', 'K', 'A', 'Y', 'C[Carbamidomethyl]' ],          # observed
+            'water': { 'formula': 'H2O', 'residues': [ 'S', 'T', 'E', 'D', 'K', 'A', 'Y', 'C[Carbamidomethyl]', 'S[Phospho]', 'T[Phospho]' ],          # observed
                 'delta_mass': self.atomic_masses['hydrogen'] * 2 + self.atomic_masses['oxygen'] },
             #'weird': { 'formula': 'H2O+CO', 'residues': [ 'S', 'T', 'E', 'D', 'K', 'A', 'Y', 'C[Carbamidomethyl]' ],          # observed
             #    'delta_mass': self.atomic_masses['hydrogen'] * 2 - self.atomic_masses['carbon'] },
@@ -449,24 +449,25 @@ class MassReference:
                 '[TMT134N]-CO': { 'type': 'TMT', 'mz': 134.148245 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
                 '[TMT134C]-CO': { 'type': 'TMT', 'mz': 134.154565 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
                 '[TMT135N]-CO': { 'type': 'TMT', 'mz': 135.151600 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
-                '[TMT126]': { 'type': 'TMT', 'mz': 126.127726 - self.atomic_masses['proton'] },
-                '[TMT127N]': { 'type': 'TMT', 'mz': 127.124761 - self.atomic_masses['proton'] },
-                '[TMT127C]': { 'type': 'TMT', 'mz': 127.131081 - self.atomic_masses['proton'] },
-                '[TMT128N]': { 'type': 'TMT', 'mz': 128.128116 - self.atomic_masses['proton'] },
-                '[TMT128C]': { 'type': 'TMT', 'mz': 128.134436 - self.atomic_masses['proton'] },
-                '[TMT129N]': { 'type': 'TMT', 'mz': 129.131471 - self.atomic_masses['proton'] },
-                '[TMT129C]': { 'type': 'TMT', 'mz': 129.137790 - self.atomic_masses['proton'] },
-                '[TMT130N]': { 'type': 'TMT', 'mz': 130.134825 - self.atomic_masses['proton'] },
-                '[TMT130C]': { 'type': 'TMT', 'mz': 130.141145 - self.atomic_masses['proton'] },
-                '[TMT131N]': { 'type': 'TMT', 'mz': 131.138180 - self.atomic_masses['proton'] },
-                '[TMT131C]': { 'type': 'TMT', 'mz': 131.1445 - self.atomic_masses['proton'] },
-                '[TMT132N]': { 'type': 'TMT', 'mz': 132.141535 - self.atomic_masses['proton'] },
-                '[TMT132C]': { 'type': 'TMT', 'mz': 132.147855 - self.atomic_masses['proton'] },
-                '[TMT133N]': { 'type': 'TMT', 'mz': 133.14489 - self.atomic_masses['proton'] },
-                '[TMT133C]': { 'type': 'TMT', 'mz': 133.15121 - self.atomic_masses['proton'] },
-                '[TMT134N]': { 'type': 'TMT', 'mz': 134.148245 - self.atomic_masses['proton'] },
-                '[TMT134C]': { 'type': 'TMT', 'mz': 134.154565 - self.atomic_masses['proton'] },
-                '[TMT135N]': { 'type': 'TMT', 'mz': 135.151600 - self.atomic_masses['proton'] },
+                #I commented this out because I think it was causing a doubling 2024-01-17, but maybe I added this because I saw fragments without CO???
+                #'[TMT126]': { 'type': 'TMT', 'mz': 126.127726 - self.atomic_masses['proton'] },
+                #'[TMT127N]': { 'type': 'TMT', 'mz': 127.124761 - self.atomic_masses['proton'] },
+                #'[TMT127C]': { 'type': 'TMT', 'mz': 127.131081 - self.atomic_masses['proton'] },
+                #'[TMT128N]': { 'type': 'TMT', 'mz': 128.128116 - self.atomic_masses['proton'] },
+                #'[TMT128C]': { 'type': 'TMT', 'mz': 128.134436 - self.atomic_masses['proton'] },
+                #'[TMT129N]': { 'type': 'TMT', 'mz': 129.131471 - self.atomic_masses['proton'] },
+                #'[TMT129C]': { 'type': 'TMT', 'mz': 129.137790 - self.atomic_masses['proton'] },
+                #'[TMT130N]': { 'type': 'TMT', 'mz': 130.134825 - self.atomic_masses['proton'] },
+                #'[TMT130C]': { 'type': 'TMT', 'mz': 130.141145 - self.atomic_masses['proton'] },
+                #'[TMT131N]': { 'type': 'TMT', 'mz': 131.138180 - self.atomic_masses['proton'] },
+                #'[TMT131C]': { 'type': 'TMT', 'mz': 131.1445 - self.atomic_masses['proton'] },
+                #'[TMT132N]': { 'type': 'TMT', 'mz': 132.141535 - self.atomic_masses['proton'] },
+                #'[TMT132C]': { 'type': 'TMT', 'mz': 132.147855 - self.atomic_masses['proton'] },
+                #'[TMT133N]': { 'type': 'TMT', 'mz': 133.14489 - self.atomic_masses['proton'] },
+                #'[TMT133C]': { 'type': 'TMT', 'mz': 133.15121 - self.atomic_masses['proton'] },
+                #'[TMT134N]': { 'type': 'TMT', 'mz': 134.148245 - self.atomic_masses['proton'] },
+                #'[TMT134C]': { 'type': 'TMT', 'mz': 134.154565 - self.atomic_masses['proton'] },
+                #'[TMT135N]': { 'type': 'TMT', 'mz': 135.151600 - self.atomic_masses['proton'] },
 
            }
         }
@@ -482,10 +483,10 @@ class MassReference:
             'Carbamidomethyl': { 'terminus': 'nterm', 'name:': 'Carbamidomethyl', 'mass': 57.021464, 'formula': '+H3C2NO', 'frequency': 'common', 'type': 'natural', 'is_labile': False },
             'Formyl': { 'terminus': 'nterm', 'name:': 'Formyl', 'mass': 27.9949, 'formula': '+CO', 'frequency': 'common', 'type': 'natural', 'is_labile': False },
             #'TMT': { 'terminus': 'nterm', 'name:': 'TMT6plex', 'mass': 224.152478, 'frequency': 'high', 'type': 'label', 'is_labile': True },
-            #'TMT6plex': { 'terminus': 'nterm', 'name:': 'TMT6plex', 'mass': 229.162932, 'frequency': 'high', 'type': 'label', 'is_labile': True },
+            'TMT6plex': { 'terminus': 'nterm', 'name:': 'TMT6plex', 'mass': 229.162932, 'frequency': 'high', 'type': 'label', 'is_labile': True },
             'TMTpro': { 'terminus': 'nterm', 'name:': 'TMTpro', 'mass': 304.207146, 'frequency': 'high', 'type': 'label', 'is_labile': True },
-            #'iTRAQ4plex': { 'terminus': 'nterm', 'name:': 'iTRAQ4plex', 'mass': 144.102063, 'frequency': 'high', 'type': 'label', 'is_labile': True },
-            #'iTRAQ8plex': { 'terminus': 'nterm', 'name:': 'iTRAQ8plex', 'mass': 304.205360, 'frequency': 'high', 'type': 'label', 'is_labile': True },
+            'iTRAQ4plex': { 'terminus': 'nterm', 'name:': 'iTRAQ4plex', 'mass': 144.102063, 'frequency': 'high', 'type': 'label', 'is_labile': True },
+            'iTRAQ8plex': { 'terminus': 'nterm', 'name:': 'iTRAQ8plex', 'mass': 304.205360, 'frequency': 'high', 'type': 'label', 'is_labile': True },
             #'mtraq': { 'terminus': 'nterm', 'name:': 'mtraq', 'mass': 140.094963, 'frequency': 'high', 'type': 'label', 'is_labile': True },
         }
 
