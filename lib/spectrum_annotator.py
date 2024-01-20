@@ -87,8 +87,81 @@ def get_nr_permutations(input_list, max_of_each=3):
     all_combinations = [ item.split(';') for item in all_combinations ]
     return(all_combinations)
 
+expected_isotope_ratios = {
+    '100': [ 1.0, 0.038 ],
+    '200': [ 1.0, 0.108 ],
+    '300': [ 1.0, 0.167 ],
+    '400': [ 1.0, 0.193 ],
+    '500': [ 1.0, 0.230 ],
+    '600': [ 1.0, 0.279 ],
+    '700': [ 1.0, 0.353 ],
+    '800': [ 1.0, 0.434 ],
+    '900': [ 1.0, 0.483 ],
+    '1000': [ 1.0, 0.483 ],
+    '1100': [ 1.0, 0.542 ],
+    '1200': [ 1.0, 0.595 ],
+    '1300': [ 1.0, 0.658 ],
+    '1400': [ 1.0, 0.716 ],
+    '1500': [ 1.0, 0.716 ],
+    '1600': [ 1.0, 0.819 ],
+    '1700': [ 1.0, 0.857 ],
+    '1800': [ 1.0, 0.927 ],
+    '1900': [ 1.0, 0.986 ],
+    '2000': [ 1.0, 1.049 ],
+    '2100': [ 1.0, 1.098 ],
+    '2200': [ 1.0, 1.172 ],
+    '2300': [ 1.0, 1.172 ],
+    '2400': [ 1.0, 1.253 ],
+    '2500': [ 1.0, 1.301 ],
+    '2600': [ 1.0, 1.361 ],
+    '2700': [ 1.0, 1.413 ],
+    '2800': [ 1.0, 1.413 ],
+    '2900': [ 1.0, 1.476 ],
+    '3000': [ 1.0, 1.535 ],
+    '3100': [ 1.0, 1.638 ],
+    '3200': [ 1.0, 1.675 ],
+    '3300': [ 1.0, 1.746 ],
+    '3400': [ 1.0, 1.805 ],
+    '3500': [ 1.0, 1.831 ],
+    '3600': [ 1.0, 1.868 ],
+    '3700': [ 1.0, 1.916 ],
+    '3800': [ 1.0, 1.990 ],
+    '3900': [ 1.0, 2.035 ],
+    '4000': [ 1.0, 2.112 ],
+    '4100': [ 1.0, 2.182 ],
+    '4200': [ 1.0, 2.182 ],
+    '4300': [ 1.0, 2.249 ],
+    '4400': [ 1.0, 2.352 ],
+    '4500': [ 1.0, 2.352 ],
+    '4600': [ 1.0, 2.480 ],
+    '4700': [ 1.0, 2.518 ],
+    '4800': [ 1.0, 2.588 ],
+    '4900': [ 1.0, 2.647 ],
+    '5000': [ 1.0, 2.673 ],
+    '5100': [ 1.0, 2.710 ],
+    '5200': [ 1.0, 2.758 ],
+    '5300': [ 1.0, 2.832 ],
+    '5400': [ 1.0, 2.914 ],
+    '5500': [ 1.0, 2.914 ],
+    '5600': [ 1.0, 2.962 ],
+    '5700': [ 1.0, 3.022 ],
+    '5800': [ 1.0, 3.074 ],
+    '5900': [ 1.0, 3.137 ],
+    '6000': [ 1.0, 3.196 ],
+}
 
 
+####################################################################################################
+#### A crude lookup for the expected ratio between the monoisotope and the first isotopic peak
+def get_mono_to_first_isotope_peak_ratio(mz):
+
+    mz100 = round(mz/100)*100
+    if mz100 < 100:
+        mz100 = 100
+    if mz100 > 6000:
+        mz100 = 6000
+    ratio = expected_isotope_ratios[str(mz100)][1]
+    return ratio
 
 
 ####################################################################################################
@@ -655,19 +728,16 @@ class SpectrumAnnotator:
     # Loop through a spectrum and identify all the peaks that are isotopes of another
     def identify_isotopes(self, spectrum):
 
-        # Constants
+        #### Constants
         average_isotope_delta = 1.003355    # This is the official mass delta of carbon 13 over caerbon 12 and seems to work best
         max_charge = 4
         debug = False
 
-        # Define some basic parameters
+        #### Get some basic parameters
         n_peaks = spectrum.attributes['number of peaks']
-        #tolerance = self.stats['mz_calibration_tolerance_ppm']
         tolerance = self.tolerance
 
         # Loop through and identify isotopes
-        #i_peak = 0
-        #while i_peak < n_peaks - 1:
         for i_peak in range(n_peaks-1):
 
             # If this peak is already an isotope, no need to look further
@@ -675,10 +745,11 @@ class SpectrumAnnotator:
                 continue
 
             mz = spectrum.peak_list[i_peak][PL_MZ]
-            if debug: print(f"Analyzing peak {i_peak} at {mz}")
+            if debug:
+                print(f"Analyzing peak {i_peak} at {mz}")
+
             i_lookahead_peak = i_peak + 1
             i_isotope = 1
-            i_charge = 0
             charge = max_charge
             done = False
             pursue_more_isotopes = False
@@ -686,26 +757,40 @@ class SpectrumAnnotator:
                 lookahead_mz = spectrum.peak_list[i_lookahead_peak][PL_MZ]
                 diff = lookahead_mz - mz
                 delta = diff * charge - i_isotope * average_isotope_delta
-                #delta = diff * charge - i_isotope - ( 1 - average_isotope_delta ) * charge
                 delta_ppm = delta / mz * 1e6
                 if debug: print(f"  Lookahead peak {i_lookahead_peak} at {lookahead_mz} has diff={diff}, delta={delta}, delta_ppm={delta_ppm}")
                 abs_delta_ppm = abs(delta_ppm)
                 if abs_delta_ppm < tolerance:
-                    if debug: print(f"  Lookahead peak {i_lookahead_peak} at {lookahead_mz} matches charge {charge} with abs_delta_ppm={abs_delta_ppm}")
-                    spectrum.peak_list[i_peak][PL_ATTRIBUTES][PLA_CHARGE] = charge
-                    spectrum.peak_list[i_peak][PL_ATTRIBUTES][PLA_N_ISOTOPES] += 1
-                    spectrum.peak_list[i_lookahead_peak][PL_ATTRIBUTES][PLA_CHARGE] = charge
-                    spectrum.peak_list[i_lookahead_peak][PL_ATTRIBUTES][PLA_IS_ISOTOPE] = 1
-                    spectrum.peak_list[i_lookahead_peak][PL_ATTRIBUTES][PLA_DELTA_PPM] = delta_ppm
-                    spectrum.peak_list[i_lookahead_peak][PL_ATTRIBUTES][PLA_PARENT_PEAK] = i_peak
 
-                    interpretation_string = f"isotope of peak {i_peak}"
-                    commonness_score = 50
-                    match = [ lookahead_mz, i_peak, interpretation_string, delta_ppm, 1.0, 1.0, commonness_score, 'isotope' ]
-                    self.add_interpretation(spectrum.peak_list[i_lookahead_peak],match,diagnostic_category='isotope',residual_type='relative')
+                    #### Examine the intensities of the two peaks and compute how far off the expected intensity ratio they are
+                    peak_intensity = spectrum.peak_list[i_peak][PL_INTENSITY]
+                    lookahead_peak_intensity = spectrum.peak_list[i_lookahead_peak][PL_INTENSITY]
+                    actual_ratio = lookahead_peak_intensity / peak_intensity
+                    expected_ratio = get_mono_to_first_isotope_peak_ratio(mz*charge)
+                    surprise_factor = actual_ratio / expected_ratio
 
-                    pursue_more_isotopes = True
-                    done = True
+                    if debug: print(f"  Lookahead peak {i_lookahead_peak} at {lookahead_mz} matches charge {charge} with abs_delta_ppm={abs_delta_ppm} with actual_ratio={actual_ratio} and expected_ratio={expected_ratio} and surprise_factor={surprise_factor:.3f}")
+
+                    #### If the intensity ratio is not too far off the expected, then record it as an isotope
+                    if surprise_factor < 4:
+                        spectrum.peak_list[i_peak][PL_ATTRIBUTES][PLA_CHARGE] = charge
+                        spectrum.peak_list[i_peak][PL_ATTRIBUTES][PLA_N_ISOTOPES] += 1
+                        spectrum.peak_list[i_lookahead_peak][PL_ATTRIBUTES][PLA_CHARGE] = charge
+                        spectrum.peak_list[i_lookahead_peak][PL_ATTRIBUTES][PLA_IS_ISOTOPE] = 1
+                        spectrum.peak_list[i_lookahead_peak][PL_ATTRIBUTES][PLA_DELTA_PPM] = delta_ppm
+                        spectrum.peak_list[i_lookahead_peak][PL_ATTRIBUTES][PLA_PARENT_PEAK] = i_peak
+
+                        interpretation_string = f"isotope of peak {i_peak}"
+                        commonness_score = 50
+                        match = [ lookahead_mz, i_peak, interpretation_string, delta_ppm, 1.0, 1.0, commonness_score, 'isotope' ]
+                        self.add_interpretation(spectrum.peak_list[i_lookahead_peak],match,diagnostic_category='isotope',residual_type='relative')
+
+                        pursue_more_isotopes = True
+                        done = True
+
+                    #### Or if the ratio is too far off, then this can't be an isotope
+                    else:
+                        if debug: print(f"    ==> Lookahead peak intensity is too far off the expected, ignore this potential association")
 
                 elif charge == max_charge and delta < 0:
                     if debug: print(f"  Lookahead peak {i_lookahead_peak} at {lookahead_mz} is too close even for charge {charge} with delta_ppm={delta_ppm}. Next lookahead peak")
@@ -726,13 +811,13 @@ class SpectrumAnnotator:
                     if debug: print(f"  Lookahead peak {i_lookahead_peak} at {lookahead_mz} is not charge {charge} isotope with delta_ppm={delta_ppm}")
                     pass
 
-                # Try a lower charge
+                #### Try the next lower charge
                 if not done:
                     charge -= 1
                     if charge == 0:
                         done = True
 
-            # If we found an isotope at a particular charge, then pursue more at that charge
+            #### If we found an isotope at a particular charge, then pursue more at that charge
             if pursue_more_isotopes:
                 done = False
                 i_lookahead_peak += 1
@@ -770,8 +855,6 @@ class SpectrumAnnotator:
                     i_lookahead_peak += 1
                     if i_lookahead_peak >= n_peaks:
                         done = True
-
-            #i_peak += 1
 
 
     ####################################################################################################
