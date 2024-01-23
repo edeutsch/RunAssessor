@@ -162,6 +162,7 @@ class SimplePepXmlReader:
 
                 sequence = psm['search_hit'][0]['peptide']
                 charge = psm['assumed_charge']
+                peptide_length = len(sequence)
 
                 spectrum_name = psm['spectrum']
                 match = re.match(r"(.+)\.\d+\.\d+\.\d+$",spectrum_name)
@@ -202,7 +203,7 @@ class SimplePepXmlReader:
                 keep = True
 
                 if keep:
-                    row = [ msrun_name, str(psm['start_scan']), str(charge), str(peptideprophet_probability), peptidoform ]
+                    row = [ msrun_name, str(psm['start_scan']), str(charge), str(peptideprophet_probability), peptidoform, peptide_length ]
                     self.psms.append(row)
                     self.mzmls[msrun_name] = True
 
