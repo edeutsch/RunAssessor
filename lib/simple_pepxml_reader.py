@@ -16,18 +16,18 @@ from pyteomics import pepxml, auxiliary
 
 mass_lookup_table = {
     'n': { 43.018425: 'Acetyl', 305.214971: 'TMTpro' },
-    'C': { 143.0041: 'Pyro-Carbamidomethyl', 160.030649: 'Carbamidomethyl' },
+    'C': { 143.0041: 'Pyro-Carbamidomethyl', 160.030649: 'Carbamidomethyl', 69.021464: 'Cys->Dha' },
     'H': { 153.053827: 'Oxidation' },
     'E': { 111.032029: 'Glu->pyro-Glu' },
     'K': { 432.302109: 'TMTpro' },
-    'M': { 147.0354: 'Oxidation' },
+    'M': { 147.0354: 'Oxidation', 163.030314: 'Dioxidation' },
     'N': { 115.026943: 'Deamidated' },
     'Q': { 111.032029: 'Gln->pyro-Glu', 129.042594: 'Deamidated' },
     'R': { 460.308257: 'TMTpro' },
     'S': { 166.998359: 'Phospho', 391.239174: 'TMTpro' },
     'T': { 181.01401: 'Phospho', 405.254825: 'TMTpro'  },
     'Y': { 243.0297: 'Phospho' },
-    'W': { 202.074228: 'Oxidation', 218.069142: 'Dioxidation' },
+    'W': { 202.074228: 'Oxidation', 218.069142: 'Dioxidation', 190.074228: 'Trp->Kynurenin' },
 }
 
 def mass_lookup(total_mass, residue):
