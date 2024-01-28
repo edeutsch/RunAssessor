@@ -30,6 +30,7 @@ PLA_IS_NEUTRAL_LOSS = 6
 PLA_IS_PRECURSOR = 7
 PLA_IS_REPORTER = 8
 PLA_DIAGNOSTIC_CATEGORY = 9
+PLA_IS_DELETED = 10
 # Define column offsets for interpretations
 INT_MZ = 0
 INT_REFERENCE_PEAK = 1
@@ -145,7 +146,7 @@ class Spectrum:
             # so just set those to empty
             aggregation_info = ''
             interpretations = []
-            attributes = [ 0, 0, 0, 0, -1, 0, 0, 0, 0, 'unexplained' ]
+            attributes = [ 0, 0, 0, 0, -1, 0, 0, 0, 0, 'unexplained', False ]
 
             # Store the peak data as a data list in the peak_list
             self.peak_list.append( [ i_peak, mz, intensity, interpretation_string, aggregation_info, interpretations, attributes ] )
@@ -214,7 +215,7 @@ class Spectrum:
             # so just set those to empty
             aggregation_info = ''
             peak_interpretations = []
-            attributes = [ 0, 0, 0, 0, -1, 0, 0, 0, 0, 'unexplained' ]
+            attributes = [ 0, 0, 0, 0, -1, 0, 0, 0, 0, 'unexplained', False ]
 
             # Store the peak data as a data list in the peak_list
             self.peak_list.append( [ i_peak, mz, intensity, interpretation_string, aggregation_info, peak_interpretations, attributes ] )
@@ -448,26 +449,29 @@ class Spectrum:
 
     ####################################################################################################
     #### Return a printable buffer string of the details of the peptidoform
-    def show(self, show_all_annotations=False):
+    def show(self, show_all_annotations=False, verbose=0):
 
         buf = ''
-        if 'peptidoform sequence' in self.analytes['1']:
-            buf += f"peptidoform sequence={self.analytes['1']['peptidoform sequence']}\n"
 
-        if 'charge state' in self.analytes['1']:
-            buf += f"charge state={self.analytes['1']['charge state']}\n"
+        if verbose > 0:
 
-        for attribute_name, value in self.attributes.items():
-            if attribute_name in [ 'psm_score', 'mass_accuracy' ]:
-                continue
-            buf += f"  - {attribute_name}={value}\n"
+            if 'peptidoform sequence' in self.analytes['1']:
+                buf += f"peptidoform sequence={self.analytes['1']['peptidoform sequence']}\n"
 
-        for attribute_name in [ 'psm_score', 'mass_accuracy' ]:
-            if attribute_name in self.attributes:
-                buf += f"  - {attribute_name} = " + json.dumps(self.attributes[attribute_name], indent=2, sort_keys=True) + "\n"
+            if 'charge state' in self.analytes['1']:
+                buf += f"charge state={self.analytes['1']['charge state']}\n"
 
-        if len(self.metrics) > 0:
-            buf += f"  - {self.metrics} = " + json.dumps(self.metrics, indent=2, sort_keys=True) + "\n"
+            for attribute_name, value in self.attributes.items():
+                if attribute_name in [ 'psm_score', 'mass_accuracy' ]:
+                    continue
+                buf += f"  - {attribute_name}={value}\n"
+
+            for attribute_name in [ 'psm_score', 'mass_accuracy' ]:
+                if attribute_name in self.attributes:
+                    buf += f"  - {attribute_name} = " + json.dumps(self.attributes[attribute_name], indent=2, sort_keys=True) + "\n"
+
+            if len(self.metrics) > 0:
+                buf += f"  - {self.metrics} = " + json.dumps(self.metrics, indent=2, sort_keys=True) + "\n"
 
         for peak in self.peak_list:
             i_peak = peak[PL_I_PEAK]
@@ -475,6 +479,11 @@ class Spectrum:
             intensity = peak[PL_INTENSITY]
             interpretations_string = peak[PL_INTERPRETATION_STRING]
             diagnostic_category = peak[PL_ATTRIBUTES][PLA_DIAGNOSTIC_CATEGORY]
+
+            is_deleted = peak[PL_ATTRIBUTES][PLA_IS_DELETED]
+            if is_deleted:
+                continue
+
             buf += '{:4d}'.format(i_peak) + '{:10.4f}'.format(mz) + '{:10.1f}'.format(intensity) + '  ' + interpretations_string + "\n"
             #buf += '{:4d}'.format(i_peak) + '{:10.4f}'.format(mz) + '{:10.1f}'.format(intensity) + '  ' + interpretations_string + '  ' + diagnostic_category + "\n"
 
