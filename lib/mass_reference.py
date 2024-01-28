@@ -48,7 +48,7 @@ class MassReference:
 
 
     ####################################################################################################
-    def prepare_mass_tables(self):
+    def prepare_mass_tables(self, labels=None):
 
         # Define a subset of useful atomic masses and the proton
         self.atomic_masses = {
@@ -105,7 +105,7 @@ class MassReference:
             'Y': 'C9H9O2N',
             'W': 'C11H10ON2',
         }
-        for aa,formula in self.aa_formulas.items():
+        for aa, formula in self.aa_formulas.items():
             atoms = self.parse_atomic_formula(formula)
             self.aa_formulas[aa] = { 'formula_string': formula, 'atoms': atoms }
 
@@ -156,7 +156,7 @@ class MassReference:
         # Q[Deamidated] = E
         # E[Glu->pyro-Glu] = Q[Gln->pyro-Glu]
 
-        # Add some modifications
+        # Define a basic set of mass modifications that we would encounter
         modifications = {
             'Carbamidomethyl': { 'delta_mass': 57.021464, 'formula': '+H3C2NO', 'residues': [ 'C', 'K' ] },
             'Oxidation': { 'delta_mass': 15.994915, 'formula': '+O', 'residues': [ 'M', 'W', 'P', 'H', 'Y' ] },
@@ -167,26 +167,35 @@ class MassReference:
             'Deamidated': { 'delta_mass': 0.984016, 'formula': '-HN+O', 'residues': [ 'N' ] }, # Q[Deamidated] is the same as E, so don't bother here
             'Acetyl': { 'delta_mass': 42.010565, 'formula': '+C2H2O', 'residues': [ 'K' ] },
             'Dimethyl': { 'delta_mass': 28.031300, 'formula': '+C2H4', 'residues': [ 'K' ] },
-            #'Glycerinyl': { 'delta_mass': 88.016, 'formula': '+C', 'residues': [ 'K' ] },
             'Formyl': { 'delta_mass': 27.9949, 'formula': '+CO', 'residues': [ 'S', 'T', 'K' ] },   #is K[Formyl] the same as R???
             'Carbonyl': { 'delta_mass': 13.979265, 'formula': '+O-H2', 'residues': [ 'H' ] },
+            'Methylation': { 'delta_mass': 14.015650, 'residues': [ 'K', 'R', 'H' ] },
+            'Carbamyl': { 'delta_mass': 43.005814, 'residues': [ 'K' ] },
+            'Sulfide': { 'delta_mass': 31.972071, 'residues': [ 'S' ] },
+            #'Glycerinyl': { 'delta_mass': 88.016, 'formula': '+C', 'residues': [ 'K' ] },
             #'Pyrophospho': { 'delta_mass': 159.932662, 'residues': [ 'S', 'T', 'Y' ], 'neutral_losses': [ 177.943227, 79.966331 ] },
             #'Beta-methythiolation': { 'delta_mass': 45.987721, 'residues': [ 'C' ] },
             #'Acetylation': { 'delta_mass': 42.010565, 'residues': [ 'K' ] },
             #'Methylthio': { 'delta_mass': 45.987721, 'residues': [ 'K', 'D', 'N', 'C' ] },
-            'Methylation': { 'delta_mass': 14.015650, 'residues': [ 'K', 'R', 'H' ] },
             #'Ubiquitination': { 'delta_mass': 114.042927, 'residues': [ 'K' ] },
-            'Carbamyl': { 'delta_mass': 43.005814, 'residues': [ 'K' ] },
-            'Sulfide': { 'delta_mass': 31.972071, 'residues': [ 'S' ] },
-
-            #'TMT': { 'delta_mass': 224.152478, 'residues': [ 'K' ] },
-            'TMT6': { 'delta_mass': 229.162932, 'residues': [ 'K' ] },
-            'TMT6plex': { 'delta_mass': 229.162932, 'residues': [ 'K' ] },
-            'TMTpro': { 'delta_mass': 304.207146, 'residues': [ 'K', 'S', 'T', 'R' ] },
-            'iTRAQ4': { 'delta_mass': 144.102063, 'residues': [ 'K' ] },
-            'iTRAQ4plex': { 'delta_mass': 144.102063, 'residues': [ 'K' ] },
-            #'mtraq': { 'delta_mass': 140.094963, 'residues': [ 'K' ] },
         }
+
+        #### If a labeling type was specified, then add modifications for that label
+        if labels is not None:
+            known_labeling_modifications = {
+                #'TMT': { 'delta_mass': 224.152478, 'residues': [ 'K' ] },
+                'TMT6': { 'delta_mass': 229.162932, 'residues': [ 'K' ] },
+                'TMT6plex': { 'delta_mass': 229.162932, 'residues': [ 'K' ] },
+                'TMTpro': { 'delta_mass': 304.207146, 'residues': [ 'K', 'S', 'T', 'R' ] },
+                'iTRAQ4': { 'delta_mass': 144.102063, 'residues': [ 'K' ] },
+                'iTRAQ4plex': { 'delta_mass': 144.102063, 'residues': [ 'K' ] },
+                #'mtraq': { 'delta_mass': 140.094963, 'residues': [ 'K' ] },
+            }
+            for label in labels:
+                if label in known_labeling_modifications:
+                    modifications[label] = known_labeling_modifications[label]
+
+        #### Then for all of the modifications, expand to a full list of mass deltas
         for modification in modifications:
             for residue in modifications[modification]['residues']:
                 mod_residue = f"{residue}[{modification}]"
@@ -473,24 +482,28 @@ class MassReference:
         }
 
 
-
-
-
+        #### Set up some basic terminal modifications
         self.terminal_modifications = {
             'Acetyl': { 'terminus': 'nterm', 'name:': 'Acetyl', 'mass': 42.010565, 'formula': '+C2H2O', 'frequency': 'common', 'type': 'natural', 'is_labile': True },
             'Carbamyl': { 'terminus': 'nterm', 'name:': 'Carbamyl', 'mass': 43.0058, 'formula': '+HCNO', 'frequency': 'common', 'type': 'natural', 'is_labile': False },
             'Methyl': { 'terminus': 'cterm', 'name:': 'Methyl', 'mass': 14.0157, 'formula': '+H2C', 'frequency': 'common', 'type': 'natural', 'is_labile': False },
             'Carbamidomethyl': { 'terminus': 'nterm', 'name:': 'Carbamidomethyl', 'mass': 57.021464, 'formula': '+H3C2NO', 'frequency': 'common', 'type': 'natural', 'is_labile': False },
             'Formyl': { 'terminus': 'nterm', 'name:': 'Formyl', 'mass': 27.9949, 'formula': '+CO', 'frequency': 'common', 'type': 'natural', 'is_labile': False },
-            #'TMT': { 'terminus': 'nterm', 'name:': 'TMT6plex', 'mass': 224.152478, 'frequency': 'high', 'type': 'label', 'is_labile': True },
-            'TMT6plex': { 'terminus': 'nterm', 'name:': 'TMT6plex', 'mass': 229.162932, 'frequency': 'high', 'type': 'label', 'is_labile': True },
-            'TMTpro': { 'terminus': 'nterm', 'name:': 'TMTpro', 'mass': 304.207146, 'frequency': 'high', 'type': 'label', 'is_labile': True },
-            'iTRAQ4plex': { 'terminus': 'nterm', 'name:': 'iTRAQ4plex', 'mass': 144.102063, 'frequency': 'high', 'type': 'label', 'is_labile': True },
-            'iTRAQ8plex': { 'terminus': 'nterm', 'name:': 'iTRAQ8plex', 'mass': 304.205360, 'frequency': 'high', 'type': 'label', 'is_labile': True },
-            #'mtraq': { 'terminus': 'nterm', 'name:': 'mtraq', 'mass': 140.094963, 'frequency': 'high', 'type': 'label', 'is_labile': True },
         }
 
-
+       #### If a labeling type was specified, then add modifications for that label
+        if labels is not None:
+            known_labeling_modifications = {
+                #'TMT': { 'terminus': 'nterm', 'name:': 'TMT6plex', 'mass': 224.152478, 'frequency': 'high', 'type': 'label', 'is_labile': True },
+                'TMT6plex': { 'terminus': 'nterm', 'name:': 'TMT6plex', 'mass': 229.162932, 'frequency': 'high', 'type': 'label', 'is_labile': True },
+                'TMTpro': { 'terminus': 'nterm', 'name:': 'TMTpro', 'mass': 304.207146, 'frequency': 'high', 'type': 'label', 'is_labile': True },
+                'iTRAQ4plex': { 'terminus': 'nterm', 'name:': 'iTRAQ4plex', 'mass': 144.102063, 'frequency': 'high', 'type': 'label', 'is_labile': True },
+                'iTRAQ8plex': { 'terminus': 'nterm', 'name:': 'iTRAQ8plex', 'mass': 304.205360, 'frequency': 'high', 'type': 'label', 'is_labile': True },
+                #'mtraq': { 'terminus': 'nterm', 'name:': 'mtraq', 'mass': 140.094963, 'frequency': 'high', 'type': 'label', 'is_labile': True },
+                }
+            for label in labels:
+                if label in known_labeling_modifications:
+                    self.terminal_modifications[label] = known_labeling_modifications[label]
 
 
         # Add in other misc low mass known ions: Use this: https://www.chemcalc.org/mf-finder
