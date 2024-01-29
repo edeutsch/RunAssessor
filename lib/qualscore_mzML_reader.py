@@ -190,6 +190,7 @@ class QualscoreMzMlReader:
                         }
                         if 'reporter_ions' in new_spectrum_obj.metrics['stats_per_bin']:
                             new_spectrum_dict['reporter_ions_median_snr'] = new_spectrum_obj.metrics['stats_per_bin']['reporter_ions']['median_snr']
+                            new_spectrum_dict['reporter_ion_intensities'] = new_spectrum_obj.metrics['stats_per_bin']['reporter_ions']['intensities']
                         else:
                             new_spectrum_dict['reporter_ions_median_snr'] = 0.0
 

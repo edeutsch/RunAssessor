@@ -73,6 +73,11 @@ class Spectrum:
         self.network = {}
         self.metrics = {}
 
+        self.extended_data = {}
+
+        self.reporter_ions = {}
+        self.set_up_reporter_ions()
+
 
     ####################################################################################################
     #### Fetch a spectrum from PeptideAtlas given a USI
@@ -275,6 +280,8 @@ class Spectrum:
         charge1_precursor_losses_floor = None
         reporter_ion_floor = None
         reporter_ion_ceiling = None
+        reporter_ion_intensities = None
+        potential_reporter_peaks = {}
         if isobaric_label_mode.startswith('TMT') and precursor_mz is not None and charge is not None:
             charge1_precursor_losses_floor = precursor_mz * charge - ( charge - 1) - 180
             reporter_ion_floor = 126
@@ -291,7 +298,27 @@ class Spectrum:
             intensity = spectrum.peak_list[i_peak][PL_INTENSITY]
             mz_list.append(mz)
             intensity_list.append(intensity)
- 
+
+            #### Add to the special list of potential reporter peaks for later matching
+            if reporter_ion_floor is not None and mz < reporter_ion_ceiling and mz > reporter_ion_floor:
+                int_mz = int(mz)
+                if int_mz not in potential_reporter_peaks:
+                    potential_reporter_peaks[int_mz] = []
+                potential_reporter_peaks[int_mz].append( { 'mz': mz, 'intensity': intensity })
+
+        #### If we're processing reporter ions, scan through the list of desired reporter ions and record the intensities
+        if reporter_ion_floor is not None:
+            reporter_ion_tolerance = 10.0
+            reporter_ion_intensities = [None] * len(self.reporter_ions[isobaric_label_mode])
+            i_reporter_ion = 0
+            for reporter_ion in self.reporter_ions[isobaric_label_mode]:
+                int_mz = int(reporter_ion['mz'])
+                if int_mz in potential_reporter_peaks:
+                    for potential_reporter_peak in potential_reporter_peaks[int_mz]:
+                        if abs(potential_reporter_peak['mz'] - reporter_ion['mz']) / int_mz * 1e6 < reporter_ion_tolerance:
+                            reporter_ion_intensities[i_reporter_ion] = potential_reporter_peak['intensity']
+
+
         #### Convert ms_list to numpy array and compute metrics
         mz_array = numpy.asarray(mz_list)
         sorted_array = numpy.sort(mz_array)
@@ -368,7 +395,7 @@ class Spectrum:
                 bin_name = 'reporter_ions'
                 if bin_name not in stats_per_bin:
                     stats_per_bin[bin_name] = { 'bin_floor': reporter_ion_floor, 'bin_ceiling': reporter_ion_ceiling, 'n_peaks': 0,
-                                        'n_peaks_sn10': 0, 'n_peaks_sn30': 0, 'n_peaks_sn100': 0, 'snrs': [] }
+                                        'n_peaks_sn10': 0, 'n_peaks_sn30': 0, 'n_peaks_sn100': 0, 'snrs': [], 'intensities': reporter_ion_intensities }
                 stats_per_bin[bin_name]['n_peaks'] += 1
                 stats_per_bin[bin_name]['snrs'].append(intensity / noise)
                 for sn_factor in [ 10, 30, 100 ]:
@@ -502,6 +529,37 @@ class Spectrum:
                         #buf += '{:8.2f}'.format(interpretation[INT_COMMONNESS_SCORE]) + "  " + interpretation[INT_INTERPRETATION_STRING] + '  ' + diagnostic_category + "\n"
 
         return buf
+
+
+    ####################################################################################################
+    #### Set up reporter ion information
+    def set_up_reporter_ions(self):
+
+        self.reporter_ions = {}
+
+        # Define reporter ions to look for
+        self.reporter_ions['TMTpro'] = [
+            # Jimmy's numbers from https://proteomicsresource.washington.edu/protocols03/isotopic_labeling.php
+            { 'name': 'TMT126',  'type': 'TMT', 'mz': 126.127726 },
+            { 'name': 'TMT127N', 'type': 'TMT', 'mz': 127.124761 },
+            { 'name': 'TMT127C', 'type': 'TMT', 'mz': 127.131081 },
+            { 'name': 'TMT128N', 'type': 'TMT', 'mz': 128.128116 },
+            { 'name': 'TMT128C', 'type': 'TMT', 'mz': 128.134436 },
+            { 'name': 'TMT129N', 'type': 'TMT', 'mz': 129.131471 },
+            { 'name': 'TMT129C', 'type': 'TMT', 'mz': 129.137790 },
+            { 'name': 'TMT130N', 'type': 'TMT', 'mz': 130.134825 },
+            { 'name': 'TMT130C', 'type': 'TMT', 'mz': 130.141145 },
+            { 'name': 'TMT131N', 'type': 'TMT', 'mz': 131.138180 },
+            { 'name': 'TMT131C', 'type': 'TMT', 'mz': 131.1445 },
+            { 'name': 'TMT132N', 'type': 'TMT', 'mz': 132.141535 },
+            { 'name': 'TMT132C', 'type': 'TMT', 'mz': 132.147855 },
+            { 'name': 'TMT133N', 'type': 'TMT', 'mz': 133.14489 },
+            { 'name': 'TMT133C', 'type': 'TMT', 'mz': 133.15121 },
+            { 'name': 'TMT134N', 'type': 'TMT', 'mz': 134.148245 },
+            { 'name': 'TMT134C', 'type': 'TMT', 'mz': 134.154565 },
+            { 'name': 'TMT135N', 'type': 'TMT', 'mz': 135.151600 },
+            ]
+
 
 
     ####################################################################################################
