@@ -91,6 +91,7 @@ def prepare_spectrum_data(spectrum_data, search_results, verbose):
         minimum_intensity = float(raw_spectrum['minimum intensity'])
         weighted_snr = float(raw_spectrum['weighted_snr'])
         reporter_ions_median_snr = float(raw_spectrum['reporter_ions_median_snr'])
+        reporter_ion_intensities = float(raw_spectrum['reporter_ion_intensities'])
         quality_score = float(raw_spectrum['quality_score'])
         probability = 0
         peptidoform = ''
@@ -105,9 +106,14 @@ def prepare_spectrum_data(spectrum_data, search_results, verbose):
         usi = f"mzspec:{pxd_identifier}:{msrun_name}:scan:{scan_number}:{peptidoform}/{charge_state}"
 
         row = [ msrun_name, scan_number, charge_state, precursor_mz, probability , peptidoform, peptide_length, n_peaks, minimum_intensity, weighted_snr, reporter_ions_median_snr, quality_score, usi ]
+        if reporter_ion_intensities is not None:
+            row.extend(reporter_ion_intensities)
         merged_data.append(row)
 
     columns = [ 'msrun_name', 'scan', 'charge', 'precursor_mz', 'probability', 'peptidoform', 'peptide_length', 'n_peaks', 'minimum_intensity', 'weighted_snr', 'reporter_ions_median_snr', 'quality_score', 'usi' ]
+    if reporter_ion_intensities is not None:
+        for i in range(len(reporter_ion_intensities)):
+            columns.append(f"TMTpro_{i}")
     with open('qualscore_metrics.tsv', 'w', newline='') as outfile:
         writer = csv.writer(outfile, delimiter="\t")
         outfile.write("\t".join(columns) + "\n")
