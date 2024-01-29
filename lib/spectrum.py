@@ -470,6 +470,8 @@ class Spectrum:
         spectrum.metrics['charge1_precursor_losses_floor'] = charge1_precursor_losses_floor
         spectrum.metrics['reporter_ion_floor'] = reporter_ion_floor
         spectrum.metrics['reporter_ion_ceiling'] = reporter_ion_ceiling
+        if 'reporter_ions' in stats_per_bin:
+            spectrum.metrics['reporter_ion_intensities'] = stats_per_bin['reporter_ions']['intensities']
 
 
 
