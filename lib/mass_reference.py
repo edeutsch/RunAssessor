@@ -277,7 +277,7 @@ class MassReference:
             'lysine +CO-H2O': { 'formula': 'H2O+CO', 'residues': [ 'K' ],
                 'delta_mass': self.atomic_masses['hydrogen'] * 2 - self.atomic_masses['carbon'] * 1 },
             #'water': { 'formula': 'H2O', 'residues': [ 'S', 'T', 'E', 'D' ],              # canonical
-            'water': { 'formula': 'H2O', 'residues': [ 'S', 'T', 'E', 'D', 'K', 'A', 'Y', 'C[Carbamidomethyl]', 'S[Phospho]', 'T[Phospho]' ],          # observed
+            'water': { 'formula': 'H2O', 'residues': [ 'S', 'T', 'E', 'D', 'K', 'A', 'Y', 'C[Carbamidomethyl]', 'S[Phospho]', 'T[Phospho]', 'H' ],          # observed
                 'delta_mass': self.atomic_masses['hydrogen'] * 2 + self.atomic_masses['oxygen'] },
             #'weird': { 'formula': 'H2O+CO', 'residues': [ 'S', 'T', 'E', 'D', 'K', 'A', 'Y', 'C[Carbamidomethyl]' ],          # observed
             #    'delta_mass': self.atomic_masses['hydrogen'] * 2 - self.atomic_masses['carbon'] },
@@ -458,25 +458,25 @@ class MassReference:
                 '[TMT134N]-CO': { 'type': 'TMT', 'mz': 134.148245 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
                 '[TMT134C]-CO': { 'type': 'TMT', 'mz': 134.154565 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
                 '[TMT135N]-CO': { 'type': 'TMT', 'mz': 135.151600 - self.atomic_masses['proton'] + self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
-                #I commented this out because I think it was causing a doubling 2024-01-17, but maybe I added this because I saw fragments without CO???
-                #'[TMT126]': { 'type': 'TMT', 'mz': 126.127726 - self.atomic_masses['proton'] },
-                #'[TMT127N]': { 'type': 'TMT', 'mz': 127.124761 - self.atomic_masses['proton'] },
-                #'[TMT127C]': { 'type': 'TMT', 'mz': 127.131081 - self.atomic_masses['proton'] },
-                #'[TMT128N]': { 'type': 'TMT', 'mz': 128.128116 - self.atomic_masses['proton'] },
-                #'[TMT128C]': { 'type': 'TMT', 'mz': 128.134436 - self.atomic_masses['proton'] },
-                #'[TMT129N]': { 'type': 'TMT', 'mz': 129.131471 - self.atomic_masses['proton'] },
-                #'[TMT129C]': { 'type': 'TMT', 'mz': 129.137790 - self.atomic_masses['proton'] },
-                #'[TMT130N]': { 'type': 'TMT', 'mz': 130.134825 - self.atomic_masses['proton'] },
-                #'[TMT130C]': { 'type': 'TMT', 'mz': 130.141145 - self.atomic_masses['proton'] },
-                #'[TMT131N]': { 'type': 'TMT', 'mz': 131.138180 - self.atomic_masses['proton'] },
-                #'[TMT131C]': { 'type': 'TMT', 'mz': 131.1445 - self.atomic_masses['proton'] },
-                #'[TMT132N]': { 'type': 'TMT', 'mz': 132.141535 - self.atomic_masses['proton'] },
-                #'[TMT132C]': { 'type': 'TMT', 'mz': 132.147855 - self.atomic_masses['proton'] },
-                #'[TMT133N]': { 'type': 'TMT', 'mz': 133.14489 - self.atomic_masses['proton'] },
-                #'[TMT133C]': { 'type': 'TMT', 'mz': 133.15121 - self.atomic_masses['proton'] },
-                #'[TMT134N]': { 'type': 'TMT', 'mz': 134.148245 - self.atomic_masses['proton'] },
-                #'[TMT134C]': { 'type': 'TMT', 'mz': 134.154565 - self.atomic_masses['proton'] },
-                #'[TMT135N]': { 'type': 'TMT', 'mz': 135.151600 - self.atomic_masses['proton'] },
+                #### Seems like most precursor-reporter losses have -CO, but not always, see mzspec:PXD999001:20231003-TMTpool167-Fr05-01:scan:480:[TMTpro]-SGQSEDR/2
+                '[TMT126]': { 'type': 'TMT', 'mz': 126.127726 - self.atomic_masses['proton'] },
+                '[TMT127N]': { 'type': 'TMT', 'mz': 127.124761 - self.atomic_masses['proton'] },
+                '[TMT127C]': { 'type': 'TMT', 'mz': 127.131081 - self.atomic_masses['proton'] },
+                '[TMT128N]': { 'type': 'TMT', 'mz': 128.128116 - self.atomic_masses['proton'] },
+                '[TMT128C]': { 'type': 'TMT', 'mz': 128.134436 - self.atomic_masses['proton'] },
+                '[TMT129N]': { 'type': 'TMT', 'mz': 129.131471 - self.atomic_masses['proton'] },
+                '[TMT129C]': { 'type': 'TMT', 'mz': 129.137790 - self.atomic_masses['proton'] },
+                '[TMT130N]': { 'type': 'TMT', 'mz': 130.134825 - self.atomic_masses['proton'] },
+                '[TMT130C]': { 'type': 'TMT', 'mz': 130.141145 - self.atomic_masses['proton'] },
+                '[TMT131N]': { 'type': 'TMT', 'mz': 131.138180 - self.atomic_masses['proton'] },
+                '[TMT131C]': { 'type': 'TMT', 'mz': 131.1445 - self.atomic_masses['proton'] },
+                '[TMT132N]': { 'type': 'TMT', 'mz': 132.141535 - self.atomic_masses['proton'] },
+                '[TMT132C]': { 'type': 'TMT', 'mz': 132.147855 - self.atomic_masses['proton'] },
+                '[TMT133N]': { 'type': 'TMT', 'mz': 133.14489 - self.atomic_masses['proton'] },
+                '[TMT133C]': { 'type': 'TMT', 'mz': 133.15121 - self.atomic_masses['proton'] },
+                '[TMT134N]': { 'type': 'TMT', 'mz': 134.148245 - self.atomic_masses['proton'] },
+                '[TMT134C]': { 'type': 'TMT', 'mz': 134.154565 - self.atomic_masses['proton'] },
+                '[TMT135N]': { 'type': 'TMT', 'mz': 135.151600 - self.atomic_masses['proton'] },
 
            }
         }
