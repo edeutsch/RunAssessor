@@ -210,16 +210,46 @@ class SpectrumExaminer:
         # Override the input tolerance with the reference tolerance
         #tolerance = self.stats['mz_calibration_tolerance_ppm']
 
+        debug = False
+        if abs(search_mz - 997) < 0.01:
+            debug = True
+            print(f"***{search_mz}")
+
         # We will return a list of possible matches
         matches = []
 
         # Get the integer mass as a dict key
         int_search_mz = int(search_mz)
-        if int_search_mz not in spectrum.peak_index:
-            return matches
+
+        look_in_lower_bin_too = False
+        look_in_higher_bin_too = False
+
+        if search_mz - int_search_mz < tolerance:
+            look_in_lower_bin_too = True
+        if 1.0 - ( search_mz - int_search_mz ) < tolerance:
+            look_in_higher_bin_too = True
+
+        #### If there's just one bin to look in and it's not even in the index, then we're done
+        if not look_in_lower_bin_too and not look_in_higher_bin_too:
+            if int_search_mz not in spectrum.peak_index:
+                return matches
+            else:
+                peak_list = spectrum.peak_index[int_search_mz]
+
+        #### But if we need to look in more than one bin, then create an enhanced peak_list
+        else:
+            peak_list = []
+            if look_in_lower_bin_too:
+                if int_search_mz - 1 in spectrum.peak_index:
+                    peak_list.extend(spectrum.peak_index[int_search_mz - 1])
+            if int_search_mz in spectrum.peak_index:
+                peak_list.extend(spectrum.peak_index[int_search_mz])
+            if look_in_higher_bin_too:
+                if int_search_mz + 1 in spectrum.peak_index:
+                    peak_list.extend(spectrum.peak_index[int_search_mz + 1])
 
         # Loop over all the peaks in this bin and add them to matches if they're within tolerance
-        for peak in spectrum.peak_index[int_search_mz]:
+        for peak in peak_list:
             i_peak = peak[PL_I_PEAK]
             mz = peak[PL_MZ]
             intensity = peak[PL_INTENSITY]
@@ -320,7 +350,7 @@ class SpectrumExaminer:
                         spectrum.peak_list[i_lookahead_peak][PL_ATTRIBUTES][PLA_PARENT_PEAK] = i_peak
 
                         interpretation_string = f"isotope of peak {i_peak}"
-                        commonness_score = 50
+                        commonness_score = 75
                         match = [ lookahead_mz, i_peak, interpretation_string, delta_ppm, 1.0, 1.0, commonness_score, 'isotope' ]
                         self.add_interpretation(spectrum.peak_list[i_lookahead_peak],match,diagnostic_category='isotope',residual_type='relative')
 
@@ -379,7 +409,7 @@ class SpectrumExaminer:
                         spectrum.peak_list[i_lookahead_peak][PL_ATTRIBUTES][PLA_PARENT_PEAK] = i_peak
 
                         interpretation_string = f"isotope {i_isotope} of peak {i_peak}"
-                        commonness_score = 45
+                        commonness_score = 60
                         match = [ lookahead_mz, i_peak, interpretation_string, delta_ppm, 1.0, 1.0, commonness_score, 'isotope' ]
                         self.add_interpretation(spectrum.peak_list[i_lookahead_peak], match, diagnostic_category='isotope', residual_type='relative')
 
@@ -608,7 +638,7 @@ class SpectrumExaminer:
                     # If they correspond to a residue in the peptidoform, they are considered nondiagnostic
                     if low_mass_ion_name[1] in contained_residues:
                         match[INT_INTERPRETATION_STRING] = low_mass_ion_name
-                        match[INT_COMMONNESS_SCORE] = 95
+                        match[INT_COMMONNESS_SCORE] = 85
                         self.add_interpretation(spectrum.peak_list[i_match_peak], match, diagnostic_category='nondiagnostic', residual_type='absolute')
                     #### But if they don't correspond to a residue in the peptidoform, they are considered contamination and annotated a little differently
                     else:
@@ -763,6 +793,9 @@ class SpectrumExaminer:
 
         debug = True
 
+        # The allowed deviation from the line for a singly charged fragment ion
+        sigma = 0.06
+
         n_peaks = spectrum.attributes['number of peaks']
         if len(spectrum.peak_index) == 0:
             self.index_peaks(spectrum)
@@ -785,7 +818,6 @@ class SpectrumExaminer:
         labels = [ 'bottom']
 
         singley_charged_slope = ( precursor_mass - int(precursor_mass) ) / precursor_mass
-        sigma = 0.04 # The allowed deviation from the line for a singly charged fragment ion
 
         # Loop over all peaks analyzing the mass defects
         for i_peak in range(n_peaks):
