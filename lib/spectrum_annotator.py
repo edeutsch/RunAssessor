@@ -548,11 +548,36 @@ class SpectrumAnnotator:
 
         # Get the integer mass as a dict key
         int_observed_mz = int(observed_mz)
-        if int_observed_mz not in self.predicted_fragments_index:
-            return matches
+
+        look_in_lower_bin_too = False
+        look_in_higher_bin_too = False
+
+        if observed_mz - int_observed_mz < tolerance:
+            look_in_lower_bin_too = True
+        if 1.0 - ( observed_mz - int_observed_mz ) < tolerance:
+            look_in_higher_bin_too = True
+
+        #### If there's just one bin to look in and it's not even in the index, then we're done
+        if not look_in_lower_bin_too and not look_in_higher_bin_too:
+            if int_observed_mz not in self.predicted_fragments_index:
+                return matches
+            else:
+                predicted_fragment_list = self.predicted_fragments_index[int_observed_mz]
+
+        #### But if we need to look in more than one bin, then create an enhanced predicted_fragment_list
+        else:
+            predicted_fragment_list = []
+            if look_in_lower_bin_too:
+                if int_observed_mz - 1 in self.predicted_fragments_index:
+                    predicted_fragment_list.extend(self.predicted_fragments_index[int_observed_mz - 1])
+            if int_observed_mz in self.predicted_fragments_index:
+                predicted_fragment_list.extend(self.predicted_fragments_index[int_observed_mz])
+            if look_in_higher_bin_too:
+                if int_observed_mz + 1 in self.predicted_fragments_index:
+                    predicted_fragment_list.extend(self.predicted_fragments_index[int_observed_mz + 1])
 
         # Loop over all the peaks in this bin and add them to matches if they're within tolerance
-        for predicted_fragment in self.predicted_fragments_index[int_observed_mz]:
+        for predicted_fragment in predicted_fragment_list:
             fragment_mz = predicted_fragment[0]
             delta = observed_mz - fragment_mz
             delta_ppm = delta / observed_mz * 1e6
@@ -757,6 +782,11 @@ class SpectrumAnnotator:
         outer_tolerance = mass_accuracy['outer_tolerance']
         max_tolerance = mass_accuracy['max_tolerance']
 
+        if self.tolerance > 20:
+            best_tolerance = self.tolerance * 0.5
+            outer_tolerance = self.tolerance * 0.9
+            max_tolerance = self.tolerance
+
         total_ion_current = 0.0
         categories = [ 'contamination', 'nondiagnostic', 'diagnostic', 'unexplained' ]
         metrics = [ 'intensity', 'count', 'fraction' ]
@@ -784,6 +814,14 @@ class SpectrumAnnotator:
                     pass
                 else:
                     interpretation[INT_DELTA_PPM] -= mass_accuracy['offset']
+
+                #### If this annotation is an isotope of another peak, but that peak is the TMT-related ion, then severely penalize this isotope possibility
+                #### because they don't have isotopes and it's much more likely to be another reporter ion or report ion echo
+                if interpretation[INT_INTERPRETATION_STRING].startswith('isotope'):
+                    parent_peak = spectrum.peak_list[ peak[PL_ATTRIBUTES][PLA_PARENT_PEAK] ]
+                    parent_annotation = parent_peak[PL_INTERPRETATION_STRING]
+                    if 'TMT' in parent_annotation:
+                        interpretation[INT_COMMONNESS_SCORE] *= 0.1
 
                 #### Compute the absolute value of the delta ppm to use for the delta score
                 abs_delta_ppm = abs(interpretation[INT_DELTA_PPM])
@@ -891,34 +929,65 @@ class SpectrumAnnotator:
 
     ####################################################################################################
     #### Plot the spectrum and its annotations in a nice publishable way
-    def plot(self, spectrum, peptidoform_string, charge):
+    def plot(self, spectrum, peptidoform, charge, xmin=None, xmax=None, mask_isolation_width=None, yfactor=None):
         import matplotlib.pyplot as plt
         import matplotlib.gridspec as gridspec
         from matplotlib.backends.backend_pdf import PdfPages
 
+        include_third_plot = False
+        figure_height = 6
+        figure_width = 8
+        spectrum_viewport = [0.02, 0.2, 1.01, 1.01]
+        residuals_viewport = [0.02, -0.04, 1.01, 0.21]
+        if include_third_plot:
+            figure_height = 7
+            spectrum_viewport = [0.02, 0.3, 1, 1]
+            residuals_viewport = [0.02, 0.12, 1, 0.3]
+
         #pdf = PdfPages(f"spectrum.pdf")
-        fig = plt.figure(figsize=(8,8))
+        fig = plt.figure(figsize=(figure_width, figure_height))
         gridspec1 = gridspec.GridSpec(1, 1)
         plot1 = fig.add_subplot(gridspec1[0])
-        gridspec1.tight_layout(fig, rect=[0.02, 0.3, 1, 1])
+        gridspec1.tight_layout(fig, rect=spectrum_viewport)
+
+        #### Try to get the precursor_mz
+        precursor_mz = None
+        try:
+            precursor_mz = spectrum.analytes['1']['precursor_mz']
+        except:
+            pass
 
         #### Compute the min and max for mz and intensities
         max_intensity = 0
+        max_non_precursor_intensity = 0
         min_mz = 9999
         max_mz = 0
         for peak in spectrum.peak_list:
             mz = peak[PL_MZ]
             intensity = peak[PL_INTENSITY]
+            interpretations_string = peak[PL_INTERPRETATION_STRING]
+            if precursor_mz is not None and mask_isolation_width is not None and mz > precursor_mz - mask_isolation_width/2 and mz < precursor_mz + mask_isolation_width/2:
+                continue
             if intensity > max_intensity:
                 max_intensity = intensity
+            if len(interpretations_string) > 0 and interpretations_string[0] != 'p' and interpretations_string[0] != 'r' and intensity > max_non_precursor_intensity:
+                max_non_precursor_intensity = intensity
             if mz < min_mz:
                 min_mz = mz
             if mz > max_mz:
                 max_mz = mz
-        xmin = int(min_mz / 30) * 30
-        xmax = int(max_mz / 30) * 30 + 30
-        xmin = int(min_mz) - 15
-        xmax = int(max_mz) + 15
+        if xmin is None:
+            xmin = int(min_mz) - 15
+        else:
+            xmin = int(xmin + 0.5)
+        if xmax is None:
+            xmax = int(max_mz) + 15
+        else:
+            xmax = int(xmax + 0.5)
+        xscale = (xmax - xmin) / 1200.0
+        if yfactor is not None:
+            max_intensity /= yfactor
+
 
         #### Set up the main spectrum plot
         #plot1.plot( [0,1000], [0,1], color='tab:green' )
@@ -931,7 +1000,7 @@ class SpectrumAnnotator:
         #### Set up the residuals plot
         gridspec2 = gridspec.GridSpec(1, 1)
         plot2 = fig.add_subplot(gridspec2[0])
-        gridspec2.tight_layout(fig, rect=[0.02, 0.12, 1, 0.3])
+        gridspec2.tight_layout(fig, rect=residuals_viewport)
 
         #plot2.plot( [0,1000], [-10,10], color='tab:green' )
         #plot2.set_xlabel('m/z')
@@ -945,27 +1014,30 @@ class SpectrumAnnotator:
         colors = { 'b': 'tab:blue', 'a': 'tab:green', 'y': 'tab:red', '0': 'tab:gray', 'I': 'tab:orange', '?': 'tab:gray', 'p': 'tab:pink', 'm': 'tab:brown', 'r': 'tab:purple' }
         blocked = np.zeros((xmax,100))
 
-        #### Write the peptide sequence to the plot in order to annotate it later
-        stripped_peptide = re.sub(r'\[.+?\]','',peptidoform_string)
-        stripped_peptide = stripped_peptide.replace('-','')
+        #### Prepare to write the peptide sequence to the plot, although only write it later once we figure out where there's room
+        stripped_peptide = peptidoform.peptide_sequence
         residues = list(stripped_peptide)
-        sequence_offset = 300
-        sequence_gap = (xmax-xmin)/45
-        sequence_height = 0.8
-        counter = 0
-        for residue in residues:
-            plot1.text(sequence_offset+counter*sequence_gap, sequence_height, residue, fontsize='x-large', ha='center', va='bottom', color='black', fontname='Arial')
-            counter += 1
+        modified_residues = peptidoform.residue_modifications
+        #sequence_gap = (xmax-xmin)/45 # for x-large font
+        sequence_gap = (xmax-xmin)/55
+        sequence_height = 0.85
+        sequence_offset = xmin + 2 * sequence_gap
+        original_sequence_offset = sequence_offset
 
         #### Loop over all peaks and plot them in the color that they would be annotated with
         counter = 0
         annotations = []
         saved_residuals = []
+        all_peaks = []
+        all_flags = []
         for peak in spectrum.peak_list:
             i_peak = peak[PL_I_PEAK]
             mz = peak[PL_MZ]
             intensity = peak[PL_INTENSITY] / max_intensity * 0.93
             interpretations_string = peak[PL_INTERPRETATION_STRING]
+            if precursor_mz is not None and mask_isolation_width is not None and mz > precursor_mz - mask_isolation_width/2 and mz < precursor_mz + mask_isolation_width/2:
+                continue
+
             mz_delta = 99
             match = re.search(r'/([\+\-\d\.]+)ppm', interpretations_string)
             if match:
@@ -980,8 +1052,8 @@ class SpectrumAnnotator:
 
             print( '{:4d}'.format(i_peak) + '{:10.4f}'.format(mz) + '{:10.1f}'.format(intensity*10000) + '  ' + interpretations_string + '   ' + ion_type + f"   {mz_delta}" )
 
-            plot1.plot( [mz,mz], [0,intensity], color=color, linewidth=0.8 )
-            blocked[int(mz)-1:int(mz)+1,0:int(intensity*100)] = 1
+            #### Store the peak for later plotting
+            all_peaks.append({ 'mz': mz, 'intensity': intensity, 'color': color } )
 
             annotation_string = ''
             match = re.match(r'(.+?)/', interpretations_string)
@@ -997,6 +1069,7 @@ class SpectrumAnnotator:
             if should_label:
                 annotations.append( { 'mz': mz, 'intensity': intensity, 'annotation_string': annotation_string, 'color': color } )
 
+            #### For certain types of ions, record a massdiff residual to plot later
             if color not in [ 'tab:gray', 'tab:olive']:
                 markersize = 0.5
                 show = True
@@ -1005,71 +1078,159 @@ class SpectrumAnnotator:
                 match = re.search(r'\+[\d]?i', interpretations_string)
                 if match:
                     show = False
-                match = re.search(r'\-H2O', interpretations_string)
-                if match:
-                    show = False
-                match = re.search(r'\-NH3', interpretations_string)
-                if match and color not in [ 'tab:orange' ]:
-                    show = False
+                #match = re.search(r'\-H2O', interpretations_string)
+                #if match:
+                #    show = False
+                #match = re.search(r'\-NH3', interpretations_string)
+                #if match and color not in [ 'tab:orange' ]:
+                #    show = False
                 if show: 
                     plot2.plot( [mz,mz], [mz_delta,mz_delta], marker='s', markersize=markersize, color=color )
                     saved_residuals.append( { 'mz': mz, 'mz_delta': mz_delta, 'markersize': markersize, 'color': color } )
 
-            match = re.match(r'([aby])([\d]+)/', interpretations_string)
+            #### Decorate the sequence with little flags to indicate ion strength
+            match = re.match(r'([aby])([\d]+)(-.+)?(\^\d)?/', interpretations_string)
             if match:
+                #print(f"+++{interpretations_string}")
                 series = match.group(1)
                 ordinal = int(match.group(2))
+                flag_direction = 1.0
+                flag_thickness = 0.9
+                loss = match.group(3)
+                flag_intensity = peak[PL_INTENSITY] / max_non_precursor_intensity * 0.93
+                if loss is not None:
+                    flag_direction = -1.0
+                    flag_thickness = 0.5
                 if series == 'y':
-                    x = sequence_offset + ( len(residues) - ordinal - 0.45 ) * sequence_gap
-                    y = sequence_height + 0.01
-                    plot1.plot( [x,x,x+sequence_gap*0.2], [y,y-(intensity/10.0+0.005),y-(intensity/10.0+0.005)], color='tab:red')
+                    x = sequence_offset + ( len(residues) - ordinal - 0.45 ) * sequence_gap - sequence_gap*0.02
+                    y = sequence_height + 0.007
+                    all_flags.append( [ 'y', x, y, flag_intensity, 'tab:red', flag_direction, flag_thickness ] )
+                    #plot1.plot( [x,x,x+sequence_gap*0.2], [y,y-(flag_intensity/10.0+0.005),y-(flag_intensity/10.0+0.005)], color='tab:red', linewidth=0.9)
                 if series == 'b':
                     x = sequence_offset + ( ordinal - .5 ) * sequence_gap
-                    y = sequence_height + 0.035
-                    plot1.plot( [x,x,x-sequence_gap*0.2], [y,y+(intensity/10.0+0.005),y+(intensity/10.0+0.005)], color='tab:blue')
+                    y = sequence_height + 0.037
+                    all_flags.append( [ 'b', x, y, flag_intensity, 'tab:blue', flag_direction, flag_thickness ] )
+                    #plot1.plot( [x,x,x-sequence_gap*0.2], [y,y+(flag_intensity/10.0+0.005),y+(flag_intensity/10.0+0.005)], color='tab:blue', linewidth=0.9)
 
             counter += 1
 
+        #### First sort all the peaks in smallest to tallest and plot in that order
+        all_peaks.sort(key=lambda x: x['intensity'], reverse=False)
+        for peak in all_peaks:
+            mz = peak['mz']
+            intensity = peak['intensity']
+            color = peak['color']
+            plot1.plot( [mz,mz], [0,intensity], color=color, linewidth=0.6 )
+            blocked[int(mz)-1:int(mz)+1,0:int(intensity*100)] = 1
+
         #### Sort all the annotations by intensity so that we annotate the most intense ions first and then only lower ones if there room
         annotations.sort(key=lambda x: x['intensity'], reverse=True)
+        xf = 1.8
         counter = 0
         for annotation in annotations:
             mz = annotation['mz']
             intensity = annotation['intensity']
             annotation_string = annotation['annotation_string']
+            if annotation_string == '':
+                continue
             color = annotation['color']
-            if blocked[int(mz-5.5):int(mz+5),int(intensity*100)+1:int(intensity*100+len(annotation_string)*1.5)].sum() == 0:
-                #plot1.plot([int(mz-5.5), int(mz-5.5), int(mz+5), int(mz+5), int(mz-5.5)],
-                #           [(int(intensity*100)+1)/100.0, (int(intensity*100)+len(annotation_string)*1.5)/100.0, (int(intensity*100+len(annotation_string)*1.5))/100.0,
-                #            (int(intensity*100)+1)/100.0, (int(intensity*100)+1)/100.0], color='gray')
+            blocklen = len(annotation_string)
+            if blocklen < 3:
+                blocklen = 3
+            if blocked[int(mz-7.5*xscale):int(mz+7*xscale),int(intensity*100)+1:int(intensity*100+blocklen*xf)].sum() == 0:
+                #plot1.plot([int(mz-7.5*xscale), int(mz-7.5*xscale), int(mz+7*xscale), int(mz+7*xscale), int(mz-7.5*xscale)],
+                #           [(int(intensity*100)+1)/100.0, (int(intensity*100+blocklen*xf))/100.0, (int(intensity*100+blocklen*xf))/100.0,
+                #            (int(intensity*100)+1)/100.0, (int(intensity*100)+1)/100.0], color='gray', linewidth=0.2)
                 plot1.text(mz, intensity  + 0.01, annotation_string, fontsize='x-small', ha='center', va='bottom', color=color, rotation=90, fontname='Arial')
-                blocked[int(mz-5.5):int(mz+5),int(intensity*100)+1:int(intensity*100+len(annotation_string)*1.5)] = 1
+                #blocked[int(mz-5.5):int(mz+5),int(intensity*100)+1:int(intensity*100+blocklen*1.5)] = 1
+                blocked[int(mz-7.5*xscale):int(mz+7*xscale),int(intensity*100)+1:int(intensity*100+blocklen*xf)] = 1
             else:
+                #### If there are more than 2 losses, don't work hard to squeeze it in
+                if annotation_string.count('-') > 2:
+                    continue
                 #print(f"{mz}\t{intensity*100}\t{annotation_string} is blocked")
-                pass
+                reposition_attempts = [ [0.0, 3.0], [0.0, 5.0], [0.0, 7.0], [5.0, 3.0], [-5.0, 3.0] ]
+                for reposition_attempt in reposition_attempts:
+                    x_offset = reposition_attempt[0]
+                    y_offset = reposition_attempt[1]
+                    if blocked[int(mz-7.5*xscale+x_offset):int(mz+7*xscale+x_offset),int(intensity*100+y_offset)+1:int(intensity*100+blocklen*xf+y_offset)].sum() == 0:
+                        plot1.text(mz+x_offset, intensity + 0.01 + y_offset/100.0, annotation_string, fontsize='x-small', ha='center', va='bottom', color=color, rotation=90, fontname='Arial')
+                        blocked[int(mz-7.5*xscale+x_offset):int(mz+7*xscale+x_offset),int(intensity*100+y_offset)+1:int(intensity*100+blocklen*xf+y_offset)] = 1
+                        plot1.plot( [mz,mz+x_offset], [intensity + 0.004, intensity + 0.01 + (y_offset-0.5)/100.0], color='black', linewidth=0.2 )
+                        break
+
             counter += 1
 
         #### Plot a little P where the precursor m/z is
-        precursor_mz = None
-        try:
-            precursor_mz = spectrum.analytes['1']['precursor_mz']
-        except:
-            pass
-
         if precursor_mz:
             plot1.text(precursor_mz, -0.003, 'P', fontsize='small', ha='center', va='top', color='red', fontname='Arial')
 
+        #### Look for a clear spot to put the sequence
+        done = False
+        x_extent = sequence_offset
+        while not done:
+            running_sum = 0.0
+            counter = 0
+            for residue in residues:
+                x_offset = sequence_offset+counter*sequence_gap
+                x_width = 0.5*sequence_gap
+                y_offset = sequence_height
+                y_width = 0.07
+                #plot1.plot([x_offset-x_width, x_offset-x_width, x_offset+x_width, x_offset+x_width, x_offset-x_width],
+                #        [y_offset-y_width, y_offset+y_width*1.5, y_offset+y_width*1.5, y_offset-y_width, y_offset-y_width], color='gray', linewidth=0.2)
+                running_sum += blocked[int(x_offset-x_width):int(x_offset+x_width),int((y_offset-y_width)*100):int((y_offset+y_width*1.5)*100)].sum()
+                x_extent = x_offset + x_width
+                counter += 1
+                #### Can't short-circuit here because otherwise x_entent is not accurate
+                #if running_sum > 0:
+                #    break
+            if running_sum == 0:
+                #print(f"*** Found space at sequence_offset={sequence_offset}, x_extent={x_extent}")
+                break
+            else:
+                #print(f"*** Blocked at sequence_offset={sequence_offset}, x_extent={x_extent}")
+                sequence_offset += (xmax-xmin)/50.0
+            if x_extent > xmax*.97:
+                #print(f"*** Reached the limit at sequence_offset={sequence_offset}, x_extent={x_extent}")
+                sequence_offset -= (xmax-xmin)/50.0
+                sequence_offset = original_sequence_offset
+                break
+
+        #### Finally write out the sequence
+        counter = 0
+        if peptidoform.terminal_modifications is not None and 'nterm' in peptidoform.terminal_modifications:
+            plot1.text(sequence_offset + 0*sequence_gap, sequence_height, '=', fontsize='large', ha='center', va='bottom', color='tab:orange', fontname='Arial')
+            sequence_offset += sequence_gap * 0.8
+        for residue in residues:
+            #plot1.text(sequence_offset+counter*sequence_gap, sequence_height, residue, fontsize='x-large', ha='center', va='bottom', color='black', fontname='Arial')
+            color = 'black'
+            if modified_residues is not None and counter + 1 in modified_residues:
+                color= 'tab:orange'
+            plot1.text(sequence_offset+counter*sequence_gap, sequence_height, residue, fontsize='large', ha='center', va='bottom', color=color, fontname='Arial')
+            counter += 1
+        plot1.text(sequence_offset + (counter+.2)*sequence_gap, sequence_height + 0.02, f"{charge}+", fontsize='medium', ha='center', va='bottom', color='black', fontname='Arial')
+
+        #### Finally paint the flags
+        for flag in all_flags:
+            series, x, y, intensity, color, flag_direction, flag_thickness = flag
+            x += ( sequence_offset - original_sequence_offset)
+            if series == 'y':
+                plot1.plot( [x,x,x+sequence_gap*0.2*flag_direction], [y,y-(intensity/10.0+0.005),y-(intensity/10.0+0.005)], color='tab:red', linewidth=flag_thickness)
+            if series == 'b':
+                plot1.plot( [x,x,x-sequence_gap*0.2*flag_direction], [y,y+(intensity/10.0+0.005),y+(intensity/10.0+0.005)], color='tab:blue', linewidth=flag_thickness)
 
         #### Set up the third plot, nominally for the precursor window
-        gridspec3 = gridspec.GridSpec(1, 1)
-        plot3 = fig.add_subplot(gridspec3[0])
-        gridspec3.tight_layout(fig, rect=[0.02, -0.02, 1, 0.15])
+        if include_third_plot:
+            gridspec3 = gridspec.GridSpec(1, 1)
+            plot3 = fig.add_subplot(gridspec3[0])
+            gridspec3.tight_layout(fig, rect=[0.02, -0.02, 1, 0.15])
 
-        plot3.set_xlim([xmin, xmax])
-        plot3.set_xticklabels([])
-        plot3.set_ylim([-16,16])
-        plot3.plot( [0,xmax], [0,0], '--', linewidth=0.6, color='gray')
+            plot3.set_xlim([xmin, xmax])
+            plot3.set_xticklabels([])
+            plot3.set_ylim([-16,16])
+            plot3.plot( [0,xmax], [0,0], '--', linewidth=0.6, color='gray')
 
+        #### Write out the figure to PDF and SVG
         plt.savefig('AnnotatedSpectrum.pdf',format='pdf')
         plt.savefig('AnnotatedSpectrum.svg',format='svg')
         plt.close()
@@ -1097,9 +1258,14 @@ def main():
     argparser.add_argument('--tolerance', action='store', default=None, type=float, help='Tolerance in ppm for annotation')
     argparser.add_argument('--annotate', action='count', help='If set, annotate the USI spectrum' )
     argparser.add_argument('--examine', action='count', help='If set, examine the spectrum to see what can be learned' )
+    argparser.add_argument('--simplify', action='count', help='If set, simplify the spectrum as much as possible' )
     argparser.add_argument('--score', action='count', help='If set, score the spectrum with the supplied peptidoform' )
     argparser.add_argument('--show_all_annotations', action='count', help='If set, show all the potential annotations, not just the final one' )
     argparser.add_argument('--plot', action='count', help='If set, make a nice figure' )
+    argparser.add_argument('--xmin', action='store', default=None, type=float, help='Set a manual x-axis (m/z) minimum' )
+    argparser.add_argument('--xmax', action='store', default=None, type=float, help='Set a manual x-axis (m/z) maximum' )
+    argparser.add_argument('--mask_isolation_width', action='store', default=None, type=float, help='When plotting, drop peaks within an isolation window with this full width' )
+    argparser.add_argument('--yfactor', action='store', default=None, type=float, help='Multiply the default y axis by this to depress it (e.g. 0.9)' )
     params = argparser.parse_args()
 
     # Set verbose mode
@@ -1146,7 +1312,7 @@ def main():
     peptidoform = None
     if peptidoform_string is not None and peptidoform_string != '':
         peptidoform = ProformaPeptidoform(peptidoform_string)
-
+    print(json.dumps(peptidoform.to_dict(),indent=2))
 
     # Annotate the spectrum
     if params.annotate:
@@ -1154,7 +1320,8 @@ def main():
         annotator.annotate(spectrum, peptidoform=peptidoform, charge=charge, tolerance=params.tolerance)
         print(spectrum.show(show_all_annotations=show_all_annotations, verbose=verbose))
         if params.plot:
-            annotator.plot(spectrum, peptidoform_string=peptidoform_string, charge=charge)
+            annotator.plot(spectrum, peptidoform=peptidoform, charge=charge, xmin=params.xmin, xmax=params.xmax,
+                           mask_isolation_width=params.mask_isolation_width, yfactor=params.yfactor)
 
     # Score the spectrum
     if params.score:
