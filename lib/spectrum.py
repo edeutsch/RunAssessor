@@ -94,7 +94,11 @@ class Spectrum:
         #    print(json.dumps(usi.__dict__,sort_keys=True,indent=2))
         #    exit()
 
-        url = f"http://www.peptideatlas.org/api/proxi/v0.1/spectra?resultType=full&usi={usi_string}"
+        #### URL to fetch a spectrum from PeptideAtlas PROXI client
+        url = f"https://peptideatlas.org/api/proxi/v0.1/spectra?resultType=full&usi={usi_string}"
+
+        #### Alternative URL for fetching a predicted spectrum
+        #url = f"https://proteomecentral.proteomexchange.org/api/proxi/v0.1/spectra?resultType=full&accession=SEQ2MS&usi={usi_string}"
 
         if usi_string.startswith('http'):
             url = usi_string
@@ -144,7 +148,7 @@ class Spectrum:
 
             # Extract the interpretation_string value for the peak if present
             interpretation_string = '?'
-            if 'interpretations' in proxi_spectrum[0]:
+            if 'interpretations' in proxi_spectrum[0] and proxi_spectrum[0]['interpretations'] is not None:
                 interpretation_string = proxi_spectrum[0]['interpretations'][i_peak]
 
             # Current PROXI spectrum doesn't have aggregation information, interpretations as a list or peak attributes,
