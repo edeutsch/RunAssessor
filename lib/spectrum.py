@@ -322,6 +322,7 @@ class Spectrum:
                     for potential_reporter_peak in potential_reporter_peaks[int_mz]:
                         if abs(potential_reporter_peak['mz'] - reporter_ion['mz']) / int_mz * 1e6 < reporter_ion_tolerance:
                             reporter_ion_intensities[i_reporter_ion] = potential_reporter_peak['intensity']
+                i_reporter_ion += 1
 
 
         #### Convert ms_list to numpy array and compute metrics
@@ -477,7 +478,7 @@ class Spectrum:
         spectrum.metrics['reporter_ion_ceiling'] = reporter_ion_ceiling
         if 'reporter_ions' in stats_per_bin:
             spectrum.metrics['reporter_ion_intensities'] = stats_per_bin['reporter_ions']['intensities']
-
+            #print(spectrum.metrics['reporter_ion_intensities'])
 
 
 
