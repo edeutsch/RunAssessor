@@ -96,6 +96,7 @@ class Spectrum:
 
         #### URL to fetch a spectrum from PeptideAtlas PROXI client
         url = f"https://peptideatlas.org/api/proxi/v0.1/spectra?resultType=full&usi={usi_string}"
+        #url = f"https://www.ebi.ac.uk/pride/proxi/archive/v0.1/spectra?resultType=full&usi={usi_string}"
 
         #### Alternative URL for fetching a predicted spectrum
         #url = f"https://proteomecentral.proteomexchange.org/api/proxi/v0.1/spectra?resultType=full&accession=SEQ2MS&usi={usi_string}"
