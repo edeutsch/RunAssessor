@@ -153,7 +153,7 @@ class SpectrumAnnotator:
 
     ####################################################################################################
     #### Annotate a spectrum by calling a series of methods given a peptidoform
-    def annotate(self, spectrum, peptidoform, charge, tolerance=None):
+    def annotate(self, spectrum, peptidoforms, charges, tolerance=None):
 
         if tolerance is None:
             tolerance = self.tolerance
@@ -164,11 +164,11 @@ class SpectrumAnnotator:
 
         spectrum.compute_spectrum_metrics()
         examiner.identify_isotopes(spectrum)
-        examiner.identify_low_mass_ions(spectrum, peptidoform)
+        examiner.identify_low_mass_ions(spectrum, peptidoforms[0])
         examiner.identify_reporter_ions(spectrum)
         #examiner.identify_neutral_losses(spectrum)
         examiner.identify_precursors(spectrum)
-        self.annotate_peptidoform(spectrum, peptidoform=peptidoform, charge=charge)
+        self.annotate_peptidoform(spectrum, peptidoforms=peptidoforms, charges=charges)
         self.analyze_residuals(spectrum)
         self.rescore_interpretations(spectrum)
 
@@ -455,10 +455,10 @@ class SpectrumAnnotator:
 
     ####################################################################################################
     #### Annotate the spectrum with the predicted fragments from a supplied proforma peptidoform string
-    def annotate_peptidoform(self, spectrum, peptidoform, charge, skip_internal_fragments=False, tolerance=None):
+    def annotate_peptidoform(self, spectrum, peptidoforms, charges, skip_internal_fragments=False, tolerance=None):
 
         #### If peptidoform is specified as None, then there's nothing we can do here
-        if peptidoform is None:
+        if peptidoforms is None:
             return
 
         if tolerance is None:
@@ -466,36 +466,46 @@ class SpectrumAnnotator:
         else:
             self.tolerance = tolerance
 
-        if not isinstance(peptidoform, ProformaPeptidoform):
-            eprint(f"ERROR: Passed peptidoform is not an object, but instead is type {type(peptidoform)}")
-            return
+        stripped_sequence = ''
+        for peptidoform in peptidoforms:
+            if not isinstance(peptidoform, ProformaPeptidoform):
+                eprint(f"ERROR: Passed peptidoform is not an object, but instead is type {type(peptidoform)}")
+                return
+            stripped_sequence += peptidoform.peptide_sequence
 
-        stripped_sequence = peptidoform.peptide_sequence
-        self.predict_fragment_ions(peptidoform=peptidoform, charge=charge, fragmentation_type='HCD', skip_internal_fragments=skip_internal_fragments)
+        i_peptidoform = 0
+        n_peptidoforms = len(peptidoforms)
+        for peptidoform in peptidoforms:
+            self.predict_fragment_ions(peptidoform=peptidoform, charge=charges[i_peptidoform], fragmentation_type='HCD', skip_internal_fragments=skip_internal_fragments)
 
-        for peak in spectrum.peak_list:
-            mz = peak[PL_MZ]
+            for peak in spectrum.peak_list:
+                mz = peak[PL_MZ]
 
-            # Have a look at the previously-annotated immonium ions and if they are for residues that are present here, strip the 0@
-            # FIXME This is not going to work for IC[Carbamidomethyl] or IS[Phosho]
-            if mz < 300 and len(peak[PL_INTERPRETATIONS]) > 0:
-                for interpretation in peak[PL_INTERPRETATIONS]:
-                    if interpretation[INT_INTERPRETATION_STRING].startswith('0@I'):
-                        residue = interpretation[INT_INTERPRETATION_STRING][3]
-                        if residue in stripped_sequence:
-                            interpretation[INT_INTERPRETATION_STRING] = interpretation[INT_INTERPRETATION_STRING][2:]
+                # Have a look at the previously-annotated immonium ions and if they are for residues that are present here, strip the 0@
+                # FIXME This is not going to work for IC[Carbamidomethyl] or IS[Phosho]
+                if mz < 300 and len(peak[PL_INTERPRETATIONS]) > 0:
+                    for interpretation in peak[PL_INTERPRETATIONS]:
+                        if interpretation[INT_INTERPRETATION_STRING].startswith('0@I'):
+                            residue = interpretation[INT_INTERPRETATION_STRING][3]
+                            if residue in stripped_sequence:
+                                interpretation[INT_INTERPRETATION_STRING] = interpretation[INT_INTERPRETATION_STRING][2:]
 
-            matches = self.find_close_predicted_fragments(mz, tolerance)
-            if matches:
-                diagnostic_category = 'diagnostic'
-                for match in matches:
-                    #peak[PL_INTERPRETATION_STRING] = f"{match[INT_INTERPRETATION_STRING]}/" + '{:.1f}'.format(match[INT_DELTA_PPM]) + 'ppm'
-                    #peak[PL_INTERPRETATIONS].append(match)
-                    if match[INT_INTERPRETATION_STRING].startswith('p'):
-                        peak[PL_ATTRIBUTES][PLA_IS_PRECURSOR] += 1
-                        diagnostic_category = 'nondiagnostic'
+                matches = self.find_close_predicted_fragments(mz, tolerance)
+                if matches:
+                    diagnostic_category = 'diagnostic'
+                    for match in matches:
+                        #peak[PL_INTERPRETATION_STRING] = f"{match[INT_INTERPRETATION_STRING]}/" + '{:.1f}'.format(match[INT_DELTA_PPM]) + 'ppm'
+                        #peak[PL_INTERPRETATIONS].append(match)
+                        if match[INT_INTERPRETATION_STRING].startswith('p'):
+                            peak[PL_ATTRIBUTES][PLA_IS_PRECURSOR] += 1
+                            diagnostic_category = 'nondiagnostic'
 
-                    self.add_interpretation(peak, match, diagnostic_category=diagnostic_category, residual_type='absolute')
+                        if n_peptidoforms > 1:
+                            match[INT_INTERPRETATION_STRING] = f"{i_peptidoform+1}@{match[INT_INTERPRETATION_STRING]}"
+
+                        self.add_interpretation(peak, match, diagnostic_category=diagnostic_category, residual_type='absolute')
+
+            i_peptidoform += 1
 
 
 
@@ -940,9 +950,10 @@ class SpectrumAnnotator:
         spectrum_viewport = [0.02, 0.2, 1.01, 1.01]
         residuals_viewport = [0.02, -0.04, 1.01, 0.21]
         if include_third_plot:
-            figure_height = 7
-            spectrum_viewport = [0.02, 0.3, 1, 1]
-            residuals_viewport = [0.02, 0.12, 1, 0.3]
+            figure_height = 7.5
+            spectrum_viewport = [0.02, 0.28, 1.01, 1.01]
+            residuals_viewport = [0.02, 0.10, 1.01, 0.28]
+            third_plot_viewport = [0.02, -0.03, 1.01, 0.15]
 
         #pdf = PdfPages(f"spectrum.pdf")
         fig = plt.figure(figsize=(figure_width, figure_height))
@@ -970,7 +981,8 @@ class SpectrumAnnotator:
                 continue
             if intensity > max_intensity:
                 max_intensity = intensity
-            if len(interpretations_string) > 0 and interpretations_string[0] != 'p' and interpretations_string[0] != 'r' and intensity > max_non_precursor_intensity:
+            match = re.match(r'\d+\@p', interpretations_string)
+            if len(interpretations_string) > 0 and interpretations_string[0] != 'p' and interpretations_string[0] != 'r' and not match and intensity > max_non_precursor_intensity:
                 max_non_precursor_intensity = intensity
             if mz < min_mz:
                 min_mz = mz
@@ -1011,7 +1023,7 @@ class SpectrumAnnotator:
         plot2.plot( [0,xmax], [0,0], '--', linewidth=0.6, color='gray')
 
         #### Set up colors for different types of ion and a grid to track where items have been layed out
-        colors = { 'b': 'tab:blue', 'a': 'tab:green', 'y': 'tab:red', '0': 'tab:gray', 'I': 'tab:orange', '?': 'tab:gray', 'p': 'tab:pink', 'm': 'tab:brown', 'r': 'tab:purple' }
+        colors = { 'b': 'tab:blue', 'a': 'tab:green', 'y': 'tab:red', '0': 'tab:gray', 'I': 'tab:orange', '?': 'tab:gray', 'p': 'tab:pink', 'm': 'tab:brown', 'r': 'tab:purple', 'f': 'tab:purple' }
         blocked = np.zeros((xmax,100))
 
         #### Prepare to write the peptide sequence to the plot, although only write it later once we figure out where there's room
@@ -1045,12 +1057,14 @@ class SpectrumAnnotator:
                 mz_delta += spectrum.attributes['mass_accuracy']['offset']
 
             ion_type = interpretations_string[0]
+            if len(interpretations_string) > 1 and interpretations_string[1] == '@':
+                ion_type = interpretations_string[2]
             if ion_type in [ '1','2','3','4','5','6','7','8','9' ]:
                 color = 'tab:olive'
             else:
                 color = colors[ion_type]
 
-            print( '{:4d}'.format(i_peak) + '{:10.4f}'.format(mz) + '{:10.1f}'.format(intensity*10000) + '  ' + interpretations_string + '   ' + ion_type + f"   {mz_delta}" )
+            #print( '{:4d}'.format(i_peak) + '{:10.4f}'.format(mz) + '{:10.1f}'.format(intensity*10000) + '  ' + interpretations_string + '   ' + ion_type + f"   {mz_delta}" )
 
             #### Store the peak for later plotting
             all_peaks.append({ 'mz': mz, 'intensity': intensity, 'color': color } )
@@ -1067,7 +1081,10 @@ class SpectrumAnnotator:
                 #print(f"skip {interpretations_string}")
 
             if should_label:
-                annotations.append( { 'mz': mz, 'intensity': intensity, 'annotation_string': annotation_string, 'color': color } )
+                annotation_priority = 1
+                if ( annotation_string.startswith('y') or annotation_string.startswith('b') ) and annotation_string.count('-') == 0:
+                    annotation_priority = 2
+                annotations.append( { 'mz': mz, 'intensity': intensity, 'annotation_string': annotation_string, 'color': color, 'annotation_priority': annotation_priority } )
 
             #### For certain types of ions, record a massdiff residual to plot later
             if color not in [ 'tab:gray', 'tab:olive']:
@@ -1124,7 +1141,7 @@ class SpectrumAnnotator:
             blocked[int(mz)-1:int(mz)+1,0:int(intensity*100)] = 1
 
         #### Sort all the annotations by intensity so that we annotate the most intense ions first and then only lower ones if there room
-        annotations.sort(key=lambda x: x['intensity'], reverse=True)
+        annotations.sort(key=lambda x: (x['annotation_priority'], x['intensity']), reverse=True)
         xf = 1.8
         counter = 0
         for annotation in annotations:
@@ -1137,6 +1154,7 @@ class SpectrumAnnotator:
             blocklen = len(annotation_string)
             if blocklen < 3:
                 blocklen = 3
+            #print(f"-- Try to annotate {mz}\t{intensity}\t{annotation_string}")
             if blocked[int(mz-7.5*xscale):int(mz+7*xscale),int(intensity*100)+1:int(intensity*100+blocklen*xf)].sum() == 0:
                 #plot1.plot([int(mz-7.5*xscale), int(mz-7.5*xscale), int(mz+7*xscale), int(mz+7*xscale), int(mz-7.5*xscale)],
                 #           [(int(intensity*100)+1)/100.0, (int(intensity*100+blocklen*xf))/100.0, (int(intensity*100+blocklen*xf))/100.0,
@@ -1144,12 +1162,14 @@ class SpectrumAnnotator:
                 plot1.text(mz, intensity  + 0.01, annotation_string, fontsize='x-small', ha='center', va='bottom', color=color, rotation=90, fontname='Arial')
                 #blocked[int(mz-5.5):int(mz+5),int(intensity*100)+1:int(intensity*100+blocklen*1.5)] = 1
                 blocked[int(mz-7.5*xscale):int(mz+7*xscale),int(intensity*100)+1:int(intensity*100+blocklen*xf)] = 1
+                #print(f"   - easy")
             else:
                 #### If there are more than 2 losses, don't work hard to squeeze it in
                 if annotation_string.count('-') > 2:
                     continue
                 #print(f"{mz}\t{intensity*100}\t{annotation_string} is blocked")
-                reposition_attempts = [ [0.0, 3.0], [0.0, 5.0], [0.0, 7.0], [5.0, 3.0], [-5.0, 3.0] ]
+                reposition_attempts = [ [0.0, 3.0], [0.0, 6.0], [0.0, 10.0], [0.0, 15.0], [5.0, 3.0], [-5.0, 3.0], [5.0, 15.0], [-5.0, 15.0] ]
+                found_a_spot = False
                 for reposition_attempt in reposition_attempts:
                     x_offset = reposition_attempt[0]
                     y_offset = reposition_attempt[1]
@@ -1157,43 +1177,59 @@ class SpectrumAnnotator:
                         plot1.text(mz+x_offset, intensity + 0.01 + y_offset/100.0, annotation_string, fontsize='x-small', ha='center', va='bottom', color=color, rotation=90, fontname='Arial')
                         blocked[int(mz-7.5*xscale+x_offset):int(mz+7*xscale+x_offset),int(intensity*100+y_offset)+1:int(intensity*100+blocklen*xf+y_offset)] = 1
                         plot1.plot( [mz,mz+x_offset], [intensity + 0.004, intensity + 0.01 + (y_offset-0.5)/100.0], color='black', linewidth=0.2 )
+                        #print(f"   - managed to find a spot at {reposition_attempt}")
+                        found_a_spot = True
                         break
+                if not found_a_spot:
+                    #print(f"   - Failed to find a place")
+                    pass
 
             counter += 1
 
         #### Plot a little P where the precursor m/z is
         if precursor_mz:
             plot1.text(precursor_mz, -0.003, 'P', fontsize='small', ha='center', va='top', color='red', fontname='Arial')
+        plot1.spines[['right', 'top']].set_visible(False)
+        #plot2.spines[['right', 'top']].set_visible(False)
 
         #### Look for a clear spot to put the sequence
         done = False
         x_extent = sequence_offset
+        leftest_offset = None
+        rightest_offset = None
         while not done:
+ 
             running_sum = 0.0
-            counter = 0
-            for residue in residues:
-                x_offset = sequence_offset+counter*sequence_gap
-                x_width = 0.5*sequence_gap
+            for counter in range(len(residues)+2):
+                x_offset = sequence_offset + counter * sequence_gap
+                x_width = 0.5 * sequence_gap
                 y_offset = sequence_height
                 y_width = 0.07
                 #plot1.plot([x_offset-x_width, x_offset-x_width, x_offset+x_width, x_offset+x_width, x_offset-x_width],
                 #        [y_offset-y_width, y_offset+y_width*1.5, y_offset+y_width*1.5, y_offset-y_width, y_offset-y_width], color='gray', linewidth=0.2)
                 running_sum += blocked[int(x_offset-x_width):int(x_offset+x_width),int((y_offset-y_width)*100):int((y_offset+y_width*1.5)*100)].sum()
                 x_extent = x_offset + x_width
-                counter += 1
-                #### Can't short-circuit here because otherwise x_entent is not accurate
-                #if running_sum > 0:
-                #    break
+
             if running_sum == 0:
                 #print(f"*** Found space at sequence_offset={sequence_offset}, x_extent={x_extent}")
-                break
+                if leftest_offset is None:
+                    leftest_offset = sequence_offset
             else:
                 #print(f"*** Blocked at sequence_offset={sequence_offset}, x_extent={x_extent}")
-                sequence_offset += (xmax-xmin)/50.0
+                if leftest_offset is not None:
+                    rightest_offset = sequence_offset
+                    sequence_offset = ( leftest_offset + rightest_offset ) / 2.0
+                    break
+            sequence_offset += (xmax-xmin)/50.0
+
             if x_extent > xmax*.97:
                 #print(f"*** Reached the limit at sequence_offset={sequence_offset}, x_extent={x_extent}")
-                sequence_offset -= (xmax-xmin)/50.0
-                sequence_offset = original_sequence_offset
+                if leftest_offset is None:
+                    sequence_offset -= (xmax-xmin)/50.0
+                    sequence_offset = original_sequence_offset
+                else:
+                    rightest_offset = sequence_offset
+                    sequence_offset = ( leftest_offset + rightest_offset ) / 2.0
                 break
 
         #### Finally write out the sequence
@@ -1219,16 +1255,34 @@ class SpectrumAnnotator:
             if series == 'b':
                 plot1.plot( [x,x,x-sequence_gap*0.2*flag_direction], [y,y+(intensity/10.0+0.005),y+(intensity/10.0+0.005)], color='tab:blue', linewidth=flag_thickness)
 
+        #with open('saved_residuals_calibrated.json', 'w') as outfile:
+        #    outfile.write(json.dumps(saved_residuals))
+
         #### Set up the third plot, nominally for the precursor window
         if include_third_plot:
             gridspec3 = gridspec.GridSpec(1, 1)
             plot3 = fig.add_subplot(gridspec3[0])
-            gridspec3.tight_layout(fig, rect=[0.02, -0.02, 1, 0.15])
+            gridspec3.tight_layout(fig, rect=third_plot_viewport)
 
+            plot3.set_ylabel('delta (PPM)', fontname='Arial')
             plot3.set_xlim([xmin, xmax])
             plot3.set_xticklabels([])
             plot3.set_ylim([-16,16])
             plot3.plot( [0,xmax], [0,0], '--', linewidth=0.6, color='gray')
+
+            with open('saved_residuals_calibrated.json') as infile:
+                saved_residuals = json.load(infile)
+            for residual in saved_residuals:
+                mz = residual['mz']
+                mz_delta = residual['mz_delta']
+                markersize = residual['markersize']
+                color = residual['color']
+                plot3.plot( [mz,mz], [mz_delta,mz_delta], marker='s', markersize=markersize, color=color )
+
+            plot1.text(xmax-10, 0.98, 'A', fontname='Arial', fontsize=30, ha='right', va='top')
+            plot2.text(xmax-6, 14, 'B', fontname='Arial', fontsize=20, ha='right', va='top')
+            plot3.text(xmax-6, 14, 'C', fontname='Arial', fontsize=20, ha='right', va='top')
+
 
         #### Write out the figure to PDF and SVG
         plt.savefig('AnnotatedSpectrum.pdf',format='pdf')
@@ -1294,8 +1348,7 @@ def main():
         sys.path.append("C:\local\Repositories\GitHub\PSI\SpectralLibraryFormat\implementations\python\mzlib")
         from universal_spectrum_identifier import UniversalSpectrumIdentifier
         usi = UniversalSpectrumIdentifier(usi_string)
-        peptidoform_string = usi.peptidoform_string
-        charge = usi.charge
+        #print(json.dumps(usi.peptidoforms, indent=2))
         if verbose:
             print("Parsed information from the USI:")
             print(json.dumps(usi.__dict__,sort_keys=True,indent=2))
@@ -1309,23 +1362,25 @@ def main():
     spectrum.fetch_spectrum(usi_string)
 
     #### Need to do this as apparently the peptidoform that comes back from usi is a dict, not an object?
-    peptidoform = None
-    if peptidoform_string is not None and peptidoform_string != '':
-        peptidoform = ProformaPeptidoform(peptidoform_string)
-    print(json.dumps(peptidoform.to_dict(),indent=2))
+    peptidoforms = []
+    for usi_peptidoform in usi.peptidoforms:
+        if usi_peptidoform['peptidoform_string'] is not None and usi_peptidoform['peptidoform_string'] != '':
+            peptidoform = ProformaPeptidoform(usi_peptidoform['peptidoform_string'])
+            peptidoforms.append(peptidoform)
+        print(json.dumps(peptidoform.to_dict(),indent=2,sort_keys=True))
 
     # Annotate the spectrum
     if params.annotate:
         annotator = SpectrumAnnotator()
-        annotator.annotate(spectrum, peptidoform=peptidoform, charge=charge, tolerance=params.tolerance)
+        annotator.annotate(spectrum, peptidoforms=peptidoforms, charges=usi.charges, tolerance=params.tolerance)
         print(spectrum.show(show_all_annotations=show_all_annotations, verbose=verbose))
         if params.plot:
-            annotator.plot(spectrum, peptidoform=peptidoform, charge=charge, xmin=params.xmin, xmax=params.xmax,
+            annotator.plot(spectrum, peptidoform=peptidoforms[0], charge=usi.charges[0], xmin=params.xmin, xmax=params.xmax,
                            mask_isolation_width=params.mask_isolation_width, yfactor=params.yfactor)
 
     # Score the spectrum
     if params.score:
-        annotator.compute_spectrum_score(spectrum, peptidoform=peptidoform, charge=charge)
+        annotator.compute_spectrum_score(spectrum, peptidoform=peptidoforms[0], charge=usi.charges[0])
 
 
 #### For command line usage
