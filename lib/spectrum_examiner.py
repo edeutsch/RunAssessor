@@ -689,9 +689,15 @@ class SpectrumExaminer:
             for match in matches:
 
                 i_match_peak = match[INT_REFERENCE_PEAK]
-                match[INT_DELTA_PPM] = -1 * match[INT_DELTA_PPM]                                                        #### Weird things because I reversed the sign of the delta?????
+                match[INT_DELTA_PPM] = -1 * match[INT_DELTA_PPM]
 
                 match[INT_INTERPRETATION_STRING] = f"r[{reporter_ion_name}]"
+
+                #### Special logic to move neutral losses and gains out of the brackets (e.g. r[TMT6plex+H2O] to r[TMT6plex]+H2O)
+                regexp_match = re.match(r'r\[(.+)?([\-\+].+)\]$', match[INT_INTERPRETATION_STRING])
+                if regexp_match:
+                    match[INT_INTERPRETATION_STRING] = f"r[{regexp_match.group(1)}]{regexp_match.group(2)}"
+
                 match[INT_COMMONNESS_SCORE] = 60
                 spectrum.peak_list[i_match_peak][PL_ATTRIBUTES][PLA_IS_REPORTER] += 1
                 self.add_interpretation(spectrum.peak_list[i_match_peak], match, diagnostic_category='nondiagnostic', residual_type='absolute')
