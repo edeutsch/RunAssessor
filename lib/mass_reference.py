@@ -302,15 +302,23 @@ class MassReference:
                 self.neutral_losses_by_residue[residue].append(neutral_loss)
             self.neutral_losses_by_formula[neutral_loss['formula']] = neutral_loss
 
+
+        #### A few immonium ions are isobaric with another, so have a list of ones that we should just skip
+        immonium_ions_to_exclude = {
+            'IK[Formyl]': True,     # This interferes with IK+CO
+            'IK[Dimethyl]': True,   # This probably isn't a thing, and could conflict with r[TMT129C]
+            'IK[Carbamidomethyl]': True,   # This probably isn't a thing, and is isobaric with a2{GK} which is probably more likely
+            'IT[Formyl]': True,             # This probably isn't a thing, and is isobaric with IE which is more likely
+            }
+
         self.immonium_ions = {}
-        for residue,residue_mass in self.aa_masses.items():
+        for residue, residue_mass in self.aa_masses.items():
             immonium_name = f"I{residue}"
+            if immonium_name in immonium_ions_to_exclude:
+                continue
             immonium_mass = residue_mass - ( self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] ) + self.atomic_masses['proton']
             self.immonium_ions[immonium_name] = immonium_mass
-            # FIXME: What should the rest of the immonium losses be? See Immonium email from Tytus
-            #immonium_name = f"I{residue}-C3H6"
-            #immonium_mass = immonium_mass - ( self.atomic_masses['carbon'] * 3 + self.atomic_masses['hydrogen'] * 6 )
-            #self.immonium_ions[immonium_name] = immonium_mass
+
 
         self.low_mass_ions = copy.deepcopy(self.immonium_ions)
         for residue in [ 'R', 'K' ]:
@@ -382,7 +390,7 @@ class MassReference:
             'TMTzero': { 'type': 'TMT', 'mz': 224.152478 + self.atomic_masses['proton'] },
             'TMT2': { 'type': 'TMT', 'mz': 225.155833 + self.atomic_masses['proton'] },
             'TMT6plex': { 'type': 'TMT', 'mz': 229.162932 + self.atomic_masses['proton'] },
-            'TMT6plex_H2O': { 'type': 'TMT', 'mz': 229.162932 + self.atomic_masses['proton'] + 2 * self.atomic_masses['hydrogen'] + self.atomic_masses['oxygen'] },
+            'TMT6plex+H2O': { 'type': 'TMT', 'mz': 229.162932 + self.atomic_masses['proton'] + 2 * self.atomic_masses['hydrogen'] + self.atomic_masses['oxygen'] },
             'TMTprozero': { 'type': 'TMT', 'mz': 295.189592 + self.atomic_masses['proton'] },
             'TMTpro': { 'type': 'TMT', 'mz': 304.207146 + self.atomic_masses['proton'] },
             'TMTpro+H20': { 'type': 'TMT', 'mz': 304.207146 + self.atomic_masses['proton'] + 2 * self.atomic_masses['hydrogen'] + self.atomic_masses['oxygen'] },
@@ -394,10 +402,10 @@ class MassReference:
             'iTRAQ115': { 'type': 'iTRAQ', 'mz': 115.107715 },
             'iTRAQ116': { 'type': 'iTRAQ', 'mz': 116.111069 },
             'iTRAQ117': { 'type': 'iTRAQ', 'mz': 117.114424 },
-            'iTRAQ4Nterm_114': { 'type': 'iTRAQ4', 'mz': 144.105918 + self.atomic_masses['proton'] },
-            'iTRAQ4Nterm_115': { 'type': 'iTRAQ4', 'mz': 144.099599 + self.atomic_masses['proton'] },
-            'iTRAQ4Nterm_1167': { 'type': 'iTRAQ4', 'mz': 144.102063 + self.atomic_masses['proton'] },
-            'iTRAQ4Nterm_H2O': { 'type': 'iTRAQ4', 'mz': 144.102063 + self.atomic_masses['proton'] + 2 * self.atomic_masses['hydrogen'] + self.atomic_masses['oxygen'] },
+            'iTRAQ4plex_114': { 'type': 'iTRAQ4', 'mz': 144.105918 + self.atomic_masses['proton'] },
+            'iTRAQ4plex_115': { 'type': 'iTRAQ4', 'mz': 144.099599 + self.atomic_masses['proton'] },
+            'iTRAQ4plex_1167': { 'type': 'iTRAQ4', 'mz': 144.102063 + self.atomic_masses['proton'] },
+            'iTRAQ4plex+H2O': { 'type': 'iTRAQ4', 'mz': 144.102063 + self.atomic_masses['proton'] + 2 * self.atomic_masses['hydrogen'] + self.atomic_masses['oxygen'] },
 
 
             # Jimmy's numbers from https://proteomicsresource.washington.edu/protocols03/isotopic_labeling.php
@@ -564,12 +572,12 @@ class MassReference:
             'D': [ '-H2O' ],
             'Q': [ '-CO-NH3', '-NH3', '+CO'],
             #'K': [ '+CO-NH3', '-NH3', '+CO', '-C2H4-NH3', '+CO+H2ON2', '-NH3', '-C4H7N', '+CO+CO-C2H3N3', '+CO+H2O', '+CO-H2O'],
-            'K': [ '+CO-NH3', '-NH3', '+CO', '-C2H4-NH3', '+CO+H2ON2', '-NH3', '-C4H7N', '+CO+CO-C2H3N3', '+CO-H2O'],
+            'K': [ '+CO-NH3', '-NH3', '+CO', '-C2H4-NH3', '-NH3', '-C4H7N', '+CO+CO-C2H3N3', '+CO-H2O'],
             'E': [],
             'M': [ '-C2H2-NH3'],
             'H': [ '-CH2N', '+CO-NH2', '+CO-NH3', '+CO-NH', '+CO+H2O' ],
             'F': [ '-CH3N'],
-            'R': [ '-C3H6N2', '-CH5N3', '-CH6N2', '-C2H4N2', '-CH2N2', '-CH3N', '-NH3', '-C4H7N', '+H2O+H2O-N3H7', '+CO+H2O' ],
+            'R': [ '-C3H6N2', '-CH5N3', '-CH6N2', '-C2H4N2', '-CH2N2', '-CH3N', '-NH3', '-C4H7N', '+H2O+H2O-N3H7' ],
             'Y': [ '-CO-NH3', '-CH3N' ],
             'W': [ '+CO', '-C4H6N2', '-C2H4N', '-CH3N', '-CHN', '+CO-NH3', '-NH3'],
         }
