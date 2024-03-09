@@ -6,6 +6,7 @@ import os.path
 import re
 import json
 import numpy
+import urllib.parse
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 #sys.path.append("G:\Repositories\GitHub\SpectralLibraries\lib")
@@ -95,7 +96,7 @@ class Spectrum:
         #    exit()
 
         #### URL to fetch a spectrum from PeptideAtlas PROXI client
-        url = f"https://peptideatlas.org/api/proxi/v0.1/spectra?resultType=full&usi={usi_string}"
+        url = f"https://peptideatlas.org/api/proxi/v0.1/spectra?resultType=full&usi={urllib.parse.quote_plus(usi_string)}"
         #url = f"https://www.ebi.ac.uk/pride/proxi/archive/v0.1/spectra?resultType=full&usi={usi_string}"
 
         #### Alternative URL for fetching a predicted spectrum
