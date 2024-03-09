@@ -292,6 +292,8 @@ class MassReference:
                 'delta_mass': self.atomic_masses['hydrogen'] * 1 + self.atomic_masses['phosphorus'] + self.atomic_masses['oxygen'] * 3 },
             'methanesulfenic acid': { 'formula': 'CH4OS', 'residues': [ 'M[Oxidation]' ],
                 'delta_mass': self.atomic_masses['carbon'] * 1 + self.atomic_masses['hydrogen'] * 4 + self.atomic_masses['oxygen'] * 1 + self.atomic_masses['sulfur'] * 1 },
+            'Tryp Mannose for Kristian': { 'formula': 'C4H8O4', 'residues': [ 'W[Hex]' ],
+                'delta_mass': self.atomic_masses['carbon'] * 4 + self.atomic_masses['hydrogen'] * 8 + self.atomic_masses['oxygen'] * 4 },
         }
 
         # Also key neutral losses by residue and by formula
