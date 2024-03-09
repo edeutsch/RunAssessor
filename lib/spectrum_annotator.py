@@ -1023,7 +1023,7 @@ class SpectrumAnnotator:
         plot2.plot( [0,xmax], [0,0], '--', linewidth=0.6, color='gray')
 
         #### Set up colors for different types of ion and a grid to track where items have been layed out
-        colors = { 'b': 'tab:blue', 'a': 'tab:green', 'y': 'tab:red', '0': 'tab:gray', 'I': 'tab:orange', '?': 'tab:gray', 'p': 'tab:pink', 'm': 'tab:brown', 'r': 'tab:purple', 'f': 'tab:purple' }
+        colors = { 'b': 'tab:blue', 'a': 'tab:green', 'y': 'tab:red', '0': 'tab:gray', '_': 'tab:gray', 'I': 'tab:orange', '?': 'tab:gray', 'p': 'tab:pink', 'm': 'tab:brown', 'r': 'tab:purple', 'f': 'tab:purple' }
         blocked = np.zeros((xmax,100))
 
         #### Prepare to write the peptide sequence to the plot, although only write it later once we figure out where there's room
