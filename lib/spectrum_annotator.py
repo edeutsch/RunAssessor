@@ -939,10 +939,32 @@ class SpectrumAnnotator:
 
     ####################################################################################################
     #### Plot the spectrum and its annotations in a nice publishable way
-    def plot(self, spectrum, peptidoform, charge, xmin=None, xmax=None, mask_isolation_width=None, yfactor=None):
+    def plot(self, spectrum, peptidoform, charge, xmin=None, xmax=None, mask_isolation_width=None, yfactor=None, write_files=None):
         import matplotlib.pyplot as plt
         import matplotlib.gridspec as gridspec
-        from matplotlib.backends.backend_pdf import PdfPages
+        import io
+
+        #### Extract user_parameters settings
+        try:
+            user_parameters = spectrum.extended_data['user_parameters']
+        except:
+            user_parameters = {}
+        if 'xmin' in user_parameters and user_parameters['xmin'] is not None:
+            try:
+                xmin = float(user_parameters['xmin'])
+            except:
+                pass
+        if 'xmax' in user_parameters and user_parameters['xmax'] is not None:
+            try:
+                xmax = float(user_parameters['xmax'])
+            except:
+                pass
+        if 'yfactor' in user_parameters and user_parameters['yfactor'] is not None:
+            try:
+                yfactor = float(user_parameters['yfactor'])
+            except:
+                pass
+
 
         include_third_plot = False
         figure_height = 6
@@ -955,7 +977,6 @@ class SpectrumAnnotator:
             residuals_viewport = [0.02, 0.10, 1.01, 0.28]
             third_plot_viewport = [0.02, -0.03, 1.01, 0.15]
 
-        #pdf = PdfPages(f"spectrum.pdf")
         fig = plt.figure(figsize=(figure_width, figure_height))
         gridspec1 = gridspec.GridSpec(1, 1)
         plot1 = fig.add_subplot(gridspec1[0])
@@ -1150,6 +1171,8 @@ class SpectrumAnnotator:
             annotation_string = annotation['annotation_string']
             if annotation_string == '':
                 continue
+            if mz < xmin or mz > xmax:
+                continue
             color = annotation['color']
             blocklen = len(annotation_string)
             if blocklen < 3:
@@ -1285,11 +1308,24 @@ class SpectrumAnnotator:
 
 
         #### Write out the figure to PDF and SVG
-        plt.savefig('AnnotatedSpectrum.pdf',format='pdf')
-        plt.savefig('AnnotatedSpectrum.svg',format='svg')
-        plt.close()
+        if 'create_svg' in user_parameters:
+            buffer = io.BytesIO()
+            plt.savefig(buffer,format='svg')
+            buffer.seek(0)
+            content = buffer.read()
+            spectrum.extended_data['svg'] = content.decode('utf-8')
+        if 'create_pdf' in user_parameters:
+            buffer = io.BytesIO()
+            plt.savefig(buffer,format='pdf')
+            buffer.seek(0)
+            content = buffer.read()
+            spectrum.extended_data['pdf'] = content.decode('iso-8859-1')
 
-        #plt.show()
+        if write_files is not None:
+            plt.savefig('AnnotatedSpectrum.pdf',format='pdf')
+            plt.savefig('AnnotatedSpectrum.svg',format='svg')
+            plt.close()
+            #plt.show()
 
 
 
@@ -1316,6 +1352,7 @@ def main():
     argparser.add_argument('--score', action='count', help='If set, score the spectrum with the supplied peptidoform' )
     argparser.add_argument('--show_all_annotations', action='count', help='If set, show all the potential annotations, not just the final one' )
     argparser.add_argument('--plot', action='count', help='If set, make a nice figure' )
+    argparser.add_argument('--write_files', action='count', help='If set, write the figures to files' )
     argparser.add_argument('--xmin', action='store', default=None, type=float, help='Set a manual x-axis (m/z) minimum' )
     argparser.add_argument('--xmax', action='store', default=None, type=float, help='Set a manual x-axis (m/z) maximum' )
     argparser.add_argument('--mask_isolation_width', action='store', default=None, type=float, help='When plotting, drop peaks within an isolation window with this full width' )
@@ -1376,7 +1413,7 @@ def main():
         print(spectrum.show(show_all_annotations=show_all_annotations, verbose=verbose))
         if params.plot:
             annotator.plot(spectrum, peptidoform=peptidoforms[0], charge=usi.charges[0], xmin=params.xmin, xmax=params.xmax,
-                           mask_isolation_width=params.mask_isolation_width, yfactor=params.yfactor)
+                           mask_isolation_width=params.mask_isolation_width, yfactor=params.yfactor, write_files=params.write_files)
 
     # Score the spectrum
     if params.score:
