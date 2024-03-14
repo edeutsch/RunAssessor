@@ -525,6 +525,14 @@ class MassReference:
             'Guanine': 152.056686,
             'UrocanicAcid': 139.050204,
             'Xanthine': 153.040702,
+
+            'Cytosine+C5H7O6P': 112.050538 + self.calc_mass(self.parse_atomic_formula('C5H7O6P')),
+            'Cytosine+C5H7O6P-H2O': 112.050538 + self.calc_mass(self.parse_atomic_formula('C5H7O6P')) - self.calc_mass(self.parse_atomic_formula('H2O')),
+            'Adenine+C5H7O6P': 136.061772 + self.calc_mass(self.parse_atomic_formula('C5H7O6P')),
+            'Adenine+C5H7O6P-H2O': 136.061772 + self.calc_mass(self.parse_atomic_formula('C5H7O6P')) - self.calc_mass(self.parse_atomic_formula('H2O')),
+            'Guanine+C5H7O6P': 152.056686 + self.calc_mass(self.parse_atomic_formula('C5H7O6P')),
+            'Guanine+C5H7O6P-H2O': 152.056686 + self.calc_mass(self.parse_atomic_formula('C5H7O6P')) - self.calc_mass(self.parse_atomic_formula('H2O')),
+
             'Dimethylglycine': self.calc_mass(self.parse_atomic_formula('C4H9NO2')) + self.atomic_masses['proton'],
             'Methyladenine': self.calc_mass(self.parse_atomic_formula('C6H7N5')) + self.atomic_masses['proton'],
 
