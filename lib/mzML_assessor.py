@@ -294,7 +294,7 @@ class MzMLAssessor:
 
         mass_accuracy = '??'
         match = re.search(r'^(\S+)',filter_string)
-        if match.group(0) == 'FTMS':
+        if match.group(0) == 'FTMS' or match.group(0) == 'ASTMS':
             mass_accuracy = 'HR'
         elif match.group(0) == 'ITMS':
             mass_accuracy = 'LR'
@@ -599,7 +599,8 @@ class MzMLAssessor:
                 'MS:1002526|Exactive Plus',
                 'MS:1002634|Q Exactive Plus',
                 'MS:1002523|Q Exactive HF',
-                'MS:1002877|Q Exactive HF-X'
+                'MS:1002877|Q Exactive HF-X',
+                'MS:1003378|Orbitrap Astral'
             ],
             'ion_trap': [
                 'MS:1000447|LTQ',
@@ -647,6 +648,11 @@ class MzMLAssessor:
             'MS:1000562': {
                 'exact_name': 'ABI WIFF format',
                 'rank': '2',
+                'category': 'QTOF',
+                'final_name': 'SCIEX instrument model' },
+            'MS:1000551': {
+                'exact_name': 'Analyst',
+                'rank': '3',
                 'category': 'QTOF',
                 'final_name': 'SCIEX instrument model' }
         }
@@ -743,7 +749,9 @@ class MzMLAssessor:
             'TMT6_129': { 'type': 'TMT', 'mz': 129.131468, 'initial_window': 0.01 },
             'TMT6_130': { 'type': 'TMT', 'mz': 130.141141, 'initial_window': 0.01 },
             'TMT6_131': { 'type': 'TMT', 'mz': 131.138176, 'initial_window': 0.01 },
-            'TMT6_nterm': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 0.01 },
+            'TMT6plex': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 0.01 },
+            'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 0.01 },
+            'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 0.01 },
             'iTRAQ_114': { 'type': 'iTRAQ', 'mz': 114.11068, 'initial_window': 0.01 },
             'iTRAQ_115': { 'type': 'iTRAQ', 'mz': 115.107715, 'initial_window': 0.01 },
             'iTRAQ_116': { 'type': 'iTRAQ', 'mz': 116.111069, 'initial_window': 0.01 },
@@ -758,8 +766,10 @@ class MzMLAssessor:
         #### What should we look at for ion trap data?
         if composite_type == 'lowend_LR_IT_CID':
             ROIs = {
-                'TMT6_nterm': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 1.0 },
+                'TMT6plex': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 1.0 },
                 'TMT6_y1K': { 'type': 'TMT', 'mz': 376.2757, 'initial_window': 1.0 },
+                'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 0.01 },
+                'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 0.01 },
                 'iTRAQ4_y1K': { 'type': 'iTRAQ4', 'mz': 376.2757, 'initial_window': 1.0 },
                 'iTRAQ8_y1K': { 'type': 'iTRAQ8', 'mz': 451.3118, 'initial_window': 1.0 },
             }
@@ -864,7 +874,7 @@ class MzMLAssessor:
     ####################################################################################################
     #### Assess Regions of Interest to make calls
     def assess_ROIs(self):
-        results = { 'labeling': { 'scores': { 'TMT': 0, 'TMT6': 0, 'TMT10': 0, 'iTRAQ': 0, 'iTRAQ4': 0, 'iTRAQ8': 0 } } }
+        results = { 'labeling': { 'scores': { 'TMT': 0, 'TMT6': 0, 'TMT10': 0, 'TMTpro': 0, 'iTRAQ': 0, 'iTRAQ4': 0, 'iTRAQ8': 0 } } }
 
         #### Determine what the denominator of MS2 spectra should be
         n_ms2_spectra = self.metadata['files'][self.mzml_file]['spectra_stats']['n_ms2_spectra']
@@ -893,7 +903,10 @@ class MzMLAssessor:
         #### Make the call for TMT or iTRAQ
         if results['labeling']['scores']['TMT'] > results['labeling']['scores']['iTRAQ']:
             if results['labeling']['scores']['TMT'] > 2:
-                results['labeling']['call'] = 'TMT'
+                if results['labeling']['scores']['TMTpro'] > 0.7:
+                    results['labeling']['call'] = 'TMTpro'
+                else:
+                    results['labeling']['call'] = 'TMT'
             elif results['labeling']['scores']['TMT'] < 1:
                 results['labeling']['call'] = 'none'
             else:
