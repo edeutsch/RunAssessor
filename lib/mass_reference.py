@@ -294,6 +294,14 @@ class MassReference:
                 'delta_mass': self.atomic_masses['carbon'] * 1 + self.atomic_masses['hydrogen'] * 4 + self.atomic_masses['oxygen'] * 1 + self.atomic_masses['sulfur'] * 1 },
             'Tryp Mannose for Kristian': { 'formula': 'C4H8O4', 'residues': [ 'W[Hex]' ],
                 'delta_mass': self.atomic_masses['carbon'] * 4 + self.atomic_masses['hydrogen'] * 8 + self.atomic_masses['oxygen'] * 4 },
+            'Observed C[Trioxidation] loss': { 'formula': 'H2O3S', 'residues': [ 'C[Trioxidation]' ],
+                'delta_mass': self.atomic_masses['hydrogen'] * 2 + self.atomic_masses['oxygen'] * 3 + self.atomic_masses['sulfur'] * 1},
+            'Potential C[Trioxidation] loss': { 'formula': 'CO4S', 'residues': [ 'C[Trioxidation]' ],
+                'delta_mass': self.atomic_masses['carbon'] * 1 + self.atomic_masses['oxygen'] * 4 + self.atomic_masses['sulfur'] * 1},
+            'Crazy potential C[Trioxidation] loss': { 'formula': 'C5H5NO2', 'residues': [ 'C[Trioxidation]' ],
+                'delta_mass': self.atomic_masses['carbon'] * 5 + self.atomic_masses['hydrogen'] * 5 + self.atomic_masses['nitrogen'] * 1 + self.atomic_masses['oxygen'] * 2 },
+            'Observed C[Dioxidation] loss': { 'formula': 'H2O2S', 'residues': [ 'C[Dioxidation]' ],
+                'delta_mass': self.atomic_masses['hydrogen'] * 2 + self.atomic_masses['oxygen'] * 2 + self.atomic_masses['sulfur'] * 1},
         }
 
         # Also key neutral losses by residue and by formula
@@ -664,6 +672,8 @@ def main():
     argparser = argparse.ArgumentParser(description='Creates a set of data structures of reference masses')
     argparser.add_argument('--verbose', action='count', help='If set, print more information about ongoing processing' )
     argparser.add_argument('--version', action='version', version='%(prog)s 0.5')
+    argparser.add_argument('--show_reporter_ions', action='count', help='If set, print the reporter ion information' )
+    argparser.add_argument('--show_neutral_losses', action='count', help='If set, print the neutral losses information' )
     params = argparser.parse_args()
 
     #### Set verbose
@@ -673,6 +683,17 @@ def main():
 
     # Define all the reference mass information
     mass_reference = MassReference()
+
+
+    # Show reporter ion information
+    if params.show_reporter_ions:
+        print(json.dumps(mass_reference.reporter_ions, indent=2, sort_keys=True))
+        return
+
+    # Show neutral losses information
+    if params.show_neutral_losses:
+        print(json.dumps(mass_reference.neutral_losses, indent=2, sort_keys=True))
+        return
 
     # Print out a few items
     print(f"Mass of a proton = {mass_reference.atomic_masses['proton']}")
