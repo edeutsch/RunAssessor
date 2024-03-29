@@ -91,7 +91,10 @@ def prepare_spectrum_data(spectrum_data, search_results, verbose):
         minimum_intensity = float(raw_spectrum['minimum intensity'])
         weighted_snr = float(raw_spectrum['weighted_snr'])
         reporter_ions_median_snr = float(raw_spectrum['reporter_ions_median_snr'])
-        reporter_ion_intensities = float(raw_spectrum['reporter_ion_intensities'])
+        reporter_ion_intensities = []
+        if 'reporter_ion_intensities' in raw_spectrum:
+            reporter_ion_intensities = raw_spectrum['reporter_ion_intensities']
+            #print(reporter_ion_intensities)
         quality_score = float(raw_spectrum['quality_score'])
         probability = 0
         peptidoform = ''
