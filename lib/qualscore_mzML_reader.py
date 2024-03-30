@@ -94,6 +94,7 @@ class QualscoreMzMlReader:
 
         #### Try storing all spectra for multithreaded processing
         #spectra = []
+        last_precursor_spectrum = None
 
         #### Read spectra from the file
         with mzml.read(infile) as reader:
@@ -146,6 +147,10 @@ class QualscoreMzMlReader:
                         self.log_event('ERROR','MSnTooHigh',f"MS level is greater than we can handle at '{spectrum['ms level']}'")
                         break
 
+                    #### If the ms level is 1, then just store it for later use
+                    if ms_level == 1 and 'm/z array' in spectrum:
+                        last_precursor_spectrum = spectrum
+
                     #### If the ms level is 2, then examine it for information
                     if ms_level == 2 and 'm/z array' in spectrum:
 
@@ -177,6 +182,8 @@ class QualscoreMzMlReader:
                         new_spectrum_obj.compute_spectrum_metrics()
                         #self.spectra.append(new_spectrum_obj)
 
+                        precursor_window_stats = self.compute_precursor_window_stats(new_spectrum_obj, spectrum, last_precursor_spectrum)
+
                         new_spectrum_dict = {
                             'msrun_name': self.msrun_name,
                             'scan_number': scan_number,
@@ -187,6 +194,7 @@ class QualscoreMzMlReader:
                             'minimum intensity': new_spectrum_obj.attributes['minimum intensity'],
                             'weighted_snr': new_spectrum_obj.metrics['weighted_snr'],
                             'quality_score': new_spectrum_obj.metrics['quality_score'],
+                            'precursor selection window purity': precursor_window_stats['precursor selection window purity'],
                         }
                         if 'reporter_ions' in new_spectrum_obj.metrics['stats_per_bin']:
                             new_spectrum_dict['reporter_ions_median_snr'] = new_spectrum_obj.metrics['stats_per_bin']['reporter_ions']['median_snr']
@@ -377,6 +385,131 @@ class QualscoreMzMlReader:
 
         # Store the fragmentation_tag for use by the caller
         stats['fragmentation_tag'] = fragmentation_tag
+
+
+
+    ####################################################################################################
+    #### Compute stats about the precursor window and the precursor therein
+    def compute_precursor_window_stats(new_spectrum_obj, spectrum, last_precursor_spectrum):
+
+        #### Fill a dict with various stats we will compute
+        precursor_window_stats = {
+            'search_tolerance': 10,
+            'isolation window target m/z': None,
+            'isolation window lower offset': None,
+            'isolation window upper offset': None,
+            'isolation window lower bound': None,
+            'isolation window upper bound': None,
+            'isolation window full width': None,
+            'selected ion m/z': None,
+            'charge state': None,
+            'peak intensity': None,
+            'precursor region m/z array': [],
+            'precursor region intensity array': [],
+            'precursor region half width': 5.0,
+            'selection window m/z array': [],
+            'selection window intensity array': [],
+            'selection window annotation array': [],
+            'selection window m/z ppm diff array': [],
+            'precursor isotopic envelope m/z array': [],
+            'precursor isotopic envelope selection window total intensity': 0.0,
+            'non-precursor isotopic envelope selection window total intensity': 0.0,
+            'precursor selection window purity': 0.0,
+        }
+
+        #### If there is no last_precursor_spectrum, then just return without doing anything further
+        if last_precursor_spectrum is None:
+            return precursor_window_stats
+
+        #### Extract all selected ion and isolation window information and fill stats dict
+        precursor_window_stats['selected ion m/z'] = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
+        try:
+            precursor_window_stats['charge_state'] = int(spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['charge state'])
+        except:
+            pass
+        try:
+            precursor_window_stats['peak intensity'] = int(spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['peak intensity'])
+        except:
+            pass
+        precursor_window_stats['isolation window target m/z'] = spectrum['precursorList']['precursor'][0]['isolationWindow']['isolation window target m/z']
+        precursor_window_stats['isolation window lower offset'] = spectrum['precursorList']['precursor'][0]['isolationWindow']['isolation window lower offset']
+        precursor_window_stats['isolation window upper offset'] = spectrum['precursorList']['precursor'][0]['isolationWindow']['isolation window upper offset']
+        precursor_window_stats['isolation window lower bound'] = precursor_window_stats['isolation window target m/z'] - precursor_window_stats['isolation window lower offset']
+        precursor_window_stats['isolation window upper bound'] = precursor_window_stats['isolation window target m/z'] + precursor_window_stats['isolation window upper offset']
+        precursor_window_stats['isolation window full width'] = precursor_window_stats['isolation window lower offset'] + precursor_window_stats['isolation window upper offset']
+ 
+        #### Compute the expected isotoptic envelope based on the selected ion m/z
+        average_isotope_delta = 1.003355    # This is the official mass delta of carbon 13 over carbon 12 and seems to work best
+        for ipeak in range(4):
+            mz = precursor_window_stats['selected ion m/z'] + ipeak * average_isotope_delta
+            precursor_window_stats['precursor isotopic envelope m/z array'].append(mz)
+
+        #### Extract a region around the precursor for later use
+        region_lower_bound = precursor_window_stats['isolation window target m/z'] - precursor_window_stats['precursor region half width']
+        region_upper_bound = precursor_window_stats['isolation window target m/z'] + precursor_window_stats['precursor region half width']
+        ipeak = 0
+        for mz in last_precursor_spectrum['m/z array']:
+            if mz >= region_lower_bound and mz <= region_upper_bound:
+                precursor_window_stats['precursor region m/z array'].append(mz)
+                precursor_window_stats['precursor region intensity array'].append(last_precursor_spectrum['intensity array'][ipeak])
+            if mz > region_upper_bound:
+                break
+            ipeak += 1
+
+        #### Extract a region inside the selection window for later use (FIXME: could actually merge this with the previous step for slightly great efficiency)
+        region_lower_bound = precursor_window_stats['isolation window lower bound']
+        region_upper_bound = precursor_window_stats['isolation window upper bound']
+        ipeak = 0
+        for mz in precursor_window_stats['precursor region m/z array']:
+            if mz >= region_lower_bound and mz <= region_upper_bound:
+                precursor_window_stats['selection window m/z array'].append(mz)
+                precursor_window_stats['selection window intensity array'].append(precursor_window_stats['precursor region intensity array'][ipeak])
+                precursor_window_stats['selection window annotation array'].append('?')
+                precursor_window_stats['selection window m/z ppm difference array'].append(0.0)
+            if mz > region_upper_bound:
+                break
+            ipeak += 1
+
+        #### Label the precursor and isotopic peaks in the window as p+ni^m
+        #### FIXME: this will label all peaks within the tolerance, not just the best one
+        #### FIXME: this could be more efficient as a single loop instead of a nested loop
+        #### FIXME: this could be slightly more efficient if combined with the above loops. only loop once. but probably not much more efficient..
+        ipeak = 0
+        isotope_index = 0
+        for mz in precursor_window_stats['selection window m/z array']:
+            for isotope_index in range(len(precursor_window_stats['precursor isotopic envelope m/z array'])):
+                mzdiff_ppm = ( precursor_window_stats['precursor isotopic envelope m/z array'][isotope_index] - mz ) / mz * 1e6
+                if abs(mzdiff_ppm) < precursor_window_stats['search tolerance']:
+                    charge_str = ''
+                    if precursor_window_stats['charge_state'] > 1:
+                        charge_str = f"^{precursor_window_stats['charge_state']}"
+                    isotope_str = ''
+                    if isotope_index == 1:
+                        isotope_str = '+i'
+                    elif isotope_index > 1:
+                        isotope_str = f"+{isotope_index}i"
+                    precursor_window_stats['selection window annotation array'][ipeak] = 'p' + isotope_str + charge_str
+                    precursor_window_stats['selection window m/z ppm difference array'][ipeak] = mzdiff_ppm
+            ipeak += 1
+
+        #### Calculate the selection window purity
+        ipeak = 0
+        total_intensity = 0.0
+        for mz in precursor_window_stats['selection window m/z array']:
+            intensity = precursor_window_stats['selection window intensity array'][ipeak]
+            if precursor_window_stats['selection window annotation array'][ipeak][0] == 'p':
+                precursor_window_stats['precursor isotopic envelope selection window total intensity'] += intensity
+            else:
+                precursor_window_stats['non-precursor isotopic envelope selection window total intensity'] += intensity
+            total_intensity += intensity
+            ipeak += 1
+        if total_intensity == 0:
+            precursor_window_stats['precursor selection window purity'] = 0.0
+        else:
+            precursor_window_stats['precursor selection window purity'] = precursor_window_stats['precursor isotopic envelope selection window total intensity'] / total_intensity
+
+        return precursor_window_stats
+
 
 
     ####################################################################################################
