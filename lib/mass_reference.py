@@ -302,6 +302,10 @@ class MassReference:
                 'delta_mass': self.atomic_masses['carbon'] * 5 + self.atomic_masses['hydrogen'] * 5 + self.atomic_masses['nitrogen'] * 1 + self.atomic_masses['oxygen'] * 2 },
             'Observed C[Dioxidation] loss': { 'formula': 'H2O2S', 'residues': [ 'C[Dioxidation]' ],
                 'delta_mass': self.atomic_masses['hydrogen'] * 2 + self.atomic_masses['oxygen'] * 2 + self.atomic_masses['sulfur'] * 1},
+            'Observed K[Carbamyl] loss': { 'formula': 'HCNO', 'residues': [ 'K[Carbamyl]' ],
+                'delta_mass': self.atomic_masses['hydrogen'] * 1 + self.atomic_masses['carbon'] * 1 + self.atomic_masses['nitrogen'] * 1 + self.atomic_masses['oxygen'] * 1},
+            'Crazy K[Carbamyl] loss. All but NH3': { 'formula': 'C7H10N2O2', 'residues': [ 'K[Carbamyl]' ],
+                'delta_mass': self.atomic_masses['carbon'] * 7 + self.atomic_masses['hydrogen'] * 10 + self.atomic_masses['nitrogen'] * 2 + self.atomic_masses['oxygen'] * 2 },
         }
 
         # Also key neutral losses by residue and by formula
