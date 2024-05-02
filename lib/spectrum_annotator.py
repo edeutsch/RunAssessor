@@ -939,7 +939,7 @@ class SpectrumAnnotator:
 
     ####################################################################################################
     #### Plot the spectrum and its annotations in a nice publishable way
-    def plot(self, spectrum, peptidoform, charge, xmin=None, xmax=None, mask_isolation_width=None, yfactor=None, write_files=None):
+    def plot(self, spectrum, peptidoform, charge, xmin=None, xmax=None, mask_isolation_width=None, ymax=None, write_files=None):
         import matplotlib.pyplot as plt
         import matplotlib.gridspec as gridspec
         import io
@@ -959,12 +959,20 @@ class SpectrumAnnotator:
                 xmax = float(user_parameters['xmax'])
             except:
                 pass
-        if 'yfactor' in user_parameters and user_parameters['yfactor'] is not None:
+        if 'ymax' in user_parameters and user_parameters['ymax'] is not None:
             try:
-                yfactor = float(user_parameters['yfactor'])
+                ymax = float(user_parameters['ymax'])
             except:
                 pass
 
+        show_sequence = True
+        if 'show_sequence' in user_parameters and user_parameters['show_sequence'] is not None:
+            if not user_parameters['show_sequence']:
+                show_sequence = False
+        show_b_and_y_flags = True
+        if 'show_b_and_y_flags' in user_parameters and user_parameters['show_b_and_y_flags'] is not None:
+            if not user_parameters['show_b_and_y_flags']:
+                show_b_and_y_flags = False
 
         include_third_plot = False
         figure_height = 6
@@ -1018,16 +1026,19 @@ class SpectrumAnnotator:
         else:
             xmax = int(xmax + 0.5)
         xscale = (xmax - xmin) / 1200.0
-        if yfactor is not None:
-            max_intensity /= yfactor
 
+        if ymax is None or ymax < 0.01:
+            try:
+                ymax = float(ymax)
+            except:
+                ymax = 1.075
 
         #### Set up the main spectrum plot
         #plot1.plot( [0,1000], [0,1], color='tab:green' )
         plot1.set_xlabel('m/z', fontname='Arial')
         plot1.set_ylabel('Relative Intensity', fontname='Arial')
         plot1.set_xlim([xmin, xmax])
-        plot1.set_ylim([0,1])
+        plot1.set_ylim([0,ymax])
         #ax[0,1].plot( [0,limit], [0,limit], '--', linewidth=1, color='gray')
 
         #### Set up the residuals plot
@@ -1053,7 +1064,7 @@ class SpectrumAnnotator:
         modified_residues = peptidoform.residue_modifications
         #sequence_gap = (xmax-xmin)/45 # for x-large font
         sequence_gap = (xmax-xmin)/55
-        sequence_height = 0.85
+        sequence_height = 0.85 * ymax
         sequence_offset = xmin + 2 * sequence_gap
         original_sequence_offset = sequence_offset
 
@@ -1066,7 +1077,7 @@ class SpectrumAnnotator:
         for peak in spectrum.peak_list:
             i_peak = peak[PL_I_PEAK]
             mz = peak[PL_MZ]
-            intensity = peak[PL_INTENSITY] / max_intensity * 0.93
+            intensity = peak[PL_INTENSITY] / max_intensity
             interpretations_string = peak[PL_INTERPRETATION_STRING]
             if precursor_mz is not None and mask_isolation_width is not None and mz > precursor_mz - mask_isolation_width/2 and mz < precursor_mz + mask_isolation_width/2:
                 continue
@@ -1135,18 +1146,18 @@ class SpectrumAnnotator:
                 flag_direction = 1.0
                 flag_thickness = 0.9
                 loss = match.group(3)
-                flag_intensity = peak[PL_INTENSITY] / max_non_precursor_intensity * 0.93
+                flag_intensity = peak[PL_INTENSITY] / max_non_precursor_intensity
                 if loss is not None:
                     flag_direction = -1.0
                     flag_thickness = 0.5
                 if series == 'y':
                     x = sequence_offset + ( len(residues) - ordinal - 0.45 ) * sequence_gap - sequence_gap*0.02
-                    y = sequence_height + 0.007
+                    y = sequence_height + 0.007 * ymax
                     all_flags.append( [ 'y', x, y, flag_intensity, 'tab:red', flag_direction, flag_thickness ] )
                     #plot1.plot( [x,x,x+sequence_gap*0.2], [y,y-(flag_intensity/10.0+0.005),y-(flag_intensity/10.0+0.005)], color='tab:red', linewidth=0.9)
                 if series == 'b':
                     x = sequence_offset + ( ordinal - .5 ) * sequence_gap
-                    y = sequence_height + 0.037
+                    y = sequence_height + 0.037 * ymax
                     all_flags.append( [ 'b', x, y, flag_intensity, 'tab:blue', flag_direction, flag_thickness ] )
                     #plot1.plot( [x,x,x-sequence_gap*0.2], [y,y+(flag_intensity/10.0+0.005),y+(flag_intensity/10.0+0.005)], color='tab:blue', linewidth=0.9)
 
@@ -1211,72 +1222,74 @@ class SpectrumAnnotator:
 
         #### Plot a little P where the precursor m/z is
         if precursor_mz:
-            plot1.text(precursor_mz, -0.003, 'P', fontsize='small', ha='center', va='top', color='red', fontname='Arial')
+            plot1.text(precursor_mz, -0.003 * ymax, 'P', fontsize='small', ha='center', va='top', color='red', fontname='Arial')
         plot1.spines[['right', 'top']].set_visible(False)
         #plot2.spines[['right', 'top']].set_visible(False)
 
         #### Look for a clear spot to put the sequence
-        done = False
-        x_extent = sequence_offset
-        leftest_offset = None
-        rightest_offset = None
-        while not done:
- 
-            running_sum = 0.0
-            for counter in range(len(residues)+2):
-                x_offset = sequence_offset + counter * sequence_gap
-                x_width = 0.5 * sequence_gap
-                y_offset = sequence_height
-                y_width = 0.07
-                #plot1.plot([x_offset-x_width, x_offset-x_width, x_offset+x_width, x_offset+x_width, x_offset-x_width],
-                #        [y_offset-y_width, y_offset+y_width*1.5, y_offset+y_width*1.5, y_offset-y_width, y_offset-y_width], color='gray', linewidth=0.2)
-                running_sum += blocked[int(x_offset-x_width):int(x_offset+x_width),int((y_offset-y_width)*100):int((y_offset+y_width*1.5)*100)].sum()
-                x_extent = x_offset + x_width
+        if show_sequence is True:
+            done = False
+            x_extent = sequence_offset
+            leftest_offset = None
+            rightest_offset = None
+            while not done:
+    
+                running_sum = 0.0
+                for counter in range(len(residues)+2):
+                    x_offset = sequence_offset + counter * sequence_gap
+                    x_width = 0.5 * sequence_gap
+                    y_offset = sequence_height
+                    y_width = 0.07 * ymax
+                    #plot1.plot([x_offset-x_width, x_offset-x_width, x_offset+x_width, x_offset+x_width, x_offset-x_width],
+                    #        [y_offset-y_width, y_offset+y_width*1.5, y_offset+y_width*1.5, y_offset-y_width, y_offset-y_width], color='gray', linewidth=0.2)
+                    running_sum += blocked[int(x_offset-x_width):int(x_offset+x_width),int((y_offset-y_width)*100):int((y_offset+y_width*1.5)*100)].sum()
+                    x_extent = x_offset + x_width
 
-            if running_sum == 0:
-                #print(f"*** Found space at sequence_offset={sequence_offset}, x_extent={x_extent}")
-                if leftest_offset is None:
-                    leftest_offset = sequence_offset
-            else:
-                #print(f"*** Blocked at sequence_offset={sequence_offset}, x_extent={x_extent}")
-                if leftest_offset is not None:
-                    rightest_offset = sequence_offset
-                    sequence_offset = ( leftest_offset + rightest_offset ) / 2.0
-                    break
-            sequence_offset += (xmax-xmin)/50.0
-
-            if x_extent > xmax*.97:
-                #print(f"*** Reached the limit at sequence_offset={sequence_offset}, x_extent={x_extent}")
-                if leftest_offset is None:
-                    sequence_offset -= (xmax-xmin)/50.0
-                    sequence_offset = original_sequence_offset
+                if running_sum == 0:
+                    #print(f"*** Found space at sequence_offset={sequence_offset}, x_extent={x_extent}")
+                    if leftest_offset is None:
+                        leftest_offset = sequence_offset
                 else:
-                    rightest_offset = sequence_offset
-                    sequence_offset = ( leftest_offset + rightest_offset ) / 2.0
-                break
+                    #print(f"*** Blocked at sequence_offset={sequence_offset}, x_extent={x_extent}")
+                    if leftest_offset is not None:
+                        rightest_offset = sequence_offset
+                        sequence_offset = ( leftest_offset + rightest_offset ) / 2.0
+                        break
+                sequence_offset += (xmax-xmin)/50.0
 
-        #### Finally write out the sequence
-        counter = 0
-        if peptidoform.terminal_modifications is not None and 'nterm' in peptidoform.terminal_modifications:
-            plot1.text(sequence_offset + 0*sequence_gap, sequence_height, '=', fontsize='large', ha='center', va='bottom', color='tab:orange', fontname='Arial')
-            sequence_offset += sequence_gap * 0.8
-        for residue in residues:
-            #plot1.text(sequence_offset+counter*sequence_gap, sequence_height, residue, fontsize='x-large', ha='center', va='bottom', color='black', fontname='Arial')
-            color = 'black'
-            if modified_residues is not None and counter + 1 in modified_residues:
-                color= 'tab:orange'
-            plot1.text(sequence_offset+counter*sequence_gap, sequence_height, residue, fontsize='large', ha='center', va='bottom', color=color, fontname='Arial')
-            counter += 1
-        plot1.text(sequence_offset + (counter+.2)*sequence_gap, sequence_height + 0.02, f"{charge}+", fontsize='medium', ha='center', va='bottom', color='black', fontname='Arial')
+                if x_extent > xmax*.97:
+                    #print(f"*** Reached the limit at sequence_offset={sequence_offset}, x_extent={x_extent}")
+                    if leftest_offset is None:
+                        sequence_offset -= (xmax-xmin)/50.0
+                        sequence_offset = original_sequence_offset
+                    else:
+                        rightest_offset = sequence_offset
+                        sequence_offset = ( leftest_offset + rightest_offset ) / 2.0
+                    break
 
-        #### Finally paint the flags
-        for flag in all_flags:
-            series, x, y, intensity, color, flag_direction, flag_thickness = flag
-            x += ( sequence_offset - original_sequence_offset)
-            if series == 'y':
-                plot1.plot( [x,x,x+sequence_gap*0.2*flag_direction], [y,y-(intensity/10.0+0.005),y-(intensity/10.0+0.005)], color='tab:red', linewidth=flag_thickness)
-            if series == 'b':
-                plot1.plot( [x,x,x-sequence_gap*0.2*flag_direction], [y,y+(intensity/10.0+0.005),y+(intensity/10.0+0.005)], color='tab:blue', linewidth=flag_thickness)
+            #### Finally write out the sequence
+            counter = 0
+            if peptidoform.terminal_modifications is not None and 'nterm' in peptidoform.terminal_modifications:
+                plot1.text(sequence_offset + 0*sequence_gap, sequence_height, '=', fontsize='large', ha='center', va='bottom', color='tab:orange', fontname='Arial')
+                sequence_offset += sequence_gap * 0.8
+            for residue in residues:
+                #plot1.text(sequence_offset+counter*sequence_gap, sequence_height, residue, fontsize='x-large', ha='center', va='bottom', color='black', fontname='Arial')
+                color = 'black'
+                if modified_residues is not None and counter + 1 in modified_residues:
+                    color= 'tab:orange'
+                plot1.text(sequence_offset+counter*sequence_gap, sequence_height, residue, fontsize='large', ha='center', va='bottom', color=color, fontname='Arial')
+                counter += 1
+            plot1.text(sequence_offset + (counter+.2)*sequence_gap, sequence_height + 0.02*ymax, f"{charge}+", fontsize='medium', ha='center', va='bottom', color='black', fontname='Arial')
+
+            #### Finally paint the flags
+            if show_b_and_y_flags is True:
+                for flag in all_flags:
+                    series, x, y, intensity, color, flag_direction, flag_thickness = flag
+                    x += ( sequence_offset - original_sequence_offset)
+                    if series == 'y':
+                        plot1.plot( [x,x,x+sequence_gap*0.2*flag_direction], [y,y-(intensity/10.0+0.005)*ymax,y-(intensity/10.0+0.005)*ymax], color='tab:red', linewidth=flag_thickness)
+                    if series == 'b':
+                        plot1.plot( [x,x,x-sequence_gap*0.2*flag_direction], [y,y+(intensity/10.0+0.005)*ymax,y+(intensity/10.0+0.005)*ymax], color='tab:blue', linewidth=flag_thickness)
 
         #with open('saved_residuals_calibrated.json', 'w') as outfile:
         #    outfile.write(json.dumps(saved_residuals))
@@ -1308,13 +1321,13 @@ class SpectrumAnnotator:
 
 
         #### Write out the figure to PDF and SVG
-        if 'create_svg' in user_parameters:
+        if 'create_svg' in user_parameters and user_parameters['create_svg']:
             buffer = io.BytesIO()
             plt.savefig(buffer,format='svg')
             buffer.seek(0)
             content = buffer.read()
             spectrum.extended_data['svg'] = content.decode('utf-8')
-        if 'create_pdf' in user_parameters:
+        if 'create_pdf' in user_parameters and user_parameters['create_pdf']:
             buffer = io.BytesIO()
             plt.savefig(buffer,format='pdf')
             buffer.seek(0)
@@ -1334,6 +1347,16 @@ class SpectrumAnnotator:
 def gaussian_function(x, a, x0, sigma):
     return a * exp( -(x-x0)**2 / (2*sigma**2) )
 
+
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 ####################################################################################################
@@ -1356,7 +1379,9 @@ def main():
     argparser.add_argument('--xmin', action='store', default=None, type=float, help='Set a manual x-axis (m/z) minimum' )
     argparser.add_argument('--xmax', action='store', default=None, type=float, help='Set a manual x-axis (m/z) maximum' )
     argparser.add_argument('--mask_isolation_width', action='store', default=None, type=float, help='When plotting, drop peaks within an isolation window with this full width' )
-    argparser.add_argument('--yfactor', action='store', default=None, type=float, help='Multiply the default y axis by this to depress it (e.g. 0.9)' )
+    argparser.add_argument('--ymax', action='store', default=None, type=float, help='Set a new ymax in order to compensate for very tall peaks (e.g, 0.5 or 1.2)' )
+    argparser.add_argument('--show_sequence', action='store', default=True, type=str2bool, help='Set to false to suppress the peptide and its flags' )
+    argparser.add_argument('--show_b_and_y_flags', action='store', default=True, type=str2bool, help='Set to false to suppress the peptide sequence flags' )
     params = argparser.parse_args()
 
     # Set verbose mode
@@ -1409,11 +1434,15 @@ def main():
     # Annotate the spectrum
     if params.annotate:
         annotator = SpectrumAnnotator()
+        spectrum.extended_data['user_parameters'] = {}
+        spectrum.extended_data['user_parameters']['show_sequence'] = params.show_sequence
+        spectrum.extended_data['user_parameters']['show_b_and_y_flags'] = params.show_b_and_y_flags
+        print(json.dumps(spectrum.extended_data['user_parameters'], indent=2))
         annotator.annotate(spectrum, peptidoforms=peptidoforms, charges=usi.charges, tolerance=params.tolerance)
         print(spectrum.show(show_all_annotations=show_all_annotations, verbose=verbose))
         if params.plot:
             annotator.plot(spectrum, peptidoform=peptidoforms[0], charge=usi.charges[0], xmin=params.xmin, xmax=params.xmax,
-                           mask_isolation_width=params.mask_isolation_width, yfactor=params.yfactor, write_files=params.write_files)
+                           mask_isolation_width=params.mask_isolation_width, ymax=params.ymax, write_files=params.write_files)
 
     # Score the spectrum
     if params.score:
