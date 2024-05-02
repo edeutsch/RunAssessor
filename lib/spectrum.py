@@ -220,7 +220,10 @@ class Spectrum:
             # Extract the interpretation_string value for the peak if present
             interpretation_string = '?'
             if interpretations is not None:
-                interpretation_string = interpretations[i_peak]
+                try:
+                    interpretation_string = interpretations[i_peak]
+                except:
+                    pass
 
             # Current PROXI spectrum doesn't have aggregation information, interpretations as a list or peak attributes,
             # so just set those to empty

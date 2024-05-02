@@ -1093,8 +1093,10 @@ class SpectrumAnnotator:
                 ion_type = interpretations_string[2]
             if ion_type in [ '1','2','3','4','5','6','7','8','9' ]:
                 color = 'tab:olive'
-            else:
+            elif ion_type in colors:
                 color = colors[ion_type]
+            else:
+                color = 'black'
 
             #print( '{:4d}'.format(i_peak) + '{:10.4f}'.format(mz) + '{:10.1f}'.format(intensity*10000) + '  ' + interpretations_string + '   ' + ion_type + f"   {mz_delta}" )
 
