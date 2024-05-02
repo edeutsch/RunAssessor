@@ -1103,13 +1103,13 @@ class SpectrumAnnotator:
             #### Store the peak for later plotting
             all_peaks.append({ 'mz': mz, 'intensity': intensity, 'color': color } )
 
-            annotation_string = ''
+            annotation_string = interpretations_string
             match = re.match(r'(.+?)/', interpretations_string)
             if match:
                 annotation_string = match.group(1)
 
             should_label = True
-            match = re.search(r'\+[\d]?i', interpretations_string)
+            match = re.search(r'\+[\d]?i', annotation_string)
             if match:
                 should_label = False
                 #print(f"skip {interpretations_string}")
