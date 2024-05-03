@@ -1114,6 +1114,12 @@ class SpectrumAnnotator:
                 should_label = False
                 #print(f"skip {interpretations_string}")
 
+            if annotation_string.startswith('?'):
+                if 'show_unknown' in user_parameters and user_parameters['show_unknown']:
+                    pass
+                else:
+                    should_label = False
+
             if should_label:
                 annotation_priority = 1
                 if ( annotation_string.startswith('y') or annotation_string.startswith('b') ) and annotation_string.count('-') == 0:
