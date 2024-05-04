@@ -17,6 +17,7 @@ from numpy import exp
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 DEBUG = False
+fontname = 'FreeSans'
 
 sys.path.append("C:\local\Repositories\GitHub\SpectralLibraries\lib")
 from proforma_peptidoform import ProformaPeptidoform
@@ -944,6 +945,8 @@ class SpectrumAnnotator:
         import matplotlib.gridspec as gridspec
         import io
 
+        #eprint(f"Font location: {matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')}")
+
         #### Extract user_parameters settings
         try:
             user_parameters = spectrum.extended_data['user_parameters']
@@ -1035,8 +1038,8 @@ class SpectrumAnnotator:
 
         #### Set up the main spectrum plot
         #plot1.plot( [0,1000], [0,1], color='tab:green' )
-        plot1.set_xlabel('m/z', fontname='Arial')
-        plot1.set_ylabel('Relative Intensity', fontname='Arial')
+        plot1.set_xlabel('m/z', fontname=fontname)
+        plot1.set_ylabel('Relative Intensity', fontname=fontname)
         plot1.set_xlim([xmin, xmax])
         plot1.set_ylim([0,ymax])
         #ax[0,1].plot( [0,limit], [0,limit], '--', linewidth=1, color='gray')
@@ -1048,7 +1051,7 @@ class SpectrumAnnotator:
 
         #plot2.plot( [0,1000], [-10,10], color='tab:green' )
         #plot2.set_xlabel('m/z')
-        plot2.set_ylabel('delta (PPM)', fontname='Arial')
+        plot2.set_ylabel('delta (PPM)', fontname=fontname)
         plot2.set_xlim([xmin, xmax])
         plot2.set_xticklabels([])
         plot2.set_ylim([-16,16])
@@ -1088,7 +1091,11 @@ class SpectrumAnnotator:
                 mz_delta = float(match.group(1))
                 mz_delta += spectrum.attributes['mass_accuracy']['offset']
 
-            ion_type = interpretations_string[0]
+            try:
+                ion_type = interpretations_string[0]
+            except:
+                ion_type = '?'
+
             if len(interpretations_string) > 1 and interpretations_string[1] == '@':
                 ion_type = interpretations_string[2]
             if ion_type in [ '1','2','3','4','5','6','7','8','9' ]:
@@ -1146,7 +1153,7 @@ class SpectrumAnnotator:
                     saved_residuals.append( { 'mz': mz, 'mz_delta': mz_delta, 'markersize': markersize, 'color': color } )
 
             #### Decorate the sequence with little flags to indicate ion strength
-            match = re.match(r'([aby])([\d]+)(-.+)?(\^\d)?/', interpretations_string)
+            match = re.match(r'([aby])([\d]+)(-.+)?(\^\d)?', interpretations_string)
             if match:
                 #print(f"+++{interpretations_string}")
                 series = match.group(1)
@@ -1201,7 +1208,7 @@ class SpectrumAnnotator:
                 #plot1.plot([int(mz-7.5*xscale), int(mz-7.5*xscale), int(mz+7*xscale), int(mz+7*xscale), int(mz-7.5*xscale)],
                 #           [(int(intensity*100)+1)/100.0, (int(intensity*100+blocklen*xf))/100.0, (int(intensity*100+blocklen*xf))/100.0,
                 #            (int(intensity*100)+1)/100.0, (int(intensity*100)+1)/100.0], color='gray', linewidth=0.2)
-                plot1.text(mz, intensity  + 0.01, annotation_string, fontsize='x-small', ha='center', va='bottom', color=color, rotation=90, fontname='Arial')
+                plot1.text(mz, intensity  + 0.01*ymax, annotation_string, fontsize='x-small', ha='center', va='bottom', color=color, rotation=90, fontname=fontname)
                 #blocked[int(mz-5.5):int(mz+5),int(intensity*100)+1:int(intensity*100+blocklen*1.5)] = 1
                 blocked[int(mz-7.5*xscale):int(mz+7*xscale),int(intensity*100)+1:int(intensity*100+blocklen*xf)] = 1
                 #print(f"   - easy")
@@ -1216,9 +1223,9 @@ class SpectrumAnnotator:
                     x_offset = reposition_attempt[0]
                     y_offset = reposition_attempt[1]
                     if blocked[int(mz-7.5*xscale+x_offset):int(mz+7*xscale+x_offset),int(intensity*100+y_offset)+1:int(intensity*100+blocklen*xf+y_offset)].sum() == 0:
-                        plot1.text(mz+x_offset, intensity + 0.01 + y_offset/100.0, annotation_string, fontsize='x-small', ha='center', va='bottom', color=color, rotation=90, fontname='Arial')
+                        plot1.text(mz+x_offset, intensity + 0.01*ymax + y_offset/100.0*ymax, annotation_string, fontsize='x-small', ha='center', va='bottom', color=color, rotation=90, fontname=fontname)
                         blocked[int(mz-7.5*xscale+x_offset):int(mz+7*xscale+x_offset),int(intensity*100+y_offset)+1:int(intensity*100+blocklen*xf+y_offset)] = 1
-                        plot1.plot( [mz,mz+x_offset], [intensity + 0.004, intensity + 0.01 + (y_offset-0.5)/100.0], color='black', linewidth=0.2 )
+                        plot1.plot( [mz,mz+x_offset], [intensity + 0.004*ymax, intensity + 0.01*ymax + (y_offset-0.5)/100.0*ymax], color='black', linewidth=0.2 )
                         #print(f"   - managed to find a spot at {reposition_attempt}")
                         found_a_spot = True
                         break
@@ -1230,7 +1237,7 @@ class SpectrumAnnotator:
 
         #### Plot a little P where the precursor m/z is
         if precursor_mz:
-            plot1.text(precursor_mz, -0.003 * ymax, 'P', fontsize='small', ha='center', va='top', color='red', fontname='Arial')
+            plot1.text(precursor_mz, -0.003 * ymax, 'P', fontsize='small', ha='center', va='top', color='red', fontname=fontname)
         plot1.spines[['right', 'top']].set_visible(False)
         #plot2.spines[['right', 'top']].set_visible(False)
 
@@ -1278,16 +1285,16 @@ class SpectrumAnnotator:
             #### Finally write out the sequence
             counter = 0
             if peptidoform.terminal_modifications is not None and 'nterm' in peptidoform.terminal_modifications:
-                plot1.text(sequence_offset + 0*sequence_gap, sequence_height, '=', fontsize='large', ha='center', va='bottom', color='tab:orange', fontname='Arial')
+                plot1.text(sequence_offset + 0*sequence_gap, sequence_height, '=', fontsize='large', ha='center', va='bottom', color='tab:orange', fontname=fontname)
                 sequence_offset += sequence_gap * 0.8
             for residue in residues:
-                #plot1.text(sequence_offset+counter*sequence_gap, sequence_height, residue, fontsize='x-large', ha='center', va='bottom', color='black', fontname='Arial')
+                #plot1.text(sequence_offset+counter*sequence_gap, sequence_height, residue, fontsize='x-large', ha='center', va='bottom', color='black', fontname=fontname)
                 color = 'black'
                 if modified_residues is not None and counter + 1 in modified_residues:
                     color= 'tab:orange'
-                plot1.text(sequence_offset+counter*sequence_gap, sequence_height, residue, fontsize='large', ha='center', va='bottom', color=color, fontname='Arial')
+                plot1.text(sequence_offset+counter*sequence_gap, sequence_height, residue, fontsize='large', ha='center', va='bottom', color=color, fontname=fontname)
                 counter += 1
-            plot1.text(sequence_offset + (counter+.2)*sequence_gap, sequence_height + 0.02*ymax, f"{charge}+", fontsize='medium', ha='center', va='bottom', color='black', fontname='Arial')
+            plot1.text(sequence_offset + (counter+.2)*sequence_gap, sequence_height + 0.02*ymax, f"{charge}+", fontsize='medium', ha='center', va='bottom', color='black', fontname=fontname)
 
             #### Finally paint the flags
             if show_b_and_y_flags is True:
@@ -1308,7 +1315,7 @@ class SpectrumAnnotator:
             plot3 = fig.add_subplot(gridspec3[0])
             gridspec3.tight_layout(fig, rect=third_plot_viewport)
 
-            plot3.set_ylabel('delta (PPM)', fontname='Arial')
+            plot3.set_ylabel('delta (PPM)', fontname=fontname)
             plot3.set_xlim([xmin, xmax])
             plot3.set_xticklabels([])
             plot3.set_ylim([-16,16])
@@ -1323,9 +1330,9 @@ class SpectrumAnnotator:
                 color = residual['color']
                 plot3.plot( [mz,mz], [mz_delta,mz_delta], marker='s', markersize=markersize, color=color )
 
-            plot1.text(xmax-10, 0.98, 'A', fontname='Arial', fontsize=30, ha='right', va='top')
-            plot2.text(xmax-6, 14, 'B', fontname='Arial', fontsize=20, ha='right', va='top')
-            plot3.text(xmax-6, 14, 'C', fontname='Arial', fontsize=20, ha='right', va='top')
+            plot1.text(xmax-10, 0.98, 'A', fontname=fontname, fontsize=30, ha='right', va='top')
+            plot2.text(xmax-6, 14, 'B', fontname=fontname, fontsize=20, ha='right', va='top')
+            plot3.text(xmax-6, 14, 'C', fontname=fontname, fontsize=20, ha='right', va='top')
 
 
         #### Write out the figure to PDF and SVG
