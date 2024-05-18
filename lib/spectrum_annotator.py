@@ -1352,8 +1352,8 @@ class SpectrumAnnotator:
         if write_files is not None:
             plt.savefig('AnnotatedSpectrum.pdf',format='pdf')
             plt.savefig('AnnotatedSpectrum.svg',format='svg')
-            plt.close()
-            #plt.show()
+
+        plt.close()
 
 
 
