@@ -212,10 +212,12 @@ class SpectrumAnnotator:
         series_list = [ 'b', 'y' ]
         if fragmentation_type == 'HCD':
             series_list = [ 'a', 'b', 'y' ]
+        elif fragmentation_type == 'EThcD':
+            series_list = [ 'a', 'b', 'c', 'y', 'z' ]
         else:
             eprint("ERROR: Unrecognized fragmentation type")
             return
-        base_series_score = { 'y': 90, 'b': 80, 'a': 70, 'm': 60 }
+        base_series_score = { 'y': 90, 'z': 85, 'b': 80, 'c': 75, 'a': 70, 'm': 60 }
 
         # Get handles for some needed reference masses
         masses = self.mass_reference.atomic_masses
@@ -1058,7 +1060,7 @@ class SpectrumAnnotator:
         plot2.plot( [0,xmax], [0,0], '--', linewidth=0.6, color='gray')
 
         #### Set up colors for different types of ion and a grid to track where items have been layed out
-        colors = { 'b': 'tab:blue', 'a': 'tab:green', 'y': 'tab:red', '0': 'tab:gray', '_': 'tab:gray', 'I': 'tab:orange', '?': 'tab:gray', 'p': 'tab:pink', 'm': 'tab:brown', 'r': 'tab:purple', 'f': 'tab:purple' }
+        colors = { 'b': 'tab:blue', 'a': 'tab:green', 'y': 'tab:red', '0': 'violet', '_': 'tab:gray', 'I': 'gold', '?': 'tab:gray', 'p': 'tab:pink', 'm': 'tab:brown', 'r': 'tab:purple', 'f': 'tab:purple', 'c': 'tab:orange', 'z': 'c' }
         blocked = np.zeros((xmax,100))
 
         #### Prepare to write the peptide sequence to the plot, although only write it later once we figure out where there's room
