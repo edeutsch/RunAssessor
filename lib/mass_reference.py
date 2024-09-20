@@ -306,6 +306,19 @@ class MassReference:
                 'delta_mass': self.atomic_masses['hydrogen'] * 1 + self.atomic_masses['carbon'] * 1 + self.atomic_masses['nitrogen'] * 1 + self.atomic_masses['oxygen'] * 1},
             'Crazy K[Carbamyl] loss. All but NH3': { 'formula': 'C7H10N2O2', 'residues': [ 'K[Carbamyl]' ],
                 'delta_mass': self.atomic_masses['carbon'] * 7 + self.atomic_masses['hydrogen'] * 10 + self.atomic_masses['nitrogen'] * 2 + self.atomic_masses['oxygen'] * 2 },
+
+            # ADP-Ribosyl
+            'ADP-Ribosyl-H2O loss': { 'formula': 'ADP-Ribose-H2O', 'residues': [ 'S[ADP-Ribosyl]', 'T[ADP-Ribosyl]', 'R[ADP-Ribosyl]' ],
+                'delta_mass': 542.067 - self.atomic_masses['proton'] },
+            'ADP-Ribosyl-H2O-H2O loss': { 'formula': 'ADP-Ribose-H2O-H2O', 'residues': [ 'S[ADP-Ribosyl]', 'T[ADP-Ribosyl]', 'R[ADP-Ribosyl]' ],
+                'delta_mass': 524.057 - self.atomic_masses['proton'] },
+            'AMP loss': { 'formula': 'AMP', 'residues': [ 'S[ADP-Ribosyl]', 'T[ADP-Ribosyl]', 'R[ADP-Ribosyl]' ],
+                'delta_mass': 348.069 - self.atomic_masses['proton'] },
+
+            # ETD?
+            'oxygen': { 'formula': 'O', 'residues': [ 'M[Oxidation]' ],
+                'delta_mass': self.atomic_masses['oxygen'] },
+
         }
 
         # Also key neutral losses by residue and by formula
@@ -544,6 +557,14 @@ class MassReference:
             'Adenine+C5H7O6P-H2O': 136.061772 + self.calc_mass(self.parse_atomic_formula('C5H7O6P')) - self.calc_mass(self.parse_atomic_formula('H2O')),
             'Guanine+C5H7O6P': 152.056686 + self.calc_mass(self.parse_atomic_formula('C5H7O6P')),
             'Guanine+C5H7O6P-H2O': 152.056686 + self.calc_mass(self.parse_atomic_formula('C5H7O6P')) - self.calc_mass(self.parse_atomic_formula('H2O')),
+
+            # From ADP-Ribosyl fragmentation as per https://pubs.acs.org/doi/suppl/10.1021/jasms.0c00040/suppl_file/js0c00040_si_008.pdf
+            'Adenosine-H2O': 250.093,
+            'AMP': 348.069,
+            'ADP': 428.035,
+            'ADP-Ribose-H2O-H2O': 524.057,
+            'ADP-Ribose-H2O': 542.067,
+            'ADPr-Carbodiimide': 584.089,
 
             'Dimethylglycine': self.calc_mass(self.parse_atomic_formula('C4H9NO2')) + self.atomic_masses['proton'],
             'Methyladenine': self.calc_mass(self.parse_atomic_formula('C6H7N5')) + self.atomic_masses['proton'],
