@@ -393,6 +393,25 @@ class MassReference:
             'TMT134C': { 'type': 'TMT', 'mz': 134.154565 },
             'TMT135N': { 'type': 'TMT', 'mz': 135.151600 },
 
+            #### TMT-35 peaks
+            'TMT127D': { 'type': 'TMT', 'mz': 127.134003 },
+            'TMT128ND': { 'type': 'TMT', 'mz': 128.131038 },
+            'TMT128CD': { 'type': 'TMT', 'mz': 128.137358 },
+            'TMT129ND': { 'type': 'TMT', 'mz': 129.134393 },
+            'TMT129CD': { 'type': 'TMT', 'mz': 129.140713 },
+            'TMT130ND': { 'type': 'TMT', 'mz': 130.137748 },
+            'TMT130CD': { 'type': 'TMT', 'mz': 130.144068 },
+            'TMT131ND': { 'type': 'TMT', 'mz': 131.141103 },
+            'TMT131CD': { 'type': 'TMT', 'mz': 131.147423 },
+            'TMT132ND': { 'type': 'TMT', 'mz': 132.144458 },
+            'TMT132CD': { 'type': 'TMT', 'mz': 132.150778 },
+            'TMT133ND': { 'type': 'TMT', 'mz': 133.147813 },
+            'TMT133CD': { 'type': 'TMT', 'mz': 133.154133 },
+            'TMT134ND': { 'type': 'TMT', 'mz': 134.151171 },
+            'TMT134CD': { 'type': 'TMT', 'mz': 134.157491 },
+            'TMT135ND': { 'type': 'TMT', 'mz': 135.154526 },
+            'TMT135CD': { 'type': 'TMT', 'mz': 135.160846 },
+
             #### When dimethyl hangs on the TMTpro tag!
             #'TMT126+C2H4': { 'type': 'TMT', 'mz': 126.127726 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
             #'TMT127N+C2H4': { 'type': 'TMT', 'mz': 127.124761 + 2 * self.atomic_masses['carbon'] + 4 * self.atomic_masses['hydrogen'] },
