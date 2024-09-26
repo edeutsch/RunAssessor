@@ -476,10 +476,21 @@ class SpectrumAnnotator:
                 return
             stripped_sequence += peptidoform.peptide_sequence
 
+        #### Extract user_parameters settings
+        fragmentation_type = 'HCD'
+        try:
+            user_parameters = spectrum.extended_data['user_parameters']
+        except:
+            user_parameters = {}
+        if 'dissociation_type' in user_parameters and user_parameters['dissociation_type'] is not None:
+            fragmentation_type = user_parameters['dissociation_type']
+            if fragmentation_type not in [ 'HCD', 'EThcD' ]:
+                fragmentation_type = 'HCD'
+
         i_peptidoform = 0
         n_peptidoforms = len(peptidoforms)
         for peptidoform in peptidoforms:
-            self.predict_fragment_ions(peptidoform=peptidoform, charge=charges[i_peptidoform], fragmentation_type='HCD', skip_internal_fragments=skip_internal_fragments)
+            self.predict_fragment_ions(peptidoform=peptidoform, charge=charges[i_peptidoform], fragmentation_type=fragmentation_type, skip_internal_fragments=skip_internal_fragments)
 
             for peak in spectrum.peak_list:
                 mz = peak[PL_MZ]
