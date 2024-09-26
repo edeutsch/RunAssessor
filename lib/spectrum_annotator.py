@@ -212,6 +212,10 @@ class SpectrumAnnotator:
         series_list = [ 'b', 'y' ]
         if fragmentation_type == 'HCD':
             series_list = [ 'a', 'b', 'y' ]
+        elif fragmentation_type == 'CID':
+            series_list = [ 'a', 'b', 'y' ]
+        elif fragmentation_type == 'ETD':
+            series_list = [ 'c', 'z' ]
         elif fragmentation_type == 'EThcD':
             series_list = [ 'a', 'b', 'c', 'y', 'z' ]
         else:
