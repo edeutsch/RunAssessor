@@ -274,8 +274,8 @@ class MassReference:
 
         # Define some potential neutral losses
         self.neutral_losses = {
-            'lysine +CO-H2O': { 'formula': 'H2O+CO', 'residues': [ 'K' ],
-                'delta_mass': self.atomic_masses['hydrogen'] * 2 - self.atomic_masses['carbon'] * 1 },
+            #'lysine +CO-H2O': { 'formula': 'H2O+CO', 'residues': [ 'K' ],
+            #    'delta_mass': self.atomic_masses['hydrogen'] * 2 - self.atomic_masses['carbon'] * 1 },
             #'water': { 'formula': 'H2O', 'residues': [ 'S', 'T', 'E', 'D' ],              # canonical
             'water': { 'formula': 'H2O', 'residues': [ 'S', 'T', 'E', 'D', 'K', 'A', 'Y', 'C[Carbamidomethyl]', 'S[Phospho]', 'T[Phospho]', 'H' ],          # observed
                 'delta_mass': self.atomic_masses['hydrogen'] * 2 + self.atomic_masses['oxygen'] },
@@ -284,8 +284,8 @@ class MassReference:
             #'ammonia': { 'formula': 'NH3', 'residues': [ 'R', 'K', 'N', 'Q' ],              # canonical
             'ammonia': { 'formula': 'NH3', 'residues': [ 'R', 'K', 'N', 'Q', 'G' ],          # observed
                 'delta_mass': self.atomic_masses['nitrogen'] + self.atomic_masses['hydrogen'] * 3 },
-            'carbon monoxide': { 'formula': 'CO', 'residues': [ 'b-ion' ],
-                'delta_mass': self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
+            #'carbon monoxide': { 'formula': 'CO', 'residues': [ 'b-ion' ],
+            #    'delta_mass': self.atomic_masses['carbon'] + self.atomic_masses['oxygen'] },
             #'phosphoric acid': { 'formula': 'H3PO4', 'residues': [ 'S[Phospho]', 'T[Phospho]', 'Y[Phospho]' ], # Removed this in favor of letting HPO3 and H2O work together. Otherwise, you can get both phosphoric acid and metaphosphoric acid on the same residue. You'd somehow need to encode which losses are exclusive and which are combinable
             #    'delta_mass': self.atomic_masses['hydrogen'] * 3 + self.atomic_masses['phosphorus'] + self.atomic_masses['oxygen'] * 4 },
             'metaphosphoric acid': { 'formula': 'HPO3', 'residues': [ 'S[Phospho]', 'T[Phospho]', 'Y[Phospho]', 'H[Phospho]' ],
@@ -316,8 +316,8 @@ class MassReference:
                 'delta_mass': 348.069 - self.atomic_masses['proton'] },
 
             # ETD?
-            'oxygen': { 'formula': 'O', 'residues': [ 'M[Oxidation]' ],
-                'delta_mass': self.atomic_masses['oxygen'] },
+            #'oxygen': { 'formula': 'O', 'residues': [ 'M[Oxidation]' ],
+            #    'delta_mass': self.atomic_masses['oxygen'] },
 
         }
 
