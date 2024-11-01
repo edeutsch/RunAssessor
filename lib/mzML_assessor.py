@@ -23,7 +23,6 @@ from multiprocessing.pool import ThreadPool
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 from scipy.optimize import curve_fit
-from scipy import exp
 from pyteomics import mzml, auxiliary
 
 #### Import the metadata handler
@@ -151,7 +150,11 @@ class MzMLAssessor:
 
                     #### If the ms level is 2, then examine it for information
                     if ms_level == 2 and 'm/z array' in spectrum:
-                        precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
+                        try:
+                            precursor_mz = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
+                        except:
+                            precursor_mz = 0.0
+
                         #### Try to get the charge information
                         try:
                             charge_state = int(spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['charge state'])
@@ -959,7 +962,7 @@ class MzMLAssessor:
 ####################################################################################################
 #### Gaussian function used for curve fitting
 def gaussian_function(x,a,x0,sigma):
-    return a*exp(-(x-x0)**2/(2*sigma**2))
+    return a*numpy.exp(-(x-x0)**2/(2*sigma**2))
 
 
 ####################################################################################################
