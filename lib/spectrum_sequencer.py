@@ -410,10 +410,12 @@ class SpectrumSequencer:
 
         # Create the spectral network and add the nodes
         spectrum.network = { 'nodes': {}, 'edges': {}, 'paths': {} }
+        n_deleted = 0
         for i_peak in range(n_peaks):
 
             #### Ignore deleted peaks
             if spectrum.peak_list[i_peak][PL_ATTRIBUTES][PLA_IS_DELETED]:
+                n_deleted += 1
                 continue
 
             id = str(i_peak)
@@ -1235,7 +1237,6 @@ def main():
                 if f"[{possible_label}]" in peptidoform_string:
                     labels.append(possible_label)
 
-
     if params.create_network:
         examiner = SpectrumExaminer()
         sequencer = SpectrumSequencer()
@@ -1245,7 +1246,7 @@ def main():
         examiner.identify_precursors(spectrum)
         examiner.delete_precursors(spectrum)
         examiner.identify_low_mass_ions(spectrum)
-        examiner.analyze_mass_defects(spectrum, delete_outliers=True)
+        examiner.analyze_mass_defects(spectrum, delete_outliers=False)         #### WARNING: deleting outliers can be dangerous!
         #annotator.remove_low_mass_ions(spectrum)
         #annotator.remove_low_intensity_peaks(spectrum)
         # After cleaning, recompute the metrics on what's left and re-index
@@ -1276,7 +1277,7 @@ def main():
         examiner.identify_precursors(spectrum)
         examiner.delete_precursors(spectrum)
         examiner.identify_low_mass_ions(spectrum)
-        examiner.analyze_mass_defects(spectrum, delete_outliers=True)
+        examiner.analyze_mass_defects(spectrum, delete_outliers=False)         #### WARNING: deleting outliers can be dangerous!
         #annotator.remove_low_mass_ions(spectrum)
         #annotator.remove_low_intensity_peaks(spectrum)
         # After cleaning, recompute the metrics on what's left and re-index
