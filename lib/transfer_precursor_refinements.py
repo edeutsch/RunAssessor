@@ -6,15 +6,12 @@ import argparse
 import os.path
 import timeit
 import re
-import json
-import numpy
-import pickle
 import gzip
+def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 from pyteomics import mzml, auxiliary
 from psims.transform.mzml import MzMLTransformer
 
-def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 def fmt(obj, formatstr):
     if obj is None:

@@ -1,19 +1,11 @@
 #!/usr/bin/env python3
 
-#### Define eprint() as printing to stderr
-from __future__ import print_function
 import sys
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
-#### Import some standard modules
 import os
 import argparse
 import os.path
-import timeit
-import re
 import json
-
+def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 
 ####################################################################################################

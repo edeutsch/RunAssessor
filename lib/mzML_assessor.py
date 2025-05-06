@@ -1,23 +1,16 @@
 #!/usr/bin/env python3
 
-#### Define eprint() as printing to stderr
-from __future__ import print_function
 import sys
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
-#### Import some standard modules
 import os
 import argparse
 import os.path
 import timeit
 import re
-import json
 import numpy
-import pickle
 import gzip
 from lxml import etree
 from multiprocessing.pool import ThreadPool
+def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 #### Import technical modules and pyteomics
 import matplotlib.pyplot as plt
