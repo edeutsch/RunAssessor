@@ -10,7 +10,7 @@ from pyteomics import mzml, auxiliary
 
 def main():
 
-    argparser = argparse.ArgumentParser(description='Creates an index for an MSP spectral library file')
+    argparser = argparse.ArgumentParser(description='An example program that reads an mzML file sequentially')
     argparser.add_argument('--mzml_file', action='store', help='Name of the mzML file to read')
     argparser.add_argument('--version', action='version', version='%(prog)s 0.5')
     params = argparser.parse_args()
