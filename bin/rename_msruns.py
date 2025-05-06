@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import sys
 import os
 import argparse
@@ -87,7 +88,7 @@ def fix_msrun_names(verbose=0):
 #### Main function for command-line usage
 def main():
 
-    argparser = argparse.ArgumentParser(description='Renames raw files in the current directory to remove weird characters and write a lookup table of changes')
+    argparser = argparse.ArgumentParser(description='Renames raw files in the current directory to replace weird characters with underscore and write a lookup table of changes')
     argparser.add_argument('--verbose', action='count', help='If set, print more information about ongoing processing' )
     argparser.add_argument('--version', action='version', version='%(prog)s 0.5')
     params = argparser.parse_args()

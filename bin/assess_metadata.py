@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
 
-#### Define eprint() as printing to stderr
-from __future__ import print_function
 import sys
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
-#### Import some standard modules
 import os
+def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/../lib")
 from metadata_handler import MetadataHandler

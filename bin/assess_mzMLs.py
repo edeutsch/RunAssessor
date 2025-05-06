@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 
-#### Define eprint() as printing to stderr
-from __future__ import print_function
 import sys
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
-#### Import some standard modules
 import os
 import argparse
 import multiprocessing
 import copy
+def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__))+"/../lib")
 from mzML_assessor import MzMLAssessor
@@ -35,7 +30,7 @@ def process_job(job):
 #### Main function for command-line usage
 def main():
 
-    argparser = argparse.ArgumentParser(description='Creates an index for an MSP spectral library file')
+    argparser = argparse.ArgumentParser(description='Read a list of mzML files and extract some knowledge from them')
     argparser.add_argument('--use_cache', action='store', help='Set to true to use the cached file instead of regenerating')
     argparser.add_argument('--write_fragmentation_type_files', action='count', help='If set, write a fragmentation_type file for each mzML')
     argparser.add_argument('--n_threads', action='store', type=int, help='Set the number of files to process in parallel (defaults to number of cores)')
