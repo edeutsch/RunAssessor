@@ -124,7 +124,16 @@ class MzMLAssessor:
                     #### Look for a filter string and parse it
                     if 'filter string' in spectrum['scanList']['scan'][0]:
                         filter_string = spectrum['scanList']['scan'][0]['filter string']
-                        self.parse_filter_string(filter_string,stats)
+                        if filter_string is not None and filter_string != '':
+                            self.parse_filter_string(filter_string,stats)
+                        else:
+                            #### MSFragger generated mzML can have empty filter strings
+                            stats['high_accuracy_precursors'] = 'unknown'
+                            stats['fragmentation_type'] = 'unknown'
+                            stats['fragmentation_tag'] = 'unknown fragmentation'
+                            if ms_level > 1:
+                                stats['n_unknown_spectra'] += 1
+
 
                     #### There's only a filter string for Thermo data, so for others, record a subset of information
                     else:
