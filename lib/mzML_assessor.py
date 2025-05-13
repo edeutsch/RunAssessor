@@ -75,6 +75,7 @@ class MzMLAssessor:
             'n_HR_ETciD_spectra': 0,
             'n_LR_ETciD_spectra': 0,
             'n_HR_QTOF_spectra': 0,
+            'n_unknown_fragmentation_type_spectra': 0,
             'high_accuracy_precursors': 'unknown',
             'fragmentation_type': 'unknown',
             'fragmentation_tag': 'unknown'
@@ -128,11 +129,13 @@ class MzMLAssessor:
                             self.parse_filter_string(filter_string,stats)
                         else:
                             #### MSFragger generated mzML can have empty filter strings
+                            self.log_event('WARNING','EmptyFilterLine',f"Filter line is present but empty. This can happen with MSFragger-written mzML. Not good.")
+                            stats[f"n_ms{ms_level}_spectra"] += 1
                             stats['high_accuracy_precursors'] = 'unknown'
-                            stats['fragmentation_type'] = 'unknown'
-                            stats['fragmentation_tag'] = 'unknown fragmentation'
+                            stats['fragmentation_type'] = 'unknown_fragmentation_type'
+                            stats['fragmentation_tag'] = 'unknown fragmentation type'
                             if ms_level > 1:
-                                stats['n_unknown_spectra'] += 1
+                                stats['n_unknown_fragmentation_type_spectra'] += 1
 
 
                     #### There's only a filter string for Thermo data, so for others, record a subset of information
@@ -635,6 +638,7 @@ class MzMLAssessor:
                 'MS:1003028|Orbitrap Exploris 480',
                 'MS:1003029|Orbitrap Eclipse',
                 'MS:1003356|Orbitrap Ascend',
+                'MS:1000031|instrument model',
                 'MS:1000483|Thermo Fisher Scientific instrument model'
             ],
             'QTOF': [
