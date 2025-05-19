@@ -2,6 +2,7 @@
 
 import sys
 import os
+import argparse
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/../lib")
@@ -13,10 +14,10 @@ from metadata_handler import MetadataHandler
 def main():
 
     #### Parse command line arguments
-    argparser = argparse.ArgumentParser(description='handler for study metadata files')
-    argparser.add_argument('--metadata_file', action='store', help='Specify a metadata file if different than the default')
+    argparser = argparse.ArgumentParser(description='Study metadata processor')
+    argparser.add_argument('--metadata_file', action='store', help='Specify a metadata file if different than the default study_metadata.json')
+    argparser.add_argument('--write_sdrf_file', action='count', help='If set, then write an SDRF file based on the metadata file')
     argparser.add_argument('--verbose', action='count' )
-    argparser.add_argument('--version', action='version', version='%(prog)s 0.5')
     params = argparser.parse_args()
 
     #### Create metadata handler object and read or create the metadata structure
@@ -28,5 +29,11 @@ def main():
 
     #### Store the metadata structure
     metadata.store()
+
+    #### If selected, also write an SDRF file
+    if params.write_sdrf_file:
+        metadata.create_sdrf_table()
+        sdrf_filename = metadata.infer_sdrf_filename(params.metadata_file)
+        metadata.write_sdrf_file(sdrf_filename)
 
 if __name__ == "__main__": main()

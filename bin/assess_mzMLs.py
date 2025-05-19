@@ -5,11 +5,14 @@ import os
 import argparse
 import multiprocessing
 import copy
+from datetime import datetime
+import timeit
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__))+"/../lib")
 from mzML_assessor import MzMLAssessor
 from metadata_handler import MetadataHandler
+
 
 
 ####################################################################################################
@@ -26,35 +29,54 @@ def process_job(job):
     return assessor
 
 
+
 ####################################################################################################
 #### Main function for command-line usage
 def main():
 
-    argparser = argparse.ArgumentParser(description='Read a list of mzML files and extract some knowledge from them')
-    argparser.add_argument('--use_cache', action='store', help='Set to true to use the cached file instead of regenerating')
-    argparser.add_argument('--write_fragmentation_type_files', action='count', help='If set, write a fragmentation_type file for each mzML')
+    argparser = argparse.ArgumentParser(description='Read one or more mzML files and extract some knowledge from them')
+    argparser.add_argument('--metadata_filepath', action='store', help='Filepath of the metadata file (defaults to study_metadata.json)')
+    argparser.add_argument('--preserve_existing_metadata', action='count', default=0, help='If set, read the existing metadata file, preserve its contents, and build on it (default is to overwrite current file)')
     argparser.add_argument('--n_threads', action='store', type=int, help='Set the number of files to process in parallel (defaults to number of cores)')
-    argparser.add_argument('--refresh', action='count', default=0, help='If set, existing metadata for a file will be overwritten rather than skipping the file')
+    argparser.add_argument('--write_fragmentation_type_files', action='count', help='If set, write a fragmentation_type file for each mzML')
     argparser.add_argument('--verbose', action='count', help='If set, print more information about ongoing processing' )
-    argparser.add_argument('--version', action='version', version='%(prog)s 0.5')
+    argparser.add_argument('--version', action='version', version='%(prog)s 0.8')
     argparser.add_argument('files', type=str, nargs='+', help='Filenames of one or more mzML files to read')
     params = argparser.parse_args()
 
-    #### Set verbose
+    #### Set verbose level
     verbose = params.verbose
-    if verbose is None: verbose = 1
+    if verbose is None:
+        verbose = 1
+
+    if verbose >= 1:
+        timestamp = str(datetime.now().isoformat())
+        eprint(f"INFO: Launching RunAssessor at {timestamp}")
+    t0 = timeit.default_timer()
 
     #### Loop over all the files to ensure that they are really there before starting work
+    n_files = 0
     for file in params.files:
         if not os.path.isfile(file):
             print(f"ERROR: File '{file}' not found or not a file")
             return
+        n_files += 1
+    if verbose:
+        eprint(f"INFO: Found {n_files} input files to process")
 
-    #### Load the current metadata file in order to update it
-    study = MetadataHandler(verbose=verbose)
-    study.read_or_create()
+    #### Initialize the metadata handler
+    study = MetadataHandler(params.metadata_filepath, verbose=params.verbose)
 
-    # Set up the list of jobs to process
+    #### If the user wants to read and preserve an existing file, then read or create it
+    if params.preserve_existing_metadata > 0:
+        result = study.read_or_create()
+    else:
+        result = study.create()
+    if result is None or result != 'OK':
+        print(f"ERROR: Unable to initialize study metadata information. Halting.")
+        return
+
+    #### Set up the list of jobs to process
     jobs = []
 
     #### Loop over all the files and put them in a list of jobs for parallel processing
@@ -62,27 +84,51 @@ def main():
 
         #### If this file is already in the metadata store, purge it and generate new
         if file in study.metadata['files']:
-            if params.refresh is not None and params.refresh > 0:
-                study.metadata['files'][file] = None
-            else:
-                if verbose >= 1: eprint(f"INFO: Already have results for '{file}'. Skipping..")
+            if params.preserve_existing_metadata > 0:
+                if verbose >= 1:
+                    eprint(f"INFO: Already have results for '{file}'. Skipping..")
                 continue
+            else:
+                study.metadata['files'][file] = None
 
-        job = { 'filename': file, 'metadata': copy.deepcopy(study.metadata), 'verbose': verbose,
-            'write_fragmentation_type_files': params.write_fragmentation_type_files }
+        job = {
+            'filename': file,
+            'metadata': copy.deepcopy(study.metadata),
+            'verbose': verbose,
+            'write_fragmentation_type_files': params.write_fragmentation_type_files
+            }
         jobs.append(job)
 
+
+    #### Compute how many files in parallel to process
+    n_cpus = multiprocessing.cpu_count()
+    n_simultaneous_jobs = n_cpus
+    if n_files < n_simultaneous_jobs:
+        n_simultaneous_jobs = n_files
+    n_threads = params.n_threads
+    if n_threads is None or n_threads == 0:
+        n_threads = n_simultaneous_jobs
+    elif n_threads < 0:
+        if -1 * n_threads > n_cpus - 1:
+            eprint(f"ERROR: Parameter n_threads ({n_threads} too low for number of CPUs ({n_cpus}))")
+            return
+        n_threads = n_cpus + n_threads
+        if n_threads < n_simultaneous_jobs:
+            n_threads = n_files
+
+
     #### Now process the jobs in parallel
-    n_threads = params.n_threads or multiprocessing.cpu_count()
-    eprint(f"Processing files with n_threads={n_threads} (one mzML per thread)", end='', flush=True)
+    if n_threads == 1:
+        eprint(f"INFO: Processing 1 input file", end='', flush=True)
+    else:
+        eprint(f"INFO: Processing {n_threads} files in parallel with multiprocessing (one file per CPU)", end='', flush=True)
     pool = multiprocessing.Pool(processes=n_threads)
     results = pool.map_async(process_job, jobs)
-    #results = pool.map(process_job, jobs)
     pool.close()
     pool.join()
-    eprint("")
+    eprint('')
 
-    # Coalesce the results
+    #### Coalesce the results
     results = results.get()
     for result in results:
         for filename in result.metadata['files']:
@@ -91,8 +137,16 @@ def main():
 
     #### Infer parameters based on the latest data
     study.infer_search_criteria()
+    study.generate_sdrf_table()
 
     #### Write out our state of mind
     study.store()
+
+    if verbose >= 1:
+        timestamp = str(datetime.now().isoformat())
+        t1 = timeit.default_timer()
+        eprint(f"INFO: RunAssessor finished in {t1-t0:.2f} seconds at {timestamp}")
+
+
 
 if __name__ == "__main__": main()
