@@ -269,7 +269,7 @@ class MzMLAssessor:
 
         #### Print final timing information
         t1 = timeit.default_timer()
-        print(f"\nINFO: Read {stats['n_spectra']} spectra from {self.mzml_file} in {int(t1-t0)} sec ({stats['n_spectra']/(t1-t0)} spectra per sec)", end='', flush=True)
+        print(f"\nINFO: Read {stats['n_spectra']} spectra from {self.mzml_file} in {t1-t0:.2f} sec ({stats['n_spectra']/(t1-t0):.2f} spectra per sec)", end='', flush=True)
 
 
     ####################################################################################################
