@@ -608,7 +608,8 @@ class MzMLAssessor:
                 'MS:1002634|Q Exactive Plus',
                 'MS:1002523|Q Exactive HF',
                 'MS:1002877|Q Exactive HF-X',
-                'MS:1003378|Orbitrap Astral'
+                'MS:1003378|Orbitrap Astral',
+                'MS:1003442|Orbitrap Astral Zoom'
             ],
             'ion_trap': [
                 'MS:1000447|LTQ',
