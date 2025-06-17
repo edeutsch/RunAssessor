@@ -14,7 +14,12 @@ pip install -r requirements.txt
 
 Code processes mass spectrometry data in the `.mzML` format. `.mzML.gz` files are also supported.
 ```bash
-python assess_mzMLs.py ~/file_path/mass_spec_data.mzML.gz
+python bin/assess_mzMLs.py ~/file_path/mass_spec_data.mzML.gz
+```
+
+Code can also accept multiple `.mzML` files at a time 
+```bash
+python bin/assess_mzMLs.py ~/file_path/*.mzML
 ```
 
 ## Features
