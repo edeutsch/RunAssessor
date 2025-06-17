@@ -19,7 +19,7 @@ python bin/assess_mzMLs.py ~/file_path/mass_spec_data.mzML.gz
 
 Code can also accept multiple `.mzML` files at a time 
 ```bash
-python bin/assess_mzMLs.py ~/file_path/*.mzML
+python bin/assess_mzMLs.py ~/file_path/*.mzML # can add .gz to end
 ```
 
 # Usage
