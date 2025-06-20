@@ -367,9 +367,9 @@ class MetadataHandler:
 
         self.sdrf_table_column_titles = []
         self.sdrf_table_rows = []
-
-        if len(self.sdrf_hints['keys']) == 0:
-            if verbose > 0:
+        keys_dict = self.sdrf_hints.get('keys', {})
+        if len(keys_dict) == 0:
+            if self.verbose > 0:
                 eprint(f"INFO: Skip generating an SDRF file. Study metadata txt template is not available")
             return
 
