@@ -24,7 +24,7 @@ python bin/assess_mzMLs.py ~/file_path/*.mzML # can add .gz to end
 
 # Usage
 
-## assess_metadata.py
+## assess_mzMLs.py
 
 ### Command-line Arguments
 
@@ -38,7 +38,7 @@ python bin/assess_mzMLs.py ~/file_path/*.mzML # can add .gz to end
 | `--version` | Prints the version of the script/tool. | 0.8 | `--version` |
 
 
-## assess_mzMLs.py
+## assess_metadata.py
 
 ### Comand-line Arguments
 | Argument | Description | Default | Example |
