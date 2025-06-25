@@ -16,6 +16,7 @@ def test_init_with_various_parameters():
 
 def test_create_template():
     metadata = MetadataHandler()
+    assert(hasattr(metadata, 'metadata'))
     result = metadata.create_template()
     assert len(metadata.metadata) == 6
     assert len(metadata.metadata['problems']['errors']) == 3
