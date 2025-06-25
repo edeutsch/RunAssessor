@@ -125,7 +125,7 @@ class MetadataHandler:
     #### Read the key-value study metadata text file
     def read_txt_file(self):
 
-        file = self.metadata_filepath
+        file = 'study_metadata.json' #self.metadata_filepath
 
         #### Replace .json with .txt
         if file.endswith('.json'):
@@ -138,7 +138,7 @@ class MetadataHandler:
         #### If the specified (or inferred) file does not exist, we should create it
         if not os.path.isfile(file):
             if self.verbose >= 1:
-                eprint(f"INFO: Looked for but did not find study metadata key-value hints file '{file}'. File not not found or not a file.")
+                eprint(f"INFO: Looked for but did not find study metadata key-value hints file '{file}'. File not found or not a file.")
             return
 
         #### If there is such a file, read it
@@ -228,10 +228,14 @@ class MetadataHandler:
         with open(self.metadata_filepath, 'w') as outfile:
             json.dump(self.metadata,outfile, sort_keys=True, indent=2)
 
-        if len(self.sdrf_table_column_titles) == 0:
-            return
 
+
+    ####################################################################################################
+    #### Infers the sdrf file name and returns it
+
+    def infer_sdrf_filename(self):
         filename = self.metadata_filepath
+
         #### Replace .json with .sdrf.tsv
         if filename.endswith('.json'):
             filename = filename.replace('.json', '.sdrf.tsv')
@@ -239,15 +243,18 @@ class MetadataHandler:
             if self.verbose >= 1:
                 eprint(f"INFO: Study metadata file '{filename}' does not end in .json, so cannot create corresponding .sdrf.tsv file")
             return
+        return filename
 
+    ####################################################################################################
+    #### Writes information from self.sdrf_table_rows into tthe sdrf file
+
+    def write_sdrf_file(self, filename):
         if self.verbose >= 1:
             eprint(f"INFO: Writing SDRF file '{filename}'")
         with open(filename, 'w') as outfile:
             print("\t".join(self.sdrf_table_column_titles), file=outfile)
             for row in self.sdrf_table_rows:
                 print("\t".join(row), file=outfile)
-
-
 
     ####################################################################################################
     #### Infer search criteria based on available information
@@ -368,6 +375,8 @@ class MetadataHandler:
         self.sdrf_table_column_titles = []
         self.sdrf_table_rows = []
         keys_dict = self.sdrf_hints.get('keys', {})
+
+        eprint("Key dict:", self.sdrf_hints)
         if len(keys_dict) == 0:
             if self.verbose > 0:
                 eprint(f"INFO: Skip generating an SDRF file. Study metadata txt template is not available")
