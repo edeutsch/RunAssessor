@@ -1,5 +1,5 @@
 import sys
-
+import os
 sys.path.append("../lib")
 from metadata_handler import MetadataHandler
 from pyfakefs.fake_filesystem_unittest import Patcher
@@ -38,25 +38,25 @@ def test_find_txt_file(capsys):
         patcher.fs.create_file("study_metadata.txt")
         metadata = MetadataHandler("study_metadata.json", verbose=2)
 
-        metadata.find_txt_file()
-        captured = capsys.readouterr()
-        assert "study_metadata.txt found" in captured.out or "study_metadata.txt found" in captured.err      
+        file = metadata.find_txt_file()
+        assert file == "study_metadata.txt"    
 
         #### study_metadata.txt file exists 
         metadata = MetadataHandler("study_metadata.json", verbose=2)
-        metadata.find_txt_file()
-        captured = capsys.readouterr()
-        assert "study_metadata.txt found" in captured.out or "study_metadata.txt found" in captured.err   
+        file = metadata.find_txt_file()
+        assert file == "study_metadata.txt" 
 
-        #### study_metadata.txt does not exist so template should be used
+        #### defualt study_metadata.json is used so base template should be used
         patcher.fs.remove("study_metadata.txt")
+        metadata = MetadataHandler(verbose=2)
+        file = metadata.find_txt_file()
+        
+        #### study_metadata.txt is specified by user but does not exits, SDRF table wont be made
         metadata = MetadataHandler("study_metadata.json", verbose=2)
-        metadata.find_txt_file()
-        captured = capsys.readouterr()
-        assert "/study_metadata_template.txt" in captured.out or "/study_metadata_template.txt" in captured.err
+        file = metadata.find_txt_file()
+        assert file == None
 
-        #### Should try and use study_metadata.ballon.txt (DNE) and use template
-        metadata = MetadataHandler("study_metadata.ballon", verbose=2)
-        metadata.find_txt_file()
-        captured = capsys.readouterr()
-        assert "/study_metadata_template.txt" in captured.out or "/study_metadata_template.txt" in captured.err
+        #### Should not find baloon.txt and not generate the 
+        metadata = MetadataHandler("balloon.json", verbose=2)
+        file = metadata.find_txt_file()
+        assert file == None
