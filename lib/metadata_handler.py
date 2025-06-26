@@ -19,6 +19,8 @@ class MetadataHandler:
 
         default_metadata_filepath = 'study_metadata.json'
 
+        self.metadata = {}
+
         #### Check if a metadata_filepath was provided and if not, set to default
         if metadata_filepath is None or metadata_filepath == '':
             metadata_filepath = default_metadata_filepath
@@ -233,6 +235,19 @@ class MetadataHandler:
             json.dump(self.metadata,outfile, sort_keys=True, indent=2)
 
 
+    ####################################################################################################
+    #### Infer SDRF file name
+    def infer_filename(self):
+        filename = self.metadata_filepath
+        #### Replace .json with .sdrf.tsv
+        if filename.endswith('.json'):
+            filename = filename.replace('.json', '.sdrf.tsv')
+            return filename
+        else:
+            if self.verbose >= 1:
+                eprint(f"INFO: Study metadata file '{filename}' does not end in .json, so cannot create corresponding .sdrf.tsv file")
+            return
+
 
     ####################################################################################################
     #### Infers the sdrf file name and returns it
@@ -243,15 +258,16 @@ class MetadataHandler:
         #### Replace .json with .sdrf.tsv
         if filename.endswith('.json'):
             filename = filename.replace('.json', '.sdrf.tsv')
+            return filename
         else:
             if self.verbose >= 1:
                 eprint(f"INFO: Study metadata file '{filename}' does not end in .json, so cannot create corresponding .sdrf.tsv file")
             return
         return filename
 
-    ####################################################################################################
-    #### Writes information from self.sdrf_table_rows into the sdrf file
 
+    ####################################################################################################
+    #### Write SDRF file
     def write_sdrf_file(self, filename):
         if self.verbose >= 1:
             eprint(f"INFO: Writing SDRF file '{filename}'")
@@ -502,7 +518,9 @@ def main():
     #### Try to infer search criteria based on the information we have available
     metadata.infer_search_criteria()
 
-    #### Store the metadata structure
+    #### Store the metadata structure, infer the SDRF file name and write the SDRF.tsv file
     metadata.store()
+    filename = metadata.infer_filename()
+    metadata.write_sdrf_file(filename)
 
 if __name__ == "__main__": main()
