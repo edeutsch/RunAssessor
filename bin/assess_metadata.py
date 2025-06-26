@@ -32,6 +32,7 @@ def main():
 
     #### If selected, also write an SDRF file
     if params.write_sdrf_file:
+        metadata.read_txt_file()
         metadata.generate_sdrf_table()  
         sdrf_filename = metadata.infer_sdrf_filename()
         metadata.write_sdrf_file(sdrf_filename) 
