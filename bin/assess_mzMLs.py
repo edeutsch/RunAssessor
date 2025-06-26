@@ -41,6 +41,7 @@ def main():
     argparser.add_argument('--write_fragmentation_type_files', action='count', help='If set, write a fragmentation_type file for each mzML')
     argparser.add_argument('--verbose', action='count', help='If set, print more information about ongoing processing' )
     argparser.add_argument('--version', action='version', version='%(prog)s 0.8')
+    argparser.add_argument('--write_sdrf_file', action='count', help='If set, then write an SDRF file based on the metadata file')
     argparser.add_argument('files', type=str, nargs='+', help='Filenames of one or more mzML files to read')
     params = argparser.parse_args()
 
@@ -141,6 +142,12 @@ def main():
 
     #### Write out our state of mind
     study.store()
+
+    #### Write out SDRF table if parameter given
+    if params.write_sdrf_file:
+        study.read_txt_file()
+        sdrf_filename = study.infer_sdrf_filename()
+        study.write_sdrf_file(sdrf_filename) 
 
     if verbose >= 1:
         timestamp = str(datetime.now().isoformat())

@@ -33,6 +33,7 @@ class MetadataHandler:
         self.sdrf_hints = {}
         self.sdrf_table_column_titles = []
         self.sdrf_table_rows = []
+        self.metadata = {}
 
         #### Check if a verbose was provided and if not, set to default
         if verbose is None:
@@ -127,7 +128,7 @@ class MetadataHandler:
     #### Read the key-value study metadata text file
     def read_txt_file(self):
 
-        file = self.metadata_filepath
+        file = 'study_metadata.json' #self.metadata_filepath
 
         #### Replace .json with .txt
         if file.endswith('.json'):
@@ -139,9 +140,12 @@ class MetadataHandler:
 
         #### If the specified (or inferred) file does not exist, we should create it
         if not os.path.isfile(file):
+            eprint("Current working directory:", os.getcwd())
             if self.verbose >= 1:
-                eprint(f"INFO: Looked for but did not find study metadata key-value hints file '{file}'. File not not found or not a file.")
-            return
+                eprint(f"INFO: Looked for but did not find study metadata key-value hints file '{file}'. File not found or not a file.")
+                eprint("Using Template key-value hints")
+                file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
+            #return
 
         #### If there is such a file, read it
         try:
@@ -231,11 +235,9 @@ class MetadataHandler:
             json.dump(self.metadata,outfile, sort_keys=True, indent=2)
 
 
-
     ####################################################################################################
     #### Infer SDRF file name
     def infer_filename(self):
-
         filename = self.metadata_filepath
         #### Replace .json with .sdrf.tsv
         if filename.endswith('.json'):
@@ -247,19 +249,32 @@ class MetadataHandler:
             return
 
 
+    ####################################################################################################
+    #### Infers the sdrf file name and returns it
+
+    def infer_sdrf_filename(self):
+        filename = self.metadata_filepath
+
+        #### Replace .json with .sdrf.tsv
+        if filename.endswith('.json'):
+            filename = filename.replace('.json', '.sdrf.tsv')
+            return filename
+        else:
+            if self.verbose >= 1:
+                eprint(f"INFO: Study metadata file '{filename}' does not end in .json, so cannot create corresponding .sdrf.tsv file")
+            return
+        return filename
+
 
     ####################################################################################################
     #### Write SDRF file
     def write_sdrf_file(self, filename):
-
         if self.verbose >= 1:
             eprint(f"INFO: Writing SDRF file '{filename}'")
         with open(filename, 'w') as outfile:
             print("\t".join(self.sdrf_table_column_titles), file=outfile)
             for row in self.sdrf_table_rows:
                 print("\t".join(row), file=outfile)
-
-
 
     ####################################################################################################
     #### Infer search criteria based on available information
@@ -380,6 +395,7 @@ class MetadataHandler:
         self.sdrf_table_column_titles = []
         self.sdrf_table_rows = []
         keys_dict = self.sdrf_hints.get('keys', {})
+
         if len(keys_dict) == 0:
             if self.verbose > 0:
                 eprint(f"INFO: Skip generating an SDRF file. Study metadata txt template is not available")
@@ -448,7 +464,6 @@ class MetadataHandler:
 
                     row.append(value)
             self.sdrf_table_rows.append(row)
-
             i_sample += 1
 
 
