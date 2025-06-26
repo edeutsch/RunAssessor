@@ -29,6 +29,10 @@ class MetadataHandler:
         if os.path.isdir(metadata_filepath):
             metadata_filepath += '/' + default_metadata_filepath
 
+        #### If metadata_filepath does not end with .json, +add a .json 
+        if not metadata_filepath.endswith(".json"):
+            metadata_filepath += ".json"
+
         self.metadata_filepath = metadata_filepath
         self.sdrf_hints = {}
         self.sdrf_table_column_titles = []
@@ -56,7 +60,8 @@ class MetadataHandler:
         if self.verbose >= 1:
             eprint(f"INFO: Creating study metadata file '{file}'")
         self.create_template()
-        self.read_txt_file()
+        txt_file = self.find_txt_file()
+        self.read_txt_file(txt_file)
         try:
             with open(file, 'w') as outfile:
                 json.dump(self.metadata,outfile, sort_keys=True, indent=2)
@@ -125,11 +130,10 @@ class MetadataHandler:
 
 
     ####################################################################################################
-    #### Read the key-value study metadata text file
-    def read_txt_file(self):
+    #### Find and set the key-value study metadata text file
+    def find_txt_file(self):
 
-        file = 'study_metadata.json' #self.metadata_filepath
-
+        file = self.metadata_filepath
         #### Replace .json with .txt
         if file.endswith('.json'):
             file = file.replace('.json', '.txt')
@@ -138,16 +142,25 @@ class MetadataHandler:
                 eprint(f"INFO: Study metadata file '{file}' does not end in .json, so cannot look for corresponding .txt file")
             return
 
-        #### If the specified (or inferred) file does not exist, we should create it
+        #### If the specified (or inferred) file does not exist, we will use the template
         if not os.path.isfile(file):
-            eprint("Current working directory:", os.getcwd())
             if self.verbose >= 1:
                 eprint(f"INFO: Looked for but did not find study metadata key-value hints file '{file}'. File not found or not a file.")
-                eprint("Using Template key-value hints")
                 file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
+                eprint(f"Using Template key-value hints {file}")
             #return
+        else:
+            eprint(f"INFO: {file} found")
 
-        #### If there is such a file, read it
+        return file
+
+
+    ####################################################################################################
+    #### Read the key-value study metadata text file
+    def read_txt_file(self, txt_file):
+
+        file = txt_file
+        #### Check to see if file can be read
         try:
             infile = open(file, 'r')
         except:
