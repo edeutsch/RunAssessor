@@ -31,6 +31,7 @@ class MetadataHandler:
         self.sdrf_hints = {}
         self.sdrf_table_column_titles = []
         self.sdrf_table_rows = []
+        self.metadata = {}
 
         #### Check if a verbose was provided and if not, set to default
         if verbose is None:
@@ -137,9 +138,12 @@ class MetadataHandler:
 
         #### If the specified (or inferred) file does not exist, we should create it
         if not os.path.isfile(file):
+            eprint("Current working directory:", os.getcwd())
             if self.verbose >= 1:
                 eprint(f"INFO: Looked for but did not find study metadata key-value hints file '{file}'. File not found or not a file.")
-            return
+                eprint("Using Template key-value hints")
+                file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
+            #return
 
         #### If there is such a file, read it
         try:
@@ -246,7 +250,7 @@ class MetadataHandler:
         return filename
 
     ####################################################################################################
-    #### Writes information from self.sdrf_table_rows into tthe sdrf file
+    #### Writes information from self.sdrf_table_rows into the sdrf file
 
     def write_sdrf_file(self, filename):
         if self.verbose >= 1:
@@ -376,7 +380,6 @@ class MetadataHandler:
         self.sdrf_table_rows = []
         keys_dict = self.sdrf_hints.get('keys', {})
 
-        eprint("Key dict:", self.sdrf_hints)
         if len(keys_dict) == 0:
             if self.verbose > 0:
                 eprint(f"INFO: Skip generating an SDRF file. Study metadata txt template is not available")
@@ -445,7 +448,6 @@ class MetadataHandler:
 
                     row.append(value)
             self.sdrf_table_rows.append(row)
-
             i_sample += 1
 
 
