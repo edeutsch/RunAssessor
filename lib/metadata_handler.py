@@ -20,14 +20,19 @@ class MetadataHandler:
         default_metadata_filepath = 'study_metadata.json'
 
         self.metadata = {}
-
+        self.default_filename = False
         #### Check if a metadata_filepath was provided and if not, set to default
         if metadata_filepath is None or metadata_filepath == '':
             metadata_filepath = default_metadata_filepath
+            self.default_filename = True
 
         #### If this is a directory, then just append the default filename
         if os.path.isdir(metadata_filepath):
             metadata_filepath += '/' + default_metadata_filepath
+
+        #### If metadata_filepath does not end with .json, +add a .json 
+        if not metadata_filepath.endswith(".json"):
+            metadata_filepath += ".json"
 
         self.metadata_filepath = metadata_filepath
         self.sdrf_hints = {}
@@ -56,7 +61,8 @@ class MetadataHandler:
         if self.verbose >= 1:
             eprint(f"INFO: Creating study metadata file '{file}'")
         self.create_template()
-        self.read_txt_file()
+        txt_file = self.find_txt_file()
+        self.read_txt_file(txt_file)
         try:
             with open(file, 'w') as outfile:
                 json.dump(self.metadata,outfile, sort_keys=True, indent=2)
@@ -125,11 +131,10 @@ class MetadataHandler:
 
 
     ####################################################################################################
-    #### Read the key-value study metadata text file
-    def read_txt_file(self):
+    #### Find and set the key-value study metadata text file
+    def find_txt_file(self):
 
-        file = 'study_metadata.json' #self.metadata_filepath
-
+        file = self.metadata_filepath
         #### Replace .json with .txt
         if file.endswith('.json'):
             file = file.replace('.json', '.txt')
@@ -138,16 +143,30 @@ class MetadataHandler:
                 eprint(f"INFO: Study metadata file '{file}' does not end in .json, so cannot look for corresponding .txt file")
             return
 
-        #### If the specified (or inferred) file does not exist, we should create it
-        if not os.path.isfile(file):
-            eprint("Current working directory:", os.getcwd())
-            if self.verbose >= 1:
-                eprint(f"INFO: Looked for but did not find study metadata key-value hints file '{file}'. File not found or not a file.")
-                eprint("Using Template key-value hints")
-                file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
-            #return
+        #### If the specified key-value file does not exist, no table will be generated. However, if none is specified, a template file will be used
+        if not os.path.isfile(file) and not self.default_filename:
+            eprint(f"INFO: Looked for but did not find study metadata key-value hints file '{file}'. File not found or not a file. SDRF table will not be generated")
+            return None
 
-        #### If there is such a file, read it
+        elif os.path.isfile(file):
+            eprint(f"INFO: {file} found")
+
+        else:
+            if self.verbose >= 1:
+                eprint(f"INFO: No study_metadata key-value hints file defined")
+                file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
+                eprint(f"INFO: Using Template key-value hints {file}")
+
+        return file
+
+
+    ####################################################################################################
+    #### Read the key-value study metadata text file
+    def read_txt_file(self, txt_file):
+
+        file = txt_file
+        if file == None: return
+        #### Check to see if file can be read
         try:
             infile = open(file, 'r')
         except:
@@ -194,7 +213,7 @@ class MetadataHandler:
                 return
 
         #### If we got this far, then everything seems okay
-        eprint(json.dumps(sdrf_hints, indent=2, sort_keys=2))
+        #eprint(json.dumps(sdrf_hints, indent=2, sort_keys=2))
         return 'OK'
 
 
@@ -235,21 +254,7 @@ class MetadataHandler:
             json.dump(self.metadata,outfile, sort_keys=True, indent=2)
 
 
-    ####################################################################################################
-    #### Infer SDRF file name
-    def infer_filename(self):
-        filename = self.metadata_filepath
-        #### Replace .json with .sdrf.tsv
-        if filename.endswith('.json'):
-            filename = filename.replace('.json', '.sdrf.tsv')
-            return filename
-        else:
-            if self.verbose >= 1:
-                eprint(f"INFO: Study metadata file '{filename}' does not end in .json, so cannot create corresponding .sdrf.tsv file")
-            return
-
-
-    ####################################################################################################
+     ####################################################################################################
     #### Infers the sdrf file name and returns it
 
     def infer_sdrf_filename(self):
@@ -263,12 +268,15 @@ class MetadataHandler:
             if self.verbose >= 1:
                 eprint(f"INFO: Study metadata file '{filename}' does not end in .json, so cannot create corresponding .sdrf.tsv file")
             return
-        return filename
+
 
 
     ####################################################################################################
     #### Write SDRF file
     def write_sdrf_file(self, filename):
+
+        if len(self.sdrf_hints.get("keys", {})) == 0:
+            return
         if self.verbose >= 1:
             eprint(f"INFO: Writing SDRF file '{filename}'")
         with open(filename, 'w') as outfile:

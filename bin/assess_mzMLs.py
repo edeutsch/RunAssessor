@@ -145,7 +145,8 @@ def main():
 
     #### Write out SDRF table if parameter given
     if params.write_sdrf_file:
-        study.read_txt_file()
+        key_value_file = study.find_txt_file()
+        study.read_txt_file(key_value_file)
         sdrf_filename = study.infer_sdrf_filename()
         study.write_sdrf_file(sdrf_filename) 
 
