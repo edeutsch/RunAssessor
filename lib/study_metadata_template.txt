@@ -26,7 +26,7 @@ source name=
 # Note: Use NCBI taxon name
 # Example: Homo sapiens
 # Example: Mus Musculus
-characteristics[organism]=Homo sapiens
+characteristics[organism]=
 
 # Note: Sometimes relevant for some Invertebrates and Cell lines
 characteristics[strain/breed]=
@@ -111,7 +111,7 @@ comment[fractionation method]=
 # CV tree: https://www.ebi.ac.uk/ols4/ontologies/pride/classes/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FPRIDE_0000598?lang=en
 # Example: NT=Iodoacetamide (IAA);AC=PRIDE:0000599
 # Example: NT=Methyl methanethiosulfonate (MMTS);AC=PRIDE:0000605
-comment[alkylation reagent]=NT=Iodoacetamide (IAA);AC=PRIDE:0000599
+comment[alkylation reagent]=
 
 # Note: label may be provided, but isobaric labeling should be extracted with RunAssessor
 # Note: the formatting must be in SDRF "NT;AC" format
@@ -122,7 +122,7 @@ comment[label]=
 # Documentation: https://github.com/bigbio/proteomics-sample-metadata/tree/master/sdrf-proteomics#1042-cleavage-agents
 # Example: NT=Trypsin;AC=MS:1001251
 # Example: AC=MS:1001309;NT=Lys-C
-comment[cleavage agent details]=NT=Trypsin;AC=MS:1001251
+comment[cleavage agent details]=
 
 # Note: instrument may be provided, but it is discouraged unless the data files do not encode it. It should be extracted with RunAssessor
 # Note the formatting must be in SDRF "NT;AC" format
@@ -140,8 +140,7 @@ comment[dissociation method]=
 # Example: NT=Oxidation;MT=Variable;TA=M;AC=UNIMOD:35
 # Example: NT=Acetyl;AC=UNIMOD:1;PP=Protein N-term;MT=variable
 # Example: NT=Phospho;MT=variable;TA=S,T,Y;AC=UNIMOD:21
-comment[modification parameters]=NT=Carbamidomethyl;AC=UNIMOD:4;TA=C;MT=Fixed
-comment[modification parameters]=NT=Oxidation;MT=Variable;TA=M;AC=UNIMOD:35
+comment[modification parameters]=
 
 # Note: If left blank, RunAssessor can provide defaults based on the instrument configuration, or you can override it
 # Documentation: https://github.com/bigbio/proteomics-sample-metadata/tree/master/sdrf-proteomics#1043-precursor-and-fragment-mass-tolerances
