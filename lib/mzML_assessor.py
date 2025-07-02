@@ -51,35 +51,42 @@ class MzMLAssessor:
 
 
     ####################################################################################################
+    #### Get empty stats
+    def get_empty_stats(self):
+        empty_stats = {
+                'n_spectra': 0,
+                'n_ms0_spectra': 0,
+                'n_ms1_spectra': 0,
+                'n_ms2_spectra': 0,
+                'n_ms3_spectra': 0,
+                'n_length_zero_spectra': 0,
+                'n_length_lt10_spectra': 0,
+                'n_HR_HCD_spectra': 0,
+                'n_LR_HCD_spectra': 0,
+                'n_HR_IT_CID_spectra': 0,
+                'n_LR_IT_CID_spectra': 0,
+                'n_HR_IT_ETD_spectra': 0,
+                'n_LR_IT_ETD_spectra': 0,
+                'n_HR_EThcD_spectra': 0,
+                'n_LR_EThcD_spectra': 0,
+                'n_HR_ETciD_spectra': 0,
+                'n_LR_ETciD_spectra': 0,
+                'n_HR_QTOF_spectra': 0,
+                'n_unknown_fragmentation_type_spectra': 0,
+                'high_accuracy_precursors': 'unknown',
+                'fragmentation_type': 'unknown',
+                'fragmentation_tag': 'unknown'
+            }
+        return empty_stats
+
+
+    ####################################################################################################
     #### Read spectra
     def read_spectra(self, write_fragmentation_type_file=None):
 
         #### Set up information
         t0 = timeit.default_timer()
-        stats = {
-            'n_spectra': 0,
-            'n_ms0_spectra': 0,
-            'n_ms1_spectra': 0,
-            'n_ms2_spectra': 0,
-            'n_ms3_spectra': 0,
-            'n_length_zero_spectra': 0,
-            'n_length_lt10_spectra': 0,
-            'n_HR_HCD_spectra': 0,
-            'n_LR_HCD_spectra': 0,
-            'n_HR_IT_CID_spectra': 0,
-            'n_LR_IT_CID_spectra': 0,
-            'n_HR_IT_ETD_spectra': 0,
-            'n_LR_IT_ETD_spectra': 0,
-            'n_HR_EThcD_spectra': 0,
-            'n_LR_EThcD_spectra': 0,
-            'n_HR_ETciD_spectra': 0,
-            'n_LR_ETciD_spectra': 0,
-            'n_HR_QTOF_spectra': 0,
-            'n_unknown_fragmentation_type_spectra': 0,
-            'high_accuracy_precursors': 'unknown',
-            'fragmentation_type': 'unknown',
-            'fragmentation_tag': 'unknown'
-        }
+        stats = self.get_empty_stats()
         self.metadata['files'][self.mzml_file]['spectra_stats'] = stats
 
         #### Store the fragmentation types in a list for storing in the fragmentation_type_file
@@ -125,15 +132,11 @@ class MzMLAssessor:
                     #### Look for a filter string and parse it
                     if 'filter string' in spectrum['scanList']['scan'][0]:
                         filter_string = spectrum['scanList']['scan'][0]['filter string']
-                        if filter_string is not None and filter_string != '':
-                            self.parse_filter_string(filter_string,stats)
-                        else:
+                        self.parse_filter_string(filter_string,stats)
+                        if filter_string is None or filter_string == '':
                             #### MSFragger generated mzML can have empty filter strings
                             self.log_event('WARNING','EmptyFilterLine',f"Filter line is present but empty. This can happen with MSFragger-written mzML. Not good.")
                             stats[f"n_ms{ms_level}_spectra"] += 1
-                            stats['high_accuracy_precursors'] = 'unknown'
-                            stats['fragmentation_type'] = 'unknown_fragmentation_type'
-                            stats['fragmentation_tag'] = 'unknown fragmentation type'
                             if ms_level > 1:
                                 stats['n_unknown_fragmentation_type_spectra'] += 1
 
@@ -297,6 +300,14 @@ class MzMLAssessor:
     ####################################################################################################
     #### Parse the filter string
     def parse_filter_string(self,filter_string,stats):
+        
+        # If the filter_string is None or empty, then update a few stats and return
+        if filter_string is None or filter_string == '':
+            stats['high_accuracy_precursors'] = 'unknown'
+            stats['fragmentation_type'] = 'unknown_fragmentation_type'
+            stats['fragmentation_tag'] = 'unknown fragmentation type'
+            return
+        
 
         fragmentation_tag = '??'
 
