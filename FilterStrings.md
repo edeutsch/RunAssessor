@@ -34,5 +34,5 @@ Plain low mass accuracy (ITMS) CID
 6   LR IT ETD       ITMS + c NSI r d sa Full ms2 470.93@etd33.33 [50.00-1425.00]
 7   LR HCD          ITMS + c NSI r d Full ms2 509.2148@hcd30.00 [110.0000-1029.0000]                * (HCD IT)
 8   HR ETciD        FTMS + c NSI d sa Full ms2 557.2769@etd116.52@cid30.00 [120.0000-1125.0000]     Have we observed this? Is it possible?
-9   LR ETciD        ITMS + c NSI r d sa Full ms2 984.7690@etd95.59@hcd25.00 [110.0000-1980.0000]    * (EThcD_IT) (ETcaD_IT)
+9   LR EThcD        ITMS + c NSI r d sa Full ms2 984.7690@etd95.59@hcd25.00 [110.0000-1980.0000]    * (EThcD_IT) (ETcaD_IT)
 10  HR EThcD        FTMS + p NSI d sa Full ms2 982.3831@etd95.59@hcd25.00 [110.0000-1975.0000]      * (EThcD OT)
