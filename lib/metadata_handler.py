@@ -5,6 +5,7 @@ import os
 import argparse
 import os.path
 import json
+import shutil
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 
@@ -151,11 +152,13 @@ class MetadataHandler:
         elif os.path.isfile(file):
             eprint(f"INFO: {file} found")
 
+        #### Loads Template as key-value pair file
         else:
             if self.verbose >= 1:
                 eprint(f"INFO: No study_metadata key-value hints file defined")
                 file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
                 eprint(f"INFO: Using Template key-value hints {file}")
+                self.copy_template()
 
         return file
 
@@ -254,8 +257,8 @@ class MetadataHandler:
             json.dump(self.metadata,outfile, sort_keys=True, indent=2)
 
 
-     ####################################################################################################
-    #### Infers the sdrf file name and returns it
+    ####################################################################################################
+    #### Infers the sdrf file name and returns it if possible
 
     def infer_sdrf_filename(self):
         filename = self.metadata_filepath
@@ -283,6 +286,17 @@ class MetadataHandler:
             print("\t".join(self.sdrf_table_column_titles), file=outfile)
             for row in self.sdrf_table_rows:
                 print("\t".join(row), file=outfile)
+
+    ####################################################################################################
+    #### Creates a study_metadata_template.txt in the directory the user is in
+    def copy_template(self):
+        eprint("INFO: Creating a study_metadata_template.txt in users directory")
+        file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
+        destination_file = os.getcwd() + "/study_metadata.txt"
+        shutil.copy2(file, destination_file)
+        if self.verbose >= 1:
+            eprint("INFO: study_metadata_template.txt copied over as study_metadata.txt")
+
 
     ####################################################################################################
     #### Infer search criteria based on available information
