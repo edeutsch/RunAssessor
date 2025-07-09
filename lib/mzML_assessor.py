@@ -45,6 +45,9 @@ class MzMLAssessor:
         #### Create a storage area for referenceable param groups, which are not really handled by pyteomics
         self.referenceable_param_group_list = {}
 
+        #### Create a dictionary to hold 3sigma values to find tolerance
+        self.all_3sigma_values_away = {}
+
         #### Set verbosity
         if verbose is None: verbose = 0
         self.verbose = verbose
@@ -351,7 +354,7 @@ class MzMLAssessor:
             self.log_event('ERROR','UnrecognizedFragmentation',f"Unrecognized string after @ in filter string '{filter_string}'")
             return
 
-        #### If this is an MS1 scan, learn what we can from it
+        #### If this is an MS0 scan, document the error and stop analyzing the spectra
         if ms_level == 0:
             if 'n_ms0_spectra' not in stats:
                 stats['n_ms0_spectra'] = 0
@@ -748,6 +751,9 @@ class MzMLAssessor:
         #    spec = pickle.load(infile)
         spec = self.composite
 
+        ###Dictionary to hold upper and lower sigma_ppm relative to theoretical value
+        self.all_3sigma_values_away = {"upper": 0, "lower": 999999}
+
         supported_composite_type_list = [ 'lowend_HR_HCD', 'lowend_LR_IT_CID' ]
 
         composite_type = None
@@ -807,9 +813,40 @@ class MzMLAssessor:
             #### Look for the largest peak
             peak = self.find_peak(spec,ROIs,ROI,composite_type)
             ROIs[ROI]['peak'] = peak
-            #print(peak)
 
+            try:
+                ### Finds the number of standard deviations away the peak is from the theoretical mz value
+                sigma_away_from_theoretcial = (ROIs[ROI]['peak']['fit']["delta_ppm"])/(ROIs[ROI]['peak']['fit']["sigma_ppm"])
+
+                ### Maximum Mass Deviation Score 
+                tolerance = (abs(ROIs[ROI]["mz"]-ROIs[ROI]['peak']['fit']["mz"]))/ROIs[ROI]["mz"] * 10**6
+                
+                ### Assigning the information in the dictionary
+                ROIs[ROI]['peak']['extended']['MMD'] = tolerance
+                ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretcial
+                
+            except:
+                pass
+
+            #If a 3 standard deviation is availible from the guassian curve, check to see if its distance is a max or min in the whole spectra set
+            try:
+                if peak['extended']['Theoretical peak distance from 3sigma_ppm-upper'] > self.all_3sigma_values_away['upper'] and peak['extended']['3sigma_ppm-upper'] < 230:
+                        self.all_3sigma_values_away['upper'] = peak['extended']['Theoretical peak distance from 3sigma_ppm-upper']
+
+                if peak['extended']['Theoretical peak distance from 3sigma_ppm-upper'] < self.all_3sigma_values_away['lower']:
+                        self.all_3sigma_values_away['lower'] = peak['extended']['Theoretical peak distance from 3sigma_ppm-upper']
+
+                if peak['extended']['Theoretical peak distance from 3sigma_ppm-lower'] < self.all_3sigma_values_away['lower']:
+                    self.all_3sigma_values_away['lower'] = peak['extended']['Theoretical peak distance from 3sigma_ppm-lower']
+
+                if peak['extended']['Theoretical peak distance from 3sigma_ppm-lower'] > self.all_3sigma_values_away['upper']:
+                    self.all_3sigma_values_away['upper'] = peak['extended']['Theoretical peak distance from 3sigma_ppm-lower']
+                
+            except:
+                pass
+            
         self.metadata['files'][self.mzml_file]['ROIs'] = ROIs
+        
 
 
     ####################################################################################################
@@ -874,7 +911,19 @@ class MzMLAssessor:
             try:
             #if 1:
                 popt,pcov = curve_fit(gaussian_function,x,y,p0=[y[center],x[center],binsize])
-                peak['fit'] = { 'mz': popt[1], 'intensity': popt[0], 'sigma': popt[2], 'delta_mz': popt[1]-ROIs[ROI]['mz'], 'delta_ppm': (popt[1]-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6 }
+                sigma_ppm = popt[2]/ROIs[ROI]['mz']*1e6
+                theoretical_peak_ppm = (ROIs[ROI]['mz']-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6
+                
+                peak['fit'] = { 'mz': popt[1], 'intensity': popt[0], 'sigma_mz': popt[2], 'delta_mz': popt[1]-ROIs[ROI]['mz'], 'delta_ppm': (popt[1]-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6, 'sigma_ppm': sigma_ppm}
+                peak['extended']['3sigma_ppm-lower'] = peak['fit']['delta_ppm']-sigma_ppm*3
+                peak['extended']['3sigma_ppm-upper'] = peak['fit']['delta_ppm']+3*sigma_ppm
+
+                lower_distance = peak['extended']['3sigma_ppm-lower'] - theoretical_peak_ppm
+                upper_distance = peak['extended']['3sigma_ppm-upper'] -theoretical_peak_ppm
+
+                peak['extended']['Theoretical peak distance from 3sigma_ppm-lower'] = lower_distance
+                peak['extended']['Theoretical peak distance from 3sigma_ppm-upper'] = upper_distance
+
                 peak['assessment'] = { 'is_found': True, 'fraction': 0.0, 'comment': 'Peak found and fit' }
             except:
             #else:
@@ -909,6 +958,15 @@ class MzMLAssessor:
         #### Determine the fragmentation_type
         results['fragmentation_type'] = self.metadata['files'][self.mzml_file]['spectra_stats']['fragmentation_type']
         self.metadata['files'][self.mzml_file]['summary'] = results
+        self.metadata['files'][self.mzml_file]['summary'].setdefault('tolerance', {})
+
+        #### If standard deviations have been found, find the difference between them, if none have been found, mention it
+        if (self.all_3sigma_values_away['lower'] != 999999 or self.all_3sigma_values_away['upper'] != 0):
+            self.metadata['files'][self.mzml_file]['summary']['tolerance']['largest distance from theoretical peak (ppm) to 3sigma_ppm-lower'] = self.all_3sigma_values_away['lower']
+            self.metadata['files'][self.mzml_file]['summary']['tolerance']['largest distance from theoretical peak (ppm) to 3sigma_ppm-upper'] = self.all_3sigma_values_away['upper']
+            self.metadata['files'][self.mzml_file]['summary']['tolerance']['difference'] = self.all_3sigma_values_away['upper']-self.all_3sigma_values_away['lower']
+        else:
+            self.metadata['files'][self.mzml_file]['summary']['tolerance'] = 'No sigma values recorded'
 
         #### If no ROIs were computed, cannot continue
         if 'ROIs' not in self.metadata['files'][self.mzml_file]:

@@ -48,8 +48,9 @@ def main():
     #### Set verbose level
     verbose = params.verbose
     if verbose is None:
+        verbose = 0
+    else:
         verbose = 1
-
     if verbose >= 1:
         timestamp = str(datetime.now().isoformat())
         eprint(f"INFO: Launching RunAssessor at {timestamp}")
