@@ -59,7 +59,7 @@ def main():
     n_files = 0
     for file in params.files:
         if not os.path.isfile(file):
-            print(f"ERROR: File '{file}' not found or not a file")
+            eprint(f"ERROR: File '{file}' not found or not a file")
             return
         n_files += 1
     if verbose:
@@ -74,7 +74,7 @@ def main():
     else:
         result = study.create()
     if result is None or result != 'OK':
-        print(f"ERROR: Unable to initialize study metadata information. Halting.")
+        eprint(f"ERROR: Unable to initialize study metadata information. Halting.")
         return
 
     #### Set up the list of jobs to process
