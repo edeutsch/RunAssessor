@@ -822,7 +822,7 @@ class MzMLAssessor:
                 tolerance = (abs(ROIs[ROI]["mz"]-ROIs[ROI]['peak']['fit']["mz"]))/ROIs[ROI]["mz"] * 10**6
                 
                 ### Assigning the information in the dictionary
-                ROIs[ROI]['peak']['extended']['MMD'] = tolerance
+                ROIs[ROI]['peak']['extended']['Maximum Mass Distribution'] = tolerance
                 ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretcial
                 
             except:
@@ -899,7 +899,7 @@ class MzMLAssessor:
                 done = 1
             iextent += 1
 
-        if peak['extended']['n_spectra'] > 100:
+        if peak['extended']['n_spectra'] > 100 and peak['extended']['n_spectra'] >= self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra'] * 0.1:
             extent = peak['extended']['extent'] * 2
             x = spec[composite_type]['mz'][ibin-extent:ibin+extent]
             y = spec[composite_type]['intensities'][ibin-extent:ibin+extent]
@@ -962,9 +962,9 @@ class MzMLAssessor:
 
         #### If standard deviations have been found, find the difference between them, if none have been found, mention it
         if (self.all_3sigma_values_away['lower'] != 999999 or self.all_3sigma_values_away['upper'] != 0):
-            self.metadata['files'][self.mzml_file]['summary']['tolerance']['largest distance from theoretical peak (ppm) to 3sigma_ppm-lower'] = self.all_3sigma_values_away['lower']
-            self.metadata['files'][self.mzml_file]['summary']['tolerance']['largest distance from theoretical peak (ppm) to 3sigma_ppm-upper'] = self.all_3sigma_values_away['upper']
-            self.metadata['files'][self.mzml_file]['summary']['tolerance']['difference'] = self.all_3sigma_values_away['upper']-self.all_3sigma_values_away['lower']
+            self.metadata['files'][self.mzml_file]['summary']['tolerance']['fragment_tolerance_ppm_lower'] = self.all_3sigma_values_away['lower']
+            self.metadata['files'][self.mzml_file]['summary']['tolerance']['fragment_tolerance_ppm_upper'] = self.all_3sigma_values_away['upper']
+        
         else:
             self.metadata['files'][self.mzml_file]['summary']['tolerance'] = 'No sigma values recorded'
 
