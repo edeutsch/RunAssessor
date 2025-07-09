@@ -1,0 +1,5 @@
+__pycache__/
+.pytest_cache/
+study_metadata.json
+study_metadata.sdrf.tsv
+tests/data/study_metadata.txt

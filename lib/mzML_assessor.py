@@ -275,7 +275,9 @@ class MzMLAssessor:
 
         #### Print final timing information
         t1 = timeit.default_timer()
-        print(f"\nINFO: Read {stats['n_spectra']} spectra from {self.mzml_file} in {t1-t0:.2f} sec ({stats['n_spectra']/(t1-t0):.2f} spectra per sec)", end='', flush=True)
+        eprint(f"\nINFO: Read {stats['n_spectra']} spectra from {self.mzml_file} in {t1-t0:.2f} sec ({stats['n_spectra']/(t1-t0):.2f} spectra per sec)", end='', flush=True)
+
+        return stats
 
 
     ####################################################################################################
@@ -742,6 +744,7 @@ class MzMLAssessor:
                 value = subelement.get('value')
                 self.referenceable_param_group_list[group_id][name] = value
 
+        return model_data
 
 
     ####################################################################################################
@@ -848,6 +851,8 @@ class MzMLAssessor:
         self.metadata['files'][self.mzml_file]['ROIs'] = ROIs
         
 
+        return ROIs
+    
 
     ####################################################################################################
     #### Peak finding routine
@@ -1061,7 +1066,7 @@ def main():
     #### Loop over all the files to ensure that they are really there before starting work
     for file in params.files:
         if not os.path.isfile(file):
-            print(f"ERROR: File '{file}' not found or not a file")
+            eprint(f"ERROR: File '{file}' not found or not a file")
             return
 
     #### Load the current metadata file in order to update it
