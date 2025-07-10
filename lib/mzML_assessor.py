@@ -754,6 +754,9 @@ class MzMLAssessor:
         #    spec = pickle.load(infile)
         spec = self.composite
 
+        ### File path for table including additional peaks
+        additionalPeaks = os.path.dirname(os.path.abspath(__file__)) + "/Additional_Peaks.tsv"
+
         ###Dictionary to hold upper and lower sigma_ppm relative to theoretical value
         self.all_3sigma_values_away = {"Status": False,"upper": None, "lower": None}
 
@@ -793,17 +796,40 @@ class MzMLAssessor:
             'iTRAQ8_121': { 'type': 'iTRAQ8', 'mz': 121.121524, 'initial_window': 0.01 },
             'iTRAQ8_113': { 'type': 'iTRAQ8', 'mz': 113.107325, 'initial_window': 0.01 },
         }
-
+        
+        #Read additional peaks into ROI dictionary 
+        # 0: mean monoisotopic m/z       
+        # 1: average intensity           
+        # 2: # MS runs                  
+        # 3: percentage of spectra       
+        # 4: theoretical m/z             
+        # 5: delta PPM                  
+        # 6: primary identification      
+        # 7: other identifications    
+        with open(additionalPeaks, "r") as f:
+            next(f)
+            for line in f:
+                parts = line.strip().split("\t")
+                if float(parts[4]) > 100:
+                    ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 0.01}
+        
         #### What should we look at for ion trap data?
         if composite_type == 'lowend_LR_IT_CID':
             ROIs = {
                 'TMT6plex': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 1.0 },
                 'TMT6_y1K': { 'type': 'TMT', 'mz': 376.2757, 'initial_window': 1.0 },
-                'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 0.01 },
-                'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 0.01 },
+                'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 1.0 },
+                'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 1.0 },
                 'iTRAQ4_y1K': { 'type': 'iTRAQ4', 'mz': 376.2757, 'initial_window': 1.0 },
                 'iTRAQ8_y1K': { 'type': 'iTRAQ8', 'mz': 451.3118, 'initial_window': 1.0 },
             }
+            with open(additionalPeaks, "r") as f:
+                next(f)
+                for line in f:
+                    parts = line.strip().split("\t")
+                    if float(parts[4]) > 200:
+                        ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 1.0}
+            
 
 
         for ROI in ROIs:
@@ -821,11 +847,9 @@ class MzMLAssessor:
                 ### Finds the number of standard deviations away the peak is from the theoretical mz value
                 sigma_away_from_theoretcial = (ROIs[ROI]['peak']['fit']["delta_ppm"])/(ROIs[ROI]['peak']['fit']["sigma_ppm"])
 
-                ### Maximum Mass Deviation Score 
-                tolerance = (abs(ROIs[ROI]["mz"]-ROIs[ROI]['peak']['fit']["mz"]))/ROIs[ROI]["mz"] * 10**6
-                
+
                 ### Assigning the information in the dictionary
-                ROIs[ROI]['peak']['extended']['Maximum Mass Distribution'] = tolerance
+
                 ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretcial
                 
             except:
@@ -833,22 +857,24 @@ class MzMLAssessor:
 
             #If a 3 standard deviation is availible from the guassian curve, check to see if its distance is a max or min in the whole spectra set
             try:
-                if self.all_3sigma_values_away['upper'] == None or peak['extended']['Theoretical peak distance from 3sigma_ppm-upper'] > self.all_3sigma_values_away['upper']:
-                        self.all_3sigma_values_away['upper'] = peak['extended']['Theoretical peak distance from 3sigma_ppm-upper']
+                if self.all_3sigma_values_away['upper'] == None or peak['extended']['three_sigma_ppm_upper'] > self.all_3sigma_values_away['upper']:
+                        self.all_3sigma_values_away['upper'] = peak['extended']['three_sigma_ppm_upper']
 
-                if self.all_3sigma_values_away['lower'] == None or peak['extended']['Theoretical peak distance from 3sigma_ppm-upper'] < self.all_3sigma_values_away['lower']:
-                        self.all_3sigma_values_away['lower'] = peak['extended']['Theoretical peak distance from 3sigma_ppm-upper']
+                if self.all_3sigma_values_away['lower'] == None or peak['extended']['three_sigma_ppm_upper'] < self.all_3sigma_values_away['lower']:
+                        self.all_3sigma_values_away['lower'] = peak['extended']['three_sigma_ppm_upper']
 
-                if self.all_3sigma_values_away['lower'] == None or peak['extended']['Theoretical peak distance from 3sigma_ppm-lower'] < self.all_3sigma_values_away['lower']:
-                    self.all_3sigma_values_away['lower'] = peak['extended']['Theoretical peak distance from 3sigma_ppm-lower']
+                if self.all_3sigma_values_away['lower'] == None or peak['extended']['three_sigma_ppm_lower'] < self.all_3sigma_values_away['lower']:
+                    self.all_3sigma_values_away['lower'] = peak['extended']['three_sigma_ppm_lower']
 
-                if self.all_3sigma_values_away['upper'] == None or peak['extended']['Theoretical peak distance from 3sigma_ppm-lower'] > self.all_3sigma_values_away['upper']:
-                    self.all_3sigma_values_away['upper'] = peak['extended']['Theoretical peak distance from 3sigma_ppm-lower']
+                if self.all_3sigma_values_away['upper'] == None or peak['extended']['three_sigma_ppm_lower'] > self.all_3sigma_values_away['upper']:
+                    self.all_3sigma_values_away['upper'] = peak['extended']['three_sigma_ppm_lower']
                 self.all_3sigma_values_away['Status'] = True
+
+                
                 
             except:
                 pass
-            
+
         self.metadata['files'][self.mzml_file]['ROIs'] = ROIs
         
 
@@ -918,18 +944,12 @@ class MzMLAssessor:
             #if 1:
                 popt,pcov = curve_fit(gaussian_function,x,y,p0=[y[center],x[center],binsize])
                 sigma_ppm = popt[2]/ROIs[ROI]['mz']*1e6
-                theoretical_peak_ppm = (ROIs[ROI]['mz']-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6
                 
                 peak['fit'] = { 'mz': popt[1], 'intensity': popt[0], 'sigma_mz': popt[2], 'delta_mz': popt[1]-ROIs[ROI]['mz'], 'delta_ppm': (popt[1]-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6, 'sigma_ppm': sigma_ppm}
-                peak['extended']['3sigma_ppm-lower'] = peak['fit']['delta_ppm']-sigma_ppm*3
-                peak['extended']['3sigma_ppm-upper'] = peak['fit']['delta_ppm']+3*sigma_ppm
+                peak['extended']['three_sigma_ppm_lower'] = peak['fit']['delta_ppm']-sigma_ppm*3
+                peak['extended']['three_sigma_ppm_upper'] = peak['fit']['delta_ppm']+3*sigma_ppm
 
-                lower_distance = peak['extended']['3sigma_ppm-lower'] - theoretical_peak_ppm
-                upper_distance = peak['extended']['3sigma_ppm-upper'] -theoretical_peak_ppm
-
-                peak['extended']['Theoretical peak distance from 3sigma_ppm-lower'] = lower_distance
-                peak['extended']['Theoretical peak distance from 3sigma_ppm-upper'] = upper_distance
-
+                
                 peak['assessment'] = { 'is_found': True, 'fraction': 0.0, 'comment': 'Peak found and fit' }
             except:
             #else:
@@ -951,7 +971,7 @@ class MzMLAssessor:
     ####################################################################################################
     #### Assess Regions of Interest to make calls
     def assess_ROIs(self):
-        results = { 'labeling': { 'scores': { 'TMT': 0, 'TMT6': 0, 'TMT10': 0, 'TMTpro': 0, 'iTRAQ': 0, 'iTRAQ4': 0, 'iTRAQ8': 0 } } }
+        results = { 'labeling': { 'scores': { 'TMT': 0, 'TMT6': 0, 'TMT10': 0, 'TMTpro': 0, 'iTRAQ': 0, 'iTRAQ4': 0, 'iTRAQ8': 0} } }
 
         #### Determine what the denominator of MS2 spectra should be
         n_ms2_spectra = self.metadata['files'][self.mzml_file]['spectra_stats']['n_ms2_spectra']
@@ -984,7 +1004,10 @@ class MzMLAssessor:
                 type = ROIobj['type']
                 n_spectra = ROIobj['peak']['extended']['n_spectra']
                 ROIobj['peak']['assessment']['fraction'] = n_spectra / n_ms2_spectra
-                results['labeling']['scores'][type] += ROIobj['peak']['assessment']['fraction']
+                try:
+                    results['labeling']['scores'][type] += ROIobj['peak']['assessment']['fraction']
+                except:
+                    pass
 
         #### Make the call for TMT or iTRAQ
         if results['labeling']['scores']['TMT'] > results['labeling']['scores']['iTRAQ']:

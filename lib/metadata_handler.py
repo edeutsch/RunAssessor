@@ -6,6 +6,7 @@ import argparse
 import os.path
 import json
 import shutil
+import pandas as pd
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 
@@ -40,6 +41,10 @@ class MetadataHandler:
         self.sdrf_table_column_titles = []
         self.sdrf_table_rows = []
         self.metadata = {}
+
+        #### Creates a dictionary to store sigma values for all ions in each file
+        self.ion_three_sigma_table = {}
+        
 
         #### Check if a verbose was provided and if not, set to default
         if verbose is None:
@@ -430,6 +435,37 @@ class MetadataHandler:
             else:
                 criteria['tolerance'] = fileinfo['summary']['tolerance']
 
+            #### Add info to ion data
+            
+            for ions in fileinfo['ROIs']:
+                if fileinfo['ROIs'][ions]['type'] == "fragment_ion":
+                    try:
+                        if file not in self.ion_three_sigma_table:
+                            self.ion_three_sigma_table[file] = []
+
+                        self.ion_three_sigma_table[file].append({
+                            "ion": ions,
+                            "three_sigma_lower": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_lower"],
+                            "three_sigma_upper": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_upper"]
+                        })              
+                    except:
+                        pass
+        #### write into a table
+        rows = []
+
+        for file, ions_list in self.ion_three_sigma_table.items():
+            for ion_info in ions_list:
+                rows.append({
+                    "file": file,
+                    "ion type": ion_info["ion"],
+                    "three_sigma_ppm_lower": ion_info["three_sigma_lower"],
+                    "three_sigma_ppm_upper": ion_info["three_sigma_upper"]
+                })
+
+        df = pd.DataFrame(rows)
+        df.to_csv("ion_three_sigma_table.tsv", sep="\t", index=False)
+
+            
     ####################################################################################################
     #### Generate SDRF table data
     def generate_sdrf_table(self):

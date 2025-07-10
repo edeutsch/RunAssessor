@@ -2,6 +2,193 @@
   "files": {
     "chlo_6_tiny.mzML.gz": {
       "ROIs": {
+        "IE": {
+          "initial_window": 0.01,
+          "mz": 102.05495,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "IF": {
+          "initial_window": 0.01,
+          "mz": 120.08078,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "IF+i": {
+          "initial_window": 0.01,
+          "mz": 121.08413,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "IH": {
+          "initial_window": 0.01,
+          "mz": 110.07127,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "IK": {
+          "initial_window": 0.01,
+          "mz": 101.10732,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "IM": {
+          "initial_window": 0.01,
+          "mz": 104.05285,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "IQ": {
+          "initial_window": 0.01,
+          "mz": 101.07094,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "IR-NH3": {
+          "initial_window": 0.01,
+          "mz": 112.08692,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "IW": {
+          "initial_window": 0.01,
+          "mz": 159.09167,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "IW-CH3N": {
+          "initial_window": 0.01,
+          "mz": 130.06513,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "IY": {
+          "initial_window": 0.01,
+          "mz": 136.07569,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
         "TMT6_126": {
           "initial_window": 0.01,
           "mz": 126.127725,
@@ -197,6 +384,397 @@
           },
           "type": "TMTpro"
         },
+        "a{AA}": {
+          "initial_window": 0.01,
+          "mz": 115.08659,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{AI}": {
+          "initial_window": 0.01,
+          "mz": 157.13354,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{AN}": {
+          "initial_window": 0.01,
+          "mz": 158.0924,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{AP}": {
+          "initial_window": 0.01,
+          "mz": 141.10224,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{AV}": {
+          "initial_window": 0.01,
+          "mz": 143.11789,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{DI}": {
+          "initial_window": 0.01,
+          "mz": 201.12337,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{DP}": {
+          "initial_window": 0.01,
+          "mz": 185.09207,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{EI}": {
+          "initial_window": 0.01,
+          "mz": 215.13902,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{GP}": {
+          "initial_window": 0.01,
+          "mz": 127.08659,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{II}": {
+          "initial_window": 0.01,
+          "mz": 199.18049,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{IP}": {
+          "initial_window": 0.01,
+          "mz": 183.14919,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{IS}": {
+          "initial_window": 0.01,
+          "mz": 173.12845,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{IT}": {
+          "initial_window": 0.01,
+          "mz": 187.1441,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{IV}": {
+          "initial_window": 0.01,
+          "mz": 185.16484,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{PV}": {
+          "initial_window": 0.01,
+          "mz": 169.13354,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "b{AI}": {
+          "initial_window": 0.01,
+          "mz": 185.12845,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "b{AK}-NH3": {
+          "initial_window": 0.01,
+          "mz": 183.1128,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "b{AP}": {
+          "initial_window": 0.01,
+          "mz": 169.09715,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "b{AV}": {
+          "initial_window": 0.01,
+          "mz": 171.1128,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "b{GP}": {
+          "initial_window": 0.01,
+          "mz": 155.0815,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "b{K}": {
+          "initial_window": 0.01,
+          "mz": 129.10224,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "b{PV}": {
+          "initial_window": 0.01,
+          "mz": 197.12845,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "b{Q}": {
+          "initial_window": 0.01,
+          "mz": 129.06585,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
         "iTRAQ4_nterm": {
           "initial_window": 0.01,
           "mz": 145.109,
@@ -349,6 +927,74 @@
             }
           },
           "type": "iTRAQ"
+        },
+        "y{AP}": {
+          "initial_window": 0.01,
+          "mz": 187.10772,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "y{K}": {
+          "initial_window": 0.01,
+          "mz": 147.1128,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "y{K}-NH3": {
+          "initial_window": 0.01,
+          "mz": 130.08626,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "y{R}": {
+          "initial_window": 0.01,
+          "mz": 175.11895,
+          "peak": {
+            "assessment": {
+              "fraction": 0.0,
+              "is_found": false
+            },
+            "mode_bin": {
+              "ibin": 0,
+              "intensity": 0,
+              "mz": 0,
+              "n_spectra": 0
+            }
+          },
+          "type": "fragment_ion"
         }
       },
       "instrument_model": {
