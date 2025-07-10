@@ -433,8 +433,7 @@ class MetadataHandler:
                 criteria['tolerance']['fragment_tolerance_ppm_lower'] = all_3sigma_values_away['Lowest']
                 criteria['tolerance']['fragment_tolerance_ppm_upper'] = all_3sigma_values_away['Highest']
             else:
-                criteria['tolerance'] = fileinfo['summary']['tolerance']
-
+                criteria['tolerance'] = "No sigma values recorded"
             #### Add info to ion data
             
             for ions in fileinfo['ROIs']:
