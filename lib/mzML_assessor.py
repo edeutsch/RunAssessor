@@ -755,7 +755,7 @@ class MzMLAssessor:
         spec = self.composite
 
         ###Dictionary to hold upper and lower sigma_ppm relative to theoretical value
-        self.all_3sigma_values_away = {"upper": 0, "lower": 999999}
+        self.all_3sigma_values_away = {"Status": False,"upper": None, "lower": None}
 
         supported_composite_type_list = [ 'lowend_HR_HCD', 'lowend_LR_IT_CID' ]
 
@@ -833,17 +833,18 @@ class MzMLAssessor:
 
             #If a 3 standard deviation is availible from the guassian curve, check to see if its distance is a max or min in the whole spectra set
             try:
-                if peak['extended']['Theoretical peak distance from 3sigma_ppm-upper'] > self.all_3sigma_values_away['upper'] and peak['extended']['3sigma_ppm-upper'] < 230:
+                if self.all_3sigma_values_away['upper'] == None or peak['extended']['Theoretical peak distance from 3sigma_ppm-upper'] > self.all_3sigma_values_away['upper']:
                         self.all_3sigma_values_away['upper'] = peak['extended']['Theoretical peak distance from 3sigma_ppm-upper']
 
-                if peak['extended']['Theoretical peak distance from 3sigma_ppm-upper'] < self.all_3sigma_values_away['lower']:
+                if self.all_3sigma_values_away['lower'] == None or peak['extended']['Theoretical peak distance from 3sigma_ppm-upper'] < self.all_3sigma_values_away['lower']:
                         self.all_3sigma_values_away['lower'] = peak['extended']['Theoretical peak distance from 3sigma_ppm-upper']
 
-                if peak['extended']['Theoretical peak distance from 3sigma_ppm-lower'] < self.all_3sigma_values_away['lower']:
+                if self.all_3sigma_values_away['lower'] == None or peak['extended']['Theoretical peak distance from 3sigma_ppm-lower'] < self.all_3sigma_values_away['lower']:
                     self.all_3sigma_values_away['lower'] = peak['extended']['Theoretical peak distance from 3sigma_ppm-lower']
 
-                if peak['extended']['Theoretical peak distance from 3sigma_ppm-lower'] > self.all_3sigma_values_away['upper']:
+                if self.all_3sigma_values_away['upper'] == None or peak['extended']['Theoretical peak distance from 3sigma_ppm-lower'] > self.all_3sigma_values_away['upper']:
                     self.all_3sigma_values_away['upper'] = peak['extended']['Theoretical peak distance from 3sigma_ppm-lower']
+                self.all_3sigma_values_away['Status'] = True
                 
             except:
                 pass
@@ -966,7 +967,7 @@ class MzMLAssessor:
         self.metadata['files'][self.mzml_file]['summary'].setdefault('tolerance', {})
 
         #### If standard deviations have been found, find the difference between them, if none have been found, mention it
-        if (self.all_3sigma_values_away['lower'] != 999999 or self.all_3sigma_values_away['upper'] != 0):
+        if (self.all_3sigma_values_away['Status']):
             self.metadata['files'][self.mzml_file]['summary']['tolerance']['fragment_tolerance_ppm_lower'] = self.all_3sigma_values_away['lower']
             self.metadata['files'][self.mzml_file]['summary']['tolerance']['fragment_tolerance_ppm_upper'] = self.all_3sigma_values_away['upper']
         

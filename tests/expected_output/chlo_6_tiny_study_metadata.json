@@ -400,7 +400,8 @@
             "iTRAQ4": 0,
             "iTRAQ8": 0
           }
-        }
+        },
+        "tolerance": "No sigma values recorded"
       }
     }
   },
@@ -429,7 +430,8 @@
       "HR_HCD": 1
     },
     "high_accuracy_precursors": "true",
-    "labeling": "none"
+    "labeling": "none",
+    "tolerance": "No sigma values recorded"
   },
   "spectra_stats": {
     "n_HR_ETciD_spectra": 0,

@@ -321,8 +321,7 @@ class MetadataHandler:
                 criteria['fragmentation_types'][fragmentation_type] = 0
 
         ### Creates a variable to store 3sigma values across all values
-        all_3sigma_values_away = {"Highest": 0, "Lowest":999999}
-
+        all_3sigma_values_away = {"Status":False, "Highest": None, "Lowest":None}
         #### Loop over all the files and decide on search criteria
         for file in self.metadata['files']:
             fileinfo = self.metadata['files'][file]
@@ -412,19 +411,24 @@ class MetadataHandler:
                         spectra_stats[key] += value
 
             #### Colect sigma values
-            if fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower'] < all_3sigma_values_away['Lowest']:
-                all_3sigma_values_away['Lowest'] = fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower']
+            try:
+                if all_3sigma_values_away['Lowest'] == None or fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower'] < all_3sigma_values_away['Lowest']:
+                    all_3sigma_values_away['Lowest'] = fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower']
 
-            if fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper'] > all_3sigma_values_away['Highest']:
-                all_3sigma_values_away['Highest'] = fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper']
-            
+                if all_3sigma_values_away['Highest'] == None or fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper'] > all_3sigma_values_away['Highest']:
+                    all_3sigma_values_away['Highest'] = fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper']
+                all_3sigma_values_away['Status'] = True
+                
+            except:
+                pass
             #### If standard deviations have been found, set them in the file
             criteria.setdefault('tolerance', {})
         
-            if (all_3sigma_values_away['Lowest'] != 999999 or all_3sigma_values_away['Highest'] != 0):
+            if (all_3sigma_values_away['Status']):
                 criteria['tolerance']['fragment_tolerance_ppm_lower'] = all_3sigma_values_away['Lowest']
                 criteria['tolerance']['fragment_tolerance_ppm_upper'] = all_3sigma_values_away['Highest']
-            
+            else:
+                criteria['tolerance'] = fileinfo['summary']['tolerance']
 
     ####################################################################################################
     #### Generate SDRF table data

@@ -48,7 +48,7 @@ def main():
     #### Set verbose level
     verbose = params.verbose
     if verbose is None:
-        verbose = 0
+        verbose = 1
     else:
         verbose = 1
     if verbose >= 1:
