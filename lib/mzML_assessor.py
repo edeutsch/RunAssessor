@@ -45,6 +45,9 @@ class MzMLAssessor:
         #### Create a storage area for referenceable param groups, which are not really handled by pyteomics
         self.referenceable_param_group_list = {}
 
+        #### Create a dictionary to hold 3sigma values to find tolerance
+        self.all_3sigma_values_away = {}
+
         #### Set verbosity
         if verbose is None: verbose = 0
         self.verbose = verbose
@@ -353,7 +356,7 @@ class MzMLAssessor:
             self.log_event('ERROR','UnrecognizedFragmentation',f"Unrecognized string after @ in filter string '{filter_string}'")
             return
 
-        #### If this is an MS1 scan, learn what we can from it
+        #### If this is an MS0 scan, document the error and stop analyzing the spectra
         if ms_level == 0:
             if 'n_ms0_spectra' not in stats:
                 stats['n_ms0_spectra'] = 0
@@ -751,6 +754,12 @@ class MzMLAssessor:
         #    spec = pickle.load(infile)
         spec = self.composite
 
+        ### File path for table including additional peaks
+        additionalPeaks = os.path.dirname(os.path.abspath(__file__)) + "/Additional_Peaks.tsv"
+
+        ###Dictionary to hold upper and lower sigma_ppm relative to theoretical value
+        self.all_3sigma_values_away = {"Status": False,"upper": None, "lower": None}
+
         supported_composite_type_list = [ 'lowend_HR_HCD', 'lowend_LR_IT_CID' ]
 
         composite_type = None
@@ -787,17 +796,40 @@ class MzMLAssessor:
             'iTRAQ8_121': { 'type': 'iTRAQ8', 'mz': 121.121524, 'initial_window': 0.01 },
             'iTRAQ8_113': { 'type': 'iTRAQ8', 'mz': 113.107325, 'initial_window': 0.01 },
         }
-
+        
+        #Read additional peaks into ROI dictionary 
+        # 0: mean monoisotopic m/z       
+        # 1: average intensity           
+        # 2: # MS runs                  
+        # 3: percentage of spectra       
+        # 4: theoretical m/z             
+        # 5: delta PPM                  
+        # 6: primary identification      
+        # 7: other identifications    
+        with open(additionalPeaks, "r") as f:
+            next(f)
+            for line in f:
+                parts = line.strip().split("\t")
+                if float(parts[4]) > 100:
+                    ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 0.01}
+        
         #### What should we look at for ion trap data?
         if composite_type == 'lowend_LR_IT_CID':
             ROIs = {
                 'TMT6plex': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 1.0 },
                 'TMT6_y1K': { 'type': 'TMT', 'mz': 376.2757, 'initial_window': 1.0 },
-                'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 0.01 },
-                'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 0.01 },
+                'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 1.0 },
+                'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 1.0 },
                 'iTRAQ4_y1K': { 'type': 'iTRAQ4', 'mz': 376.2757, 'initial_window': 1.0 },
                 'iTRAQ8_y1K': { 'type': 'iTRAQ8', 'mz': 451.3118, 'initial_window': 1.0 },
             }
+            with open(additionalPeaks, "r") as f:
+                next(f)
+                for line in f:
+                    parts = line.strip().split("\t")
+                    if float(parts[4]) > 200:
+                        ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 1.0}
+            
 
 
         for ROI in ROIs:
@@ -810,9 +842,41 @@ class MzMLAssessor:
             #### Look for the largest peak
             peak = self.find_peak(spec,ROIs,ROI,composite_type)
             ROIs[ROI]['peak'] = peak
-            #print(peak)
+
+            try:
+                ### Finds the number of standard deviations away the peak is from the theoretical mz value
+                sigma_away_from_theoretcial = (ROIs[ROI]['peak']['fit']["delta_ppm"])/(ROIs[ROI]['peak']['fit']["sigma_ppm"])
+
+
+                ### Assigning the information in the dictionary
+
+                ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretcial
+                
+            except:
+                pass
+
+            #If a 3 standard deviation is availible from the guassian curve, check to see if its distance is a max or min in the whole spectra set
+            try:
+                if self.all_3sigma_values_away['upper'] == None or peak['extended']['three_sigma_ppm_upper'] > self.all_3sigma_values_away['upper']:
+                        self.all_3sigma_values_away['upper'] = peak['extended']['three_sigma_ppm_upper']
+
+                if self.all_3sigma_values_away['lower'] == None or peak['extended']['three_sigma_ppm_upper'] < self.all_3sigma_values_away['lower']:
+                        self.all_3sigma_values_away['lower'] = peak['extended']['three_sigma_ppm_upper']
+
+                if self.all_3sigma_values_away['lower'] == None or peak['extended']['three_sigma_ppm_lower'] < self.all_3sigma_values_away['lower']:
+                    self.all_3sigma_values_away['lower'] = peak['extended']['three_sigma_ppm_lower']
+
+                if self.all_3sigma_values_away['upper'] == None or peak['extended']['three_sigma_ppm_lower'] > self.all_3sigma_values_away['upper']:
+                    self.all_3sigma_values_away['upper'] = peak['extended']['three_sigma_ppm_lower']
+                self.all_3sigma_values_away['Status'] = True
+
+                
+                
+            except:
+                pass
 
         self.metadata['files'][self.mzml_file]['ROIs'] = ROIs
+        
 
         return ROIs
     
@@ -867,7 +931,7 @@ class MzMLAssessor:
                 done = 1
             iextent += 1
 
-        if peak['extended']['n_spectra'] > 100:
+        if peak['extended']['n_spectra'] > 100 and peak['extended']['n_spectra'] >= self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra'] * 0.1:
             extent = peak['extended']['extent'] * 2
             x = spec[composite_type]['mz'][ibin-extent:ibin+extent]
             y = spec[composite_type]['intensities'][ibin-extent:ibin+extent]
@@ -879,7 +943,13 @@ class MzMLAssessor:
             try:
             #if 1:
                 popt,pcov = curve_fit(gaussian_function,x,y,p0=[y[center],x[center],binsize])
-                peak['fit'] = { 'mz': popt[1], 'intensity': popt[0], 'sigma': popt[2], 'delta_mz': popt[1]-ROIs[ROI]['mz'], 'delta_ppm': (popt[1]-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6 }
+                sigma_ppm = popt[2]/ROIs[ROI]['mz']*1e6
+                
+                peak['fit'] = { 'mz': popt[1], 'intensity': popt[0], 'sigma_mz': popt[2], 'delta_mz': popt[1]-ROIs[ROI]['mz'], 'delta_ppm': (popt[1]-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6, 'sigma_ppm': sigma_ppm}
+                peak['extended']['three_sigma_ppm_lower'] = peak['fit']['delta_ppm']-sigma_ppm*3
+                peak['extended']['three_sigma_ppm_upper'] = peak['fit']['delta_ppm']+3*sigma_ppm
+
+                
                 peak['assessment'] = { 'is_found': True, 'fraction': 0.0, 'comment': 'Peak found and fit' }
             except:
             #else:
@@ -901,7 +971,7 @@ class MzMLAssessor:
     ####################################################################################################
     #### Assess Regions of Interest to make calls
     def assess_ROIs(self):
-        results = { 'labeling': { 'scores': { 'TMT': 0, 'TMT6': 0, 'TMT10': 0, 'TMTpro': 0, 'iTRAQ': 0, 'iTRAQ4': 0, 'iTRAQ8': 0 } } }
+        results = { 'labeling': { 'scores': { 'TMT': 0, 'TMT6': 0, 'TMT10': 0, 'TMTpro': 0, 'iTRAQ': 0, 'iTRAQ4': 0, 'iTRAQ8': 0} } }
 
         #### Determine what the denominator of MS2 spectra should be
         n_ms2_spectra = self.metadata['files'][self.mzml_file]['spectra_stats']['n_ms2_spectra']
@@ -914,6 +984,15 @@ class MzMLAssessor:
         #### Determine the fragmentation_type
         results['fragmentation_type'] = self.metadata['files'][self.mzml_file]['spectra_stats']['fragmentation_type']
         self.metadata['files'][self.mzml_file]['summary'] = results
+        self.metadata['files'][self.mzml_file]['summary'].setdefault('tolerance', {})
+
+        #### If standard deviations have been found, find the difference between them, if none have been found, mention it
+        if (self.all_3sigma_values_away['Status']):
+            self.metadata['files'][self.mzml_file]['summary']['tolerance']['fragment_tolerance_ppm_lower'] = self.all_3sigma_values_away['lower']
+            self.metadata['files'][self.mzml_file]['summary']['tolerance']['fragment_tolerance_ppm_upper'] = self.all_3sigma_values_away['upper']
+        
+        else:
+            self.metadata['files'][self.mzml_file]['summary']['tolerance'] = 'No sigma values recorded'
 
         #### If no ROIs were computed, cannot continue
         if 'ROIs' not in self.metadata['files'][self.mzml_file]:
@@ -925,7 +1004,10 @@ class MzMLAssessor:
                 type = ROIobj['type']
                 n_spectra = ROIobj['peak']['extended']['n_spectra']
                 ROIobj['peak']['assessment']['fraction'] = n_spectra / n_ms2_spectra
-                results['labeling']['scores'][type] += ROIobj['peak']['assessment']['fraction']
+                try:
+                    results['labeling']['scores'][type] += ROIobj['peak']['assessment']['fraction']
+                except:
+                    pass
 
         #### Make the call for TMT or iTRAQ
         if results['labeling']['scores']['TMT'] > results['labeling']['scores']['iTRAQ']:
