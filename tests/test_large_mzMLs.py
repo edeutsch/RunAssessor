@@ -28,16 +28,6 @@ input_mzML_file = [     # Located in tests/large_files directory which is the cu
     "Orbi_CID_HCD_iTRAQ8plex.mzML.gz",
     "QExactive_TMT6.mzML.gz"
 ]
-input_mzML_filepath = [
-    os.path.join(tests_large_files_dir, input_mzML_file[0]),
-    os.path.join(tests_large_files_dir, input_mzML_file[1]),
-    os.path.join(tests_large_files_dir, input_mzML_file[2]),
-    os.path.join(tests_large_files_dir, input_mzML_file[3]),
-    os.path.join(tests_large_files_dir, input_mzML_file[4]),
-    os.path.join(tests_large_files_dir, input_mzML_file[5]),
-    os.path.join(tests_large_files_dir, input_mzML_file[6]),
-    os.path.join(tests_large_files_dir, input_mzML_file[7]),
-]
 
 # The current output of 'assess_mzMLs.py' is '<root_name>_study_metadata.json' in the tests/large_files directory
 # The expected output is '<root_name>_study_metadata.json' in the tests/expected_output directory
@@ -46,8 +36,6 @@ tests_expected_output_dir = os.path.join(tests_dir, "expected_output")
 if tests_large_files_dir not in sys.path:
     sys.path.insert(0, tests_large_files_dir)
 from large_test_file_downloader import download_large_test_files
-sys.path.append("../lib")
-from mzML_assessor import MzMLAssessor
 
 
 def test_large_files_present():
