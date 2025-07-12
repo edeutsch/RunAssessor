@@ -1,0 +1,405 @@
+{
+  "files": {
+    "P50.mzML.gz": {
+      "ROIs": {
+        "TMT6_y1K": {
+          "initial_window": 1.0,
+          "mz": 376.2757,
+          "peak": {
+            "assessment": {
+              "# of sigma_ppm(s) away from theoretical peak (ppm)": -5.777687284108099,
+              "comment": "Peak found and fit",
+              "fraction": 0.46135752688172044,
+              "is_found": true
+            },
+            "extended": {
+              "extent": 16,
+              "intensity": 101771.51810073853,
+              "n_spectra": 1373,
+              "three_sigma_ppm_lower": -626.2052511773234,
+              "three_sigma_ppm_upper": -198.1618058535916
+            },
+            "fit": {
+              "delta_mz": -0.1550946457206237,
+              "delta_ppm": -412.18352851545745,
+              "intensity": 20019.162881248147,
+              "mz": 376.12060535427935,
+              "sigma_mz": 0.026843724503266473,
+              "sigma_ppm": 71.34057422062195
+            },
+            "mode_bin": {
+              "ibin": 5522,
+              "intensity": 14975.2275390625,
+              "mz": 376.09999999998433,
+              "n_spectra": 41
+            }
+          },
+          "type": "TMT"
+        },
+        "TMT6plex": {
+          "initial_window": 1.0,
+          "mz": 230.1702,
+          "peak": {
+            "assessment": {
+              "# of sigma_ppm(s) away from theoretical peak (ppm)": -4.785995325477839,
+              "comment": "Peak found and fit",
+              "fraction": 0.40389784946236557,
+              "is_found": true
+            },
+            "extended": {
+              "extent": 16,
+              "intensity": 68635.1554350853,
+              "n_spectra": 1202,
+              "three_sigma_ppm_lower": -2902.7430254047426,
+              "three_sigma_ppm_upper": -665.8474938293266
+            },
+            "fit": {
+              "delta_mz": -0.4106915967651048,
+              "delta_ppm": -1784.2952596170346,
+              "intensity": 6523.618991725571,
+              "mz": 229.7595084032349,
+              "sigma_mz": 0.08581111531363665,
+              "sigma_ppm": 372.815921929236
+            },
+            "mode_bin": {
+              "ibin": 2596,
+              "intensity": 10102.52734375,
+              "mz": 229.79999999999262,
+              "n_spectra": 15
+            }
+          },
+          "type": "TMT"
+        },
+        "TMTpro": {
+          "initial_window": 1.0,
+          "mz": 305.2144,
+          "peak": {
+            "assessment": {
+              "# of sigma_ppm(s) away from theoretical peak (ppm)": -0.41072467756763587,
+              "comment": "Peak found and fit",
+              "fraction": 0.27856182795698925,
+              "is_found": true
+            },
+            "extended": {
+              "extent": 16,
+              "intensity": 20847.873017311096,
+              "n_spectra": 829,
+              "three_sigma_ppm_lower": -297.1036119750496,
+              "three_sigma_ppm_upper": 225.54827006474534
+            },
+            "fit": {
+              "delta_mz": -0.010919860373974188,
+              "delta_ppm": -35.77767095515214,
+              "intensity": 3784.6613143220434,
+              "mz": 305.20348013962604,
+              "sigma_mz": 0.026586813430941134,
+              "sigma_ppm": 87.1086470066325
+            },
+            "mode_bin": {
+              "ibin": 4104,
+              "intensity": 3754.681884765625,
+              "mz": 305.19999999998834,
+              "n_spectra": 49
+            }
+          },
+          "type": "TMTpro"
+        },
+        "TMTpro+H2O": {
+          "initial_window": 1.0,
+          "mz": 323.22499,
+          "peak": {
+            "assessment": {
+              "# of sigma_ppm(s) away from theoretical peak (ppm)": -20.306074293992495,
+              "comment": "Peak found and fit",
+              "fraction": 0.3887768817204301,
+              "is_found": true
+            },
+            "extended": {
+              "extent": 16,
+              "intensity": 31428.784322738647,
+              "n_spectra": 1157,
+              "three_sigma_ppm_lower": -1134.8640525459036,
+              "three_sigma_ppm_upper": -842.7005491870135
+            },
+            "fit": {
+              "delta_mz": -0.3195991493097381,
+              "delta_ppm": -988.7823008664586,
+              "intensity": 9500.507692064337,
+              "mz": 322.90539085069025,
+              "sigma_mz": 0.015739090908590377,
+              "sigma_ppm": 48.69391722648171
+            },
+            "mode_bin": {
+              "ibin": 4458,
+              "intensity": 8959.2587890625,
+              "mz": 322.89999999998736,
+              "n_spectra": 27
+            }
+          },
+          "type": "TMTpro"
+        },
+        "a{DI}": {
+          "initial_window": 1.0,
+          "mz": 201.12337,
+          "peak": {
+            "assessment": {
+              "# of sigma_ppm(s) away from theoretical peak (ppm)": 1.6739281262311487,
+              "comment": "Peak found and fit",
+              "fraction": 0.24126344086021506,
+              "is_found": true
+            },
+            "extended": {
+              "extent": 6,
+              "intensity": 170953.49451971054,
+              "n_spectra": 718,
+              "three_sigma_ppm_lower": -136.86452536264008,
+              "three_sigma_ppm_upper": 482.39840330647553
+            },
+            "fit": {
+              "delta_mz": 0.034747468990616426,
+              "delta_ppm": 172.7669389719177,
+              "intensity": 150810.92126956923,
+              "mz": 201.1581174689906,
+              "sigma_mz": 0.02075804118833369,
+              "sigma_ppm": 103.21048811151927
+            },
+            "mode_bin": {
+              "ibin": 2023,
+              "intensity": 139710.59375,
+              "mz": 201.14999999999424,
+              "n_spectra": 157
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "a{EI}": {
+          "initial_window": 1.0,
+          "mz": 215.13902,
+          "peak": {
+            "assessment": {
+              "# of sigma_ppm(s) away from theoretical peak (ppm)": 0.5035623325877802,
+              "comment": "Peak found and fit",
+              "fraction": 0.1868279569892473,
+              "is_found": true
+            },
+            "extended": {
+              "extent": 7,
+              "intensity": 8675.55174779892,
+              "n_spectra": 556,
+              "three_sigma_ppm_lower": -971.1836164072258,
+              "three_sigma_ppm_upper": 1362.9830942255555
+            },
+            "fit": {
+              "delta_mz": 0.0421456778471736,
+              "delta_ppm": 195.8997389091649,
+              "intensity": 2056.6393836438197,
+              "mz": 215.18116567784716,
+              "sigma_mz": 0.08369505644036002,
+              "sigma_ppm": 389.0277851054635
+            },
+            "mode_bin": {
+              "ibin": 2304,
+              "intensity": 2718.45263671875,
+              "mz": 215.19999999999345,
+              "n_spectra": 120
+            }
+          },
+          "type": "fragment_ion"
+        },
+        "iTRAQ4_y1K": {
+          "initial_window": 1.0,
+          "mz": 376.2757,
+          "peak": {
+            "assessment": {
+              "# of sigma_ppm(s) away from theoretical peak (ppm)": -5.777687284108099,
+              "comment": "Peak found and fit",
+              "fraction": 0.46135752688172044,
+              "is_found": true
+            },
+            "extended": {
+              "extent": 16,
+              "intensity": 101771.51810073853,
+              "n_spectra": 1373,
+              "three_sigma_ppm_lower": -626.2052511773234,
+              "three_sigma_ppm_upper": -198.1618058535916
+            },
+            "fit": {
+              "delta_mz": -0.1550946457206237,
+              "delta_ppm": -412.18352851545745,
+              "intensity": 20019.162881248147,
+              "mz": 376.12060535427935,
+              "sigma_mz": 0.026843724503266473,
+              "sigma_ppm": 71.34057422062195
+            },
+            "mode_bin": {
+              "ibin": 5522,
+              "intensity": 14975.2275390625,
+              "mz": 376.09999999998433,
+              "n_spectra": 41
+            }
+          },
+          "type": "iTRAQ4"
+        },
+        "iTRAQ8_y1K": {
+          "initial_window": 1.0,
+          "mz": 451.3118,
+          "peak": {
+            "assessment": {
+              "# of sigma_ppm(s) away from theoretical peak (ppm)": -3.4116461729479246,
+              "comment": "Peak found and fit",
+              "fraction": 0.48219086021505375,
+              "is_found": true
+            },
+            "extended": {
+              "extent": 16,
+              "intensity": 65964.86515808105,
+              "n_spectra": 1435,
+              "three_sigma_ppm_lower": -994.4281840948049,
+              "three_sigma_ppm_upper": -63.84515695537357
+            },
+            "fit": {
+              "delta_mz": -0.238805623220685,
+              "delta_ppm": -529.1366705250892,
+              "intensity": 2645.6992283332993,
+              "mz": 451.0729943767793,
+              "sigma_mz": 0.06999718350462426,
+              "sigma_ppm": 155.09717118990523
+            },
+            "mode_bin": {
+              "ibin": 7021,
+              "intensity": 3674.799072265625,
+              "mz": 451.04999999998006,
+              "n_spectra": 43
+            }
+          },
+          "type": "iTRAQ8"
+        }
+      },
+      "instrument_model": {
+        "accession": "MS:1000556",
+        "category": "variable",
+        "name": "LTQ Orbitrap XL",
+        "rank": "1"
+      },
+      "spectra_stats": {
+        "acquisition_type": "DDA",
+        "fragmentation_tag": "??",
+        "fragmentation_type": "LR_IT_CID",
+        "high_accuracy_precursors": "true",
+        "isolation_window_full_widths": {
+          "2.0": 2976
+        },
+        "n_HR_ETciD_spectra": 0,
+        "n_HR_EThcD_spectra": 0,
+        "n_HR_HCD_spectra": 0,
+        "n_HR_IT_CID_spectra": 0,
+        "n_HR_IT_ETD_spectra": 0,
+        "n_HR_QTOF_spectra": 0,
+        "n_LR_ETciD_spectra": 0,
+        "n_LR_EThcD_spectra": 0,
+        "n_LR_HCD_spectra": 0,
+        "n_LR_IT_CID_spectra": 2976,
+        "n_LR_IT_ETD_spectra": 0,
+        "n_charge_2_precursors": 1645,
+        "n_charge_3_precursors": 1102,
+        "n_charge_4_precursors": 208,
+        "n_charge_5_precursors": 12,
+        "n_charge_6_precursors": 6,
+        "n_charge_7_precursors": 3,
+        "n_length_lt10_spectra": 20,
+        "n_length_zero_spectra": 1,
+        "n_ms0_spectra": 0,
+        "n_ms1_spectra": 911,
+        "n_ms2_spectra": 2976,
+        "n_ms3_spectra": 0,
+        "n_spectra": 3887,
+        "n_spectra_examined": 2976,
+        "n_unknown_fragmentation_type_spectra": 0
+      },
+      "summary": {
+        "fragmentation_type": "LR_IT_CID",
+        "labeling": {
+          "call": "none",
+          "scores": {
+            "TMT": 0.865255376344086,
+            "TMT10": 0,
+            "TMT6": 0,
+            "TMTpro": 0.6673387096774194,
+            "iTRAQ": 0,
+            "iTRAQ4": 0.46135752688172044,
+            "iTRAQ8": 0.48219086021505375
+          }
+        },
+        "tolerance": {
+          "fragment_tolerance_ppm_lower": -2902.7430254047426,
+          "fragment_tolerance_ppm_upper": 1362.9830942255555
+        }
+      }
+    }
+  },
+  "knowledge": {
+    "instrument_model": "LTQ Orbitrap XL",
+    "instrument_models": {
+      "LTQ Orbitrap XL": 1
+    }
+  },
+  "problems": {
+    "errors": {
+      "codes": {},
+      "count": 0,
+      "list": []
+    },
+    "warnings": {
+      "codes": {},
+      "count": 0,
+      "list": []
+    }
+  },
+  "search_criteria": {
+    "acquisition_type": "DDA",
+    "fragmentation_type": "LR_IT_CID",
+    "fragmentation_types": {
+      "LR_IT_CID": 1
+    },
+    "high_accuracy_precursors": "true",
+    "labeling": "none",
+    "tolerance": {
+      "fragment_tolerance_ppm_lower": -2902.7430254047426,
+      "fragment_tolerance_ppm_upper": 1362.9830942255555
+    }
+  },
+  "spectra_stats": {
+    "n_HR_ETciD_spectra": 0,
+    "n_HR_EThcD_spectra": 0,
+    "n_HR_HCD_spectra": 0,
+    "n_HR_IT_CID_spectra": 0,
+    "n_HR_IT_ETD_spectra": 0,
+    "n_HR_QTOF_spectra": 0,
+    "n_LR_ETciD_spectra": 0,
+    "n_LR_EThcD_spectra": 0,
+    "n_LR_HCD_spectra": 0,
+    "n_LR_IT_CID_spectra": 2976,
+    "n_LR_IT_ETD_spectra": 0,
+    "n_charge_2_precursors": 1645,
+    "n_charge_3_precursors": 1102,
+    "n_charge_4_precursors": 208,
+    "n_charge_5_precursors": 12,
+    "n_charge_6_precursors": 6,
+    "n_charge_7_precursors": 3,
+    "n_length_lt10_spectra": 20,
+    "n_length_zero_spectra": 1,
+    "n_ms0_spectra": 0,
+    "n_ms1_spectra": 911,
+    "n_ms2_spectra": 2976,
+    "n_ms3_spectra": 0,
+    "n_spectra": 3887,
+    "n_spectra_examined": 2976,
+    "n_unknown_fragmentation_type_spectra": 0
+  },
+  "state": {
+    "code": "OK",
+    "message": "No problems detected",
+    "status": "OK",
+    "version": "v0.1"
+  }
+}
