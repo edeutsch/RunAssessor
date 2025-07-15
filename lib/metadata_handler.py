@@ -7,6 +7,7 @@ import os.path
 import json
 import shutil
 import pandas as pd
+import numpy
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 
@@ -42,9 +43,6 @@ class MetadataHandler:
         self.sdrf_table_rows = []
         self.metadata = {}
 
-        #### Creates a dictionary to store sigma values for all ions in each file
-        self.ion_three_sigma_table = {}
-        
 
         #### Check if a verbose was provided and if not, set to default
         if verbose is None:
@@ -307,6 +305,12 @@ class MetadataHandler:
     #### Infer search criteria based on available information
     def infer_search_criteria(self):
 
+        #### Creates a dictionary to store sigma values for all ions in each file
+        ion_three_sigma_table = {}
+        ### Creates a variable to store 3sigma values across all values
+        all_3sigma_values_away = {"Status":False, "Highest": [], "Lowest":[]}
+        
+
         #### Short handle for the search criteria information
         criteria = self.metadata['search_criteria']
         knowledge = self.metadata['knowledge']
@@ -325,8 +329,7 @@ class MetadataHandler:
             for fragmentation_type in criteria['fragmentation_types']:
                 criteria['fragmentation_types'][fragmentation_type] = 0
 
-        ### Creates a variable to store 3sigma values across all values
-        all_3sigma_values_away = {"Status":False, "Highest": None, "Lowest":None}
+        
         #### Loop over all the files and decide on search criteria
         for file in self.metadata['files']:
             fileinfo = self.metadata['files'][file]
@@ -417,53 +420,93 @@ class MetadataHandler:
 
             #### Colect sigma values
             try:
-                if all_3sigma_values_away['Lowest'] == None or fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower'] < all_3sigma_values_away['Lowest']:
-                    all_3sigma_values_away['Lowest'] = fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower']
+                if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
+                    all_3sigma_values_away['Lowest'].append(fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower'])
+                    all_3sigma_values_away['Highest'].append(fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper'])
+                    all_3sigma_values_away['Status'] = True
 
-                if all_3sigma_values_away['Highest'] == None or fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper'] > all_3sigma_values_away['Highest']:
-                    all_3sigma_values_away['Highest'] = fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper']
-                all_3sigma_values_away['Status'] = True
+                elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
+                    all_3sigma_values_away['Lowest'] = fileinfo['summary']['tolerance']['lower_m/z']
+                    all_3sigma_values_away['Highest'] = fileinfo['summary']['tolerance']['upper_m/z']
+                    all_3sigma_values_away['Status'] = True
                 
             except:
                 pass
-            #### If standard deviations have been found, set them in the file
-            criteria.setdefault('tolerance', {})
-        
-            if (all_3sigma_values_away['Status']):
-                criteria['tolerance']['fragment_tolerance_ppm_lower'] = all_3sigma_values_away['Lowest']
-                criteria['tolerance']['fragment_tolerance_ppm_upper'] = all_3sigma_values_away['Highest']
-            else:
-                criteria['tolerance'] = "No sigma values recorded"
+           
+
             #### Add info to ion data
             
             for ions in fileinfo['ROIs']:
                 if fileinfo['ROIs'][ions]['type'] == "fragment_ion":
+                    
                     try:
-                        if file not in self.ion_three_sigma_table:
-                            self.ion_three_sigma_table[file] = []
+                        if file not in ion_three_sigma_table:
+                            ion_three_sigma_table[file] = []
+                        
+                        if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
+                            ion_three_sigma_table[file].append({
+                                "ion": ions,
+                                "three_sigma_lower": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_lower"],
+                                "three_sigma_upper": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_upper"],
+                                "fit_mz": fileinfo["ROIs"][ions]['peak']["fit"]['mz'],
+                                "intensity": fileinfo["ROIs"][ions]['peak']["fit"]['intensity'],
+                            })
 
-                        self.ion_three_sigma_table[file].append({
-                            "ion": ions,
-                            "three_sigma_lower": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_lower"],
-                            "three_sigma_upper": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_upper"]
-                        })              
+                        elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
+                            ion_three_sigma_table[file].append({
+                                "ion": ions,
+                                "three_sigma_lower": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_mz_lower"],
+                                "three_sigma_upper": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_mz_upper"],
+                                "fit_mz": fileinfo["ROIs"][ions]['peak']["fit"]['mz'],
+                                "intensity": fileinfo["ROIs"][ions]['peak']["fit"]['intensity'],
+                            })              
                     except:
                         pass
-        #### write into a table
-        rows = []
 
-        for file, ions_list in self.ion_three_sigma_table.items():
+        #### Set the the main tolerance based on three_sigma values from all files
+        self.set_main_tolerance(all_3sigma_values_away)
+
+        #### write ion data into a table
+        self.write_ion_table(ion_three_sigma_table)
+
+    ####################################################################################################
+    #### If standard deviations have been found, set them in the file
+    def set_main_tolerance(self, three_sigma_dict):
+        criteria = self.metadata['search_criteria']
+        if (three_sigma_dict['Status']):
+            criteria.setdefault('tolerance', {})
+            percentile = 90 #Picks this percentile for the three_sigma value
+            lower = three_sigma_dict['Lowest']
+            upper = three_sigma_dict['Highest']
+            three_sigma_upper = numpy.percentile(upper, percentile) # Gives x percentile for a sorted list
+            three_sigma_lower = numpy.percentile(lower, 100-percentile)
+
+            if criteria["fragmentation_type"].startswith('HR'):
+                self.metadata['search_criteria']['tolerance']['fragment_tolerance_ppm_lower'] =three_sigma_upper
+                self.metadata['search_criteria']['tolerance']['fragment_tolerance_ppm_upper'] = three_sigma_lower
+            elif criteria["fragmentation_type"].startswith('LR'):
+                self.metadata['search_criteria']['tolerance']['lower_m/z'] =three_sigma_lower
+                self.metadata['search_criteria']['tolerance']['upper_m/z'] = three_sigma_upper
+        else:
+            criteria['tolerance'] = "No sigma values recorded"
+
+    ###################################################################################################
+    #### Generates a table of every file and their fit ions with upper and lower three_sigma values
+    def write_ion_table(self, ion_data):
+        rows = []
+        for file, ions_list in ion_data.items():
             for ion_info in ions_list:
                 rows.append({
                     "file": file,
                     "ion type": ion_info["ion"],
                     "three_sigma_ppm_lower": ion_info["three_sigma_lower"],
-                    "three_sigma_ppm_upper": ion_info["three_sigma_upper"]
+                    "three_sigma_ppm_upper": ion_info["three_sigma_upper"],
+                    "fit_mz": ion_info['fit_mz'],
+                    "fit_intensity": ion_info['intensity']
                 })
 
         df = pd.DataFrame(rows)
         df.to_csv("ion_three_sigma_table.tsv", sep="\t", index=False)
-
             
     ####################################################################################################
     #### Generate SDRF table data

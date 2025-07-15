@@ -515,9 +515,14 @@ class MzMLAssessor:
         intensity_array = numpy.asarray(peaklist['intensity array'])
         mz_array = numpy.asarray(peaklist['m/z array'])
 
+       
+
+
         #### Limit the numpy arrays to the region we're interested in
         intensity_array = intensity_array[ ( mz_array > self.composite[destination]['minimum'] ) & ( mz_array < self.composite[destination]['maximum'] ) ]
         mz_array = mz_array[ ( mz_array > self.composite[destination]['minimum'] ) & ( mz_array < self.composite[destination]['maximum'] ) ]
+
+        
 
         #### Compute their bin locations and store n_peaks and intensities
         bin_array = (( mz_array - self.composite[destination]['minimum'] ) / self.composite[destination]['binsize']).astype(int)
@@ -758,7 +763,7 @@ class MzMLAssessor:
         additionalPeaks = os.path.dirname(os.path.abspath(__file__)) + "/Additional_Peaks.tsv"
 
         ###Dictionary to hold upper and lower sigma_ppm relative to theoretical value
-        self.all_3sigma_values_away = {"Status": False,"upper": None, "lower": None}
+        self.all_3sigma_values_away = {"Status": False,"upper": [], "lower": []}
 
         supported_composite_type_list = [ 'lowend_HR_HCD', 'lowend_LR_IT_CID' ]
 
@@ -783,6 +788,11 @@ class MzMLAssessor:
             'TMT6_129': { 'type': 'TMT', 'mz': 129.131468, 'initial_window': 0.01 },
             'TMT6_130': { 'type': 'TMT', 'mz': 130.141141, 'initial_window': 0.01 },
             'TMT6_131': { 'type': 'TMT', 'mz': 131.138176, 'initial_window': 0.01 },
+            'TMT10_127_C': {'type': 'TMT', 'mz': 127.131081, 'initial_window': 0.01 },
+            'TMT10_128_N': {'type': 'TMT', 'mz': 128.128116, 'initial_window': 0.01 },
+            'TMT10_129_C': {'type': 'TMT', 'mz': 129.137790, 'initial_window': 0.01 },
+            'TMT10_130_N': {'type': 'TMT', 'mz': 130.134825, 'initial_window': 0.01 },
+            'TMT11_131_C': {'type': 'TMT', 'mz': 131.144499, 'initial_window': 0.01 },
             'TMT6plex': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 0.01 },
             'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 0.01 },
             'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 0.01 },
@@ -810,7 +820,9 @@ class MzMLAssessor:
             next(f)
             for line in f:
                 parts = line.strip().split("\t")
-                if float(parts[4]) > 100:
+                if r"a{AI}" in parts[6] or r"b{AK}-NH3" in parts[6]: # On 7/11/2025 we decided to not take these ions (m/z might be wrong)
+                    pass
+                elif float(parts[4]) > 100:
                     ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 0.01}
         
         #### What should we look at for ion trap data?
@@ -822,12 +834,19 @@ class MzMLAssessor:
                 'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 1.0 },
                 'iTRAQ4_y1K': { 'type': 'iTRAQ4', 'mz': 376.2757, 'initial_window': 1.0 },
                 'iTRAQ8_y1K': { 'type': 'iTRAQ8', 'mz': 451.3118, 'initial_window': 1.0 },
+                'TMT10_127_C': {'type': 'TMT', 'mz': 127.131081, 'initial_window': 1.0 },
+                'TMT10_128_N': {'type': 'TMT', 'mz': 128.128116, 'initial_window': 1.0 },
+                'TMT10_129_C': {'type': 'TMT', 'mz': 129.137790, 'initial_window': 1.0 },
+                'TMT10_130_N': {'type': 'TMT', 'mz': 130.134825, 'initial_window': 1.0 },
+                'TMT11_131_C': {'type': 'TMT', 'mz': 131.144499, 'initial_window': 1.0 },
             }
             with open(additionalPeaks, "r") as f:
                 next(f)
                 for line in f:
                     parts = line.strip().split("\t")
-                    if float(parts[4]) > 200:
+                    if r"a{AI}" in parts[6] or r"b{AK}-NH3" in parts[6]: # On 7/11/2025 we decided to not take these ions (m/z might be wrong)
+                        pass
+                    elif float(parts[4]) > 200:
                         ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 1.0}
             
 
@@ -846,10 +865,7 @@ class MzMLAssessor:
             try:
                 ### Finds the number of standard deviations away the peak is from the theoretical mz value
                 sigma_away_from_theoretcial = (ROIs[ROI]['peak']['fit']["delta_ppm"])/(ROIs[ROI]['peak']['fit']["sigma_ppm"])
-
-
                 ### Assigning the information in the dictionary
-
                 ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretcial
                 
             except:
@@ -857,27 +873,24 @@ class MzMLAssessor:
 
             #If a 3 standard deviation is availible from the guassian curve, check to see if its distance is a max or min in the whole spectra set
             try:
-                if self.all_3sigma_values_away['upper'] == None or peak['extended']['three_sigma_ppm_upper'] > self.all_3sigma_values_away['upper']:
-                        self.all_3sigma_values_away['upper'] = peak['extended']['three_sigma_ppm_upper']
+                if composite_type == "lowend_HR_HCD":
+                    upper = peak['extended']['three_sigma_ppm_upper']
+                    lower = peak['extended']['three_sigma_ppm_lower']
+                elif composite_type == "lowend_LR_IT_CID":
+                    upper = peak['extended']['three_sigma_mz_upper']
+                    lower = peak['extended']['three_sigma_mz_lower']
+                else:
+                    upper = lower = None  # fallback or skip logic
 
-                if self.all_3sigma_values_away['lower'] == None or peak['extended']['three_sigma_ppm_upper'] < self.all_3sigma_values_away['lower']:
-                        self.all_3sigma_values_away['lower'] = peak['extended']['three_sigma_ppm_upper']
-
-                if self.all_3sigma_values_away['lower'] == None or peak['extended']['three_sigma_ppm_lower'] < self.all_3sigma_values_away['lower']:
-                    self.all_3sigma_values_away['lower'] = peak['extended']['three_sigma_ppm_lower']
-
-                if self.all_3sigma_values_away['upper'] == None or peak['extended']['three_sigma_ppm_lower'] > self.all_3sigma_values_away['upper']:
-                    self.all_3sigma_values_away['upper'] = peak['extended']['three_sigma_ppm_lower']
+                self.all_3sigma_values_away['upper'].append(upper)
+                self.all_3sigma_values_away['lower'].append(lower)
                 self.all_3sigma_values_away['Status'] = True
 
-                
-                
-            except:
+            except KeyError:
                 pass
 
-        self.metadata['files'][self.mzml_file]['ROIs'] = ROIs
-        
 
+        self.metadata['files'][self.mzml_file]['ROIs'] = ROIs
         return ROIs
     
 
@@ -946,9 +959,13 @@ class MzMLAssessor:
                 sigma_ppm = popt[2]/ROIs[ROI]['mz']*1e6
                 
                 peak['fit'] = { 'mz': popt[1], 'intensity': popt[0], 'sigma_mz': popt[2], 'delta_mz': popt[1]-ROIs[ROI]['mz'], 'delta_ppm': (popt[1]-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6, 'sigma_ppm': sigma_ppm}
-                peak['extended']['three_sigma_ppm_lower'] = peak['fit']['delta_ppm']-sigma_ppm*3
-                peak['extended']['three_sigma_ppm_upper'] = peak['fit']['delta_ppm']+3*sigma_ppm
+                if composite_type == "lowend_HR_HCD":
+                    peak['extended']['three_sigma_ppm_lower'] = peak['fit']['delta_ppm']-sigma_ppm*3
+                    peak['extended']['three_sigma_ppm_upper'] = peak['fit']['delta_ppm']+3*sigma_ppm
 
+                elif composite_type == 'lowend_LR_IT_CID':
+                    peak['extended']['three_sigma_mz_lower'] = peak['fit']['delta_mz']-popt[2]*3
+                    peak['extended']['three_sigma_mz_upper'] = peak['fit']['delta_mz']+popt[2]*3
                 
                 peak['assessment'] = { 'is_found': True, 'fraction': 0.0, 'comment': 'Peak found and fit' }
             except:
@@ -984,13 +1001,25 @@ class MzMLAssessor:
         #### Determine the fragmentation_type
         results['fragmentation_type'] = self.metadata['files'][self.mzml_file]['spectra_stats']['fragmentation_type']
         self.metadata['files'][self.mzml_file]['summary'] = results
-        self.metadata['files'][self.mzml_file]['summary'].setdefault('tolerance', {})
 
         #### If standard deviations have been found, find the difference between them, if none have been found, mention it
+        self.metadata['files'][self.mzml_file]['summary'].setdefault('tolerance', {})
         if (self.all_3sigma_values_away['Status']):
-            self.metadata['files'][self.mzml_file]['summary']['tolerance']['fragment_tolerance_ppm_lower'] = self.all_3sigma_values_away['lower']
-            self.metadata['files'][self.mzml_file]['summary']['tolerance']['fragment_tolerance_ppm_upper'] = self.all_3sigma_values_away['upper']
-        
+            percentile = 90 #Picks this percentile for the three_sigma value
+            lower = self.all_3sigma_values_away['lower']
+            upper = self.all_3sigma_values_away['upper']
+
+            three_sigma_upper = numpy.percentile(upper, percentile) # Gives x percentile for a sorted list
+            three_sigma_lower = numpy.percentile(lower, 100-percentile)
+
+            if results['fragmentation_type'].startswith('HR'):
+                self.metadata['files'][self.mzml_file]['summary']['tolerance']['fragment_tolerance_ppm_lower'] = three_sigma_lower
+                self.metadata['files'][self.mzml_file]['summary']['tolerance']['fragment_tolerance_ppm_upper'] = three_sigma_upper
+            
+            elif results['fragmentation_type'].startswith('LR'):
+                self.metadata['files'][self.mzml_file]['summary']['tolerance']['lower_m/z'] = three_sigma_lower
+                self.metadata['files'][self.mzml_file]['summary']['tolerance']['upper_m/z'] = three_sigma_upper
+
         else:
             self.metadata['files'][self.mzml_file]['summary']['tolerance'] = 'No sigma values recorded'
 
