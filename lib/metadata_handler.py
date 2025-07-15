@@ -441,12 +441,19 @@ class MetadataHandler:
                     try:
                         if file not in ion_three_sigma_table:
                             ion_three_sigma_table[file] = []
-
-                        ion_three_sigma_table[file].append({
-                            "ion": ions,
-                            "three_sigma_lower": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_lower"],
-                            "three_sigma_upper": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_upper"]
-                        })              
+                        
+                        if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
+                            ion_three_sigma_table[file].append({
+                                "ion": ions,
+                                "three_sigma_lower": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_lower"],
+                                "three_sigma_upper": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_upper"]
+                            })
+                        elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
+                            ion_three_sigma_table[file].append({
+                                "ion": ions,
+                                "three_sigma_lower": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_mz_lower"],
+                                "three_sigma_upper": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_mz_upper"]
+                            })              
                     except:
                         pass
 

@@ -196,6 +196,7 @@ class MzMLAssessor:
 
                         #spectra.append([stats,precursor_mz,peaklist])
                         self.add_spectrum([stats,precursor_mz,peaklist])
+                        
 
                         # If the user requested writing of a fragmentation_type_file, record that information
                         if write_fragmentation_type_file is not None:
@@ -494,7 +495,7 @@ class MzMLAssessor:
                 #print(f"INFO: Creating a composite spectrum {destination}")
                 minimum = 100
                 maximum = 460
-                binsize = 0.05
+                binsize = 0.2
                 array_size = int( (maximum - minimum ) / binsize ) + 1
                 self.composite[destination] = { 'minimum': minimum, 'maximum': maximum, 'binsize': binsize }
                 self.composite[destination]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
@@ -544,6 +545,7 @@ class MzMLAssessor:
         bin_array = (( mz_array - self.composite[destination]['minimum'] ) / self.composite[destination]['binsize']).astype(int)
         self.composite[destination]['n_peaks'][bin_array] += 1
         self.composite[destination]['intensities'][bin_array] += intensity_array
+        
 
         #### The stuff below was trying to compute neutral losses. It works, but it's too slow. Need a Cython implementation I guess
 
@@ -796,7 +798,6 @@ class MzMLAssessor:
         maximum = spec[composite_type]['maximum']
         binsize = spec[composite_type]['binsize']
         spec[composite_type]['mz'] = numpy.arange(minimum, maximum + binsize, binsize)
-
         ROIs = {
             'TMT6_126': { 'type': 'TMT', 'mz': 126.127725, 'initial_window': 0.01 },
             'TMT6_127': { 'type': 'TMT', 'mz': 127.124760, 'initial_window': 0.01 },
@@ -855,6 +856,17 @@ class MzMLAssessor:
                 'TMT10_129_C': {'type': 'TMT', 'mz': 129.137790, 'initial_window': 1.0 },
                 'TMT10_130_N': {'type': 'TMT', 'mz': 130.134825, 'initial_window': 1.0 },
                 'TMT11_131_C': {'type': 'TMT', 'mz': 131.144499, 'initial_window': 1.0 },
+
+                'Looker_302.95': {'type': 'Marie', 'mz': 302.95, 'initial_window': 1.0},
+                'Looker_197.90': {'type': 'Marie', 'mz': 197.90, 'initial_window': 1.0},
+                'Looker_303.25': {'type': 'Marie', 'mz': 303.25, 'initial_window': 1.0},
+                'Looker_206.95': {'type': 'Marie', 'mz': 206.95, 'initial_window': 1.0},
+                'Looker_173.05': {'type': 'Marie', 'mz': 173.05, 'initial_window': 1.0},
+                'Looker_214.95': {'type': 'Marie', 'mz': 214.95, 'initial_window': 1.0},
+                'Looker_272.20': {'type': 'Marie', 'mz': 272.20, 'initial_window': 1.0},
+                'Looker_200.95': {'type': 'Marie', 'mz': 200.95, 'initial_window': 1.0},
+                'Looker_201.00': {'type': 'Marie', 'mz': 201.00, 'initial_window': 1.0},
+                'Looker_232.20': {'type': 'Marie', 'mz': 232.20, 'initial_window': 1.0},
             }
             with open(additionalPeaks, "r") as f:
                 next(f)
@@ -907,6 +919,18 @@ class MzMLAssessor:
 
 
         self.metadata['files'][self.mzml_file]['ROIs'] = ROIs
+
+
+        if 'lowend_LR_IT_CID' in self.composite:
+            combined = numpy.column_stack((self.composite['lowend_LR_IT_CID']['mz'], self.composite['lowend_LR_IT_CID']['n_peaks'], self.composite['lowend_LR_IT_CID']['intensities']))
+            numpy.savetxt(
+                'composite_data.tsv',  # output file
+                combined,              # data
+                delimiter='\t',        # tab-separated
+                header='m/z\tn_peaks\tintensities',  # header line
+                comments='',           # removes '#' in header
+                fmt='%.6f'             # format if values are floats
+                )
         return ROIs
     
 
@@ -960,7 +984,7 @@ class MzMLAssessor:
                 done = 1
             iextent += 1
 
-        if peak['extended']['n_spectra'] > 100 and peak['extended']['n_spectra'] >= self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra'] * 0.1:
+        if peak['extended']['n_spectra'] > 100 and peak['extended']['n_spectra'] >= self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra'] * 0.05:
             extent = peak['extended']['extent'] * 2
             x = spec[composite_type]['mz'][ibin-extent:ibin+extent]
             y = spec[composite_type]['intensities'][ibin-extent:ibin+extent]
@@ -1004,7 +1028,7 @@ class MzMLAssessor:
     ####################################################################################################
     #### Assess Regions of Interest to make calls
     def assess_ROIs(self):
-        results = { 'labeling': { 'scores': { 'TMT': 0, 'TMT6': 0, 'TMT10': 0, 'TMTpro': 0, 'iTRAQ': 0, 'iTRAQ4': 0, 'iTRAQ8': 0} } }
+        results = { 'labeling': { 'scores': { 'TMT': 0, 'TMT6': 0, 'TMT10': 0, 'TMTpro': 0, 'iTRAQ': 0, 'iTRAQ4': 0, 'iTRAQ8': 0, 'Marie':0} } }
 
         #### Determine what the denominator of MS2 spectra should be
         n_ms2_spectra = self.metadata['files'][self.mzml_file]['spectra_stats']['n_ms2_spectra']
