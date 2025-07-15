@@ -48,9 +48,6 @@ class MzMLAssessor:
         #### Create a dictionary to hold 3sigma values to find tolerance
         self.all_3sigma_values_away = {}
 
-        #### Marks whether or not a low_res_peak_array file should be overwritten:
-        self.made = False
-
         #### Set verbosity
         if verbose is None: verbose = 0
         self.verbose = verbose
@@ -526,19 +523,6 @@ class MzMLAssessor:
         mz_array = mz_array[ ( mz_array > self.composite[destination]['minimum'] ) & ( mz_array < self.composite[destination]['maximum'] ) ]
 
         
-         #### Print the m/z and intensity arrays to a file if the type is LR
-        if spectrum_type == 'LR_IT_CID' and intensity_array.size > 0 and mz_array.size > 0:
-
-            combined = numpy.column_stack((mz_array, intensity_array))
-
-            if not os.path.exists('low_res_peak_arrays.csv') or self.made == False:
-                numpy.savetxt('low_res_peak_arrays.csv', combined, delimiter=',', header='m/z,intensity', comments='')
-                self.made = True
-            else:
-                with open('low_res_peak_arrays.csv', 'ab') as f:
-                    numpy.savetxt(f, combined, delimiter=',')
-
-
 
         #### Compute their bin locations and store n_peaks and intensities
         bin_array = (( mz_array - self.composite[destination]['minimum'] ) / self.composite[destination]['binsize']).astype(int)
