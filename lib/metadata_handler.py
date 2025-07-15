@@ -438,15 +438,28 @@ class MetadataHandler:
             
             for ions in fileinfo['ROIs']:
                 if fileinfo['ROIs'][ions]['type'] == "fragment_ion":
+                    
                     try:
                         if file not in ion_three_sigma_table:
                             ion_three_sigma_table[file] = []
+                        
+                        if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
+                            ion_three_sigma_table[file].append({
+                                "ion": ions,
+                                "three_sigma_lower": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_lower"],
+                                "three_sigma_upper": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_upper"],
+                                "fit_mz": fileinfo["ROIs"][ions]['peak']["fit"]['mz'],
+                                "intensity": fileinfo["ROIs"][ions]['peak']["fit"]['intensity'],
+                            })
 
-                        ion_three_sigma_table[file].append({
-                            "ion": ions,
-                            "three_sigma_lower": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_lower"],
-                            "three_sigma_upper": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_upper"]
-                        })              
+                        elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
+                            ion_three_sigma_table[file].append({
+                                "ion": ions,
+                                "three_sigma_lower": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_mz_lower"],
+                                "three_sigma_upper": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_mz_upper"],
+                                "fit_mz": fileinfo["ROIs"][ions]['peak']["fit"]['mz'],
+                                "intensity": fileinfo["ROIs"][ions]['peak']["fit"]['intensity'],
+                            })              
                     except:
                         pass
 
@@ -487,7 +500,9 @@ class MetadataHandler:
                     "file": file,
                     "ion type": ion_info["ion"],
                     "three_sigma_ppm_lower": ion_info["three_sigma_lower"],
-                    "three_sigma_ppm_upper": ion_info["three_sigma_upper"]
+                    "three_sigma_ppm_upper": ion_info["three_sigma_upper"],
+                    "fit_mz": ion_info['fit_mz'],
+                    "fit_intensity": ion_info['intensity']
                 })
 
         df = pd.DataFrame(rows)
