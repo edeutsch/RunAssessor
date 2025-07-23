@@ -10,6 +10,7 @@ import numpy
 import gzip
 from lxml import etree
 from multiprocessing.pool import ThreadPool
+from functools import partial
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 #### Import technical modules and pyteomics
@@ -47,6 +48,7 @@ class MzMLAssessor:
 
         #### Create a dictionary to hold 3sigma values to find tolerance
         self.all_3sigma_values_away = {}
+        self.precursor_stats = {}
 
         #### Set verbosity
         if verbose is None: verbose = 0
@@ -90,6 +92,7 @@ class MzMLAssessor:
         #### Set up information
         t0 = timeit.default_timer()
         stats = self.get_empty_stats()
+        ms_one_tolerance_dict = {"mz":[],"time":[]}
         self.metadata['files'][self.mzml_file]['spectra_stats'] = stats
 
         #### Store the fragmentation types in a list for storing in the fragmentation_type_file
@@ -177,7 +180,7 @@ class MzMLAssessor:
                         stats[charge_stat] += 1
 
                         #### Extract the isolation window information
-                        self.record_isolation_window_stats(spectrum, stats)
+                        self.record_isolation_window_stats(spectrum, stats, ms_one_tolerance_dict)
 
                         #self.add_spectrum(spectrum,spectrum_type,precursor_mz)
                         peaklist = {
@@ -218,6 +221,10 @@ class MzMLAssessor:
 
         infile.close()
         #if self.verbose >= 1: eprint("")
+
+        #### Find the tolerance of the MS1 scan
+
+        self.find_ms_one_tolerance(ms_one_tolerance_dict)
 
         # If the user requested writing of a fragmentation_type_file, write it out
         if write_fragmentation_type_file is not None:
@@ -279,17 +286,183 @@ class MzMLAssessor:
 
         return stats
 
+    ####################################################################################################
+    #### Finds the tolerance of the MS1 scan
+    def find_ms_one_tolerance(self, ms_one_tolerance_dict):
+
+
+        times = ms_one_tolerance_dict['time']
+        ions = ms_one_tolerance_dict['mz']
+
+        p_a = 0
+        p_b = p_a + 1
+        p_c = 0
+        used_index = set()
+        delta_ppm_list = []
+        delta_time_list = []
+
+        if (len(times) != len(ions)) or not len(ions):
+            print('Unable to find tolerance for MS1 scan')
+        
+        while p_c < len(ions) and p_b < len(ions): #Figure out what end condition is
+            delta_time = (times[p_b] - times[p_a]) * 60
+            delta_ppm = ((ions[p_b] - ions[p_a]) / ions[p_a]) * 10**6
+            if self.within_ppm_time(delta_time, delta_ppm):
+                delta_ppm_list.append(delta_ppm)
+                delta_time_list.append(delta_time)
+                used_index.add(p_b)
+                p_a = p_b
+                p_b = p_a + 1
+
+            else:
+                p_b += 1
+                if p_b >= len(ions):
+                    used_index.add(p_c)
+                    while p_c in used_index:
+                         p_c += 1
+                    p_a = p_c
+                    p_b = p_a + 1
+
+        try:
+            #Fit delta_time_list with histogram
+            counts_ppm, bins_ppm = numpy.histogram(delta_ppm_list, bins=60)
+            bin_centers_ppm = 0.5 * (bins_ppm[1:] + bins_ppm[:-1])
+            soft_raised_fixed_beta_ppm = partial(self.precursor_raised_gaussian, beta=1.5)
+            p0_ppm = [max(counts_ppm), numpy.mean(delta_ppm_list), numpy.std(delta_ppm_list), 0.1]
+            fit_ppm, _ = curve_fit(soft_raised_fixed_beta_ppm, bin_centers_ppm, counts_ppm, p0=p0_ppm)
+        
+            #Find chi^2 value for a goodness of fit
+            expected_counts = soft_raised_fixed_beta_ppm(bin_centers_ppm, *fit_ppm)
+            chi_squared = numpy.sum(((counts_ppm - expected_counts) ** 2) / numpy.where(expected_counts == 0, 1, expected_counts))
+            num_bins = len(counts_ppm)
+            num_params = 4
+            dof = num_bins - num_params
+            chi_squared_red_ppm = chi_squared / dof
+        except:
+            pass
+ 
+
+        
+        try:
+            #Fit delta_time_list with histogram
+            counts_time, bins_time = numpy.histogram(delta_time_list, bins=60)
+            bin_centers_time = 0.5 * (bins_time[1:] + bins_time[:-1])
+            max_peak_index = numpy.argmax(counts_time)
+            main_peak = bin_centers_time[max_peak_index]
+
+            counts_after_peak = counts_time[max_peak_index + 2:]
+            mean_after_peak = numpy.mean(counts_after_peak)
+
+
+
+            p0 = [main_peak, 0.5, min(counts_time), max(counts_time), mean_after_peak, 0.1]
+
+            fit_time, cov = curve_fit(self.time_exp_decay, bin_centers_time, counts_time, p0=p0)
+            expected_counts = self.time_exp_decay(bin_centers_time, *fit_time)
+
+
+            #Compute 5 secounds before and 5 secounds after for sharpness
+            t_before = fit_time[0] - 5
+            t_after = fit_time[0] + 5
+
+            y_before = self.time_exp_decay(numpy.array([t_before]), *fit_time)[0]
+            y_after = self.time_exp_decay(numpy.array([t_after]), *fit_time)[0]
+
+
+            # Compute chi-squared
+            window_mask = (bin_centers_time >= t_before) & (bin_centers_time <= t_after)
+            counts_window = counts_time[window_mask]
+            expected_window = expected_counts[window_mask]
+
+            # Compute chi-squared within the window
+            epsilon = 1e-8
+            chi_squared = numpy.sum(((counts_time - expected_counts) ** 2) / (counts_time+epsilon))
+            dof = len(counts_time) - len(fit_time)
+            chi_squared_red_time = chi_squared / dof
+
+
+
+        except:
+            pass
+
+
+        try:
+            self.precursor_stats["precursor tolerance"] = {
+                            "fit_ppm":{"lower_three_sigma":-fit_ppm[2]*3, "upper_three_sigma":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0]},
+                            "histogram_ppm":{"counts": counts_ppm.tolist(), "bin_edges": bins_ppm.tolist(), "bin_centers": bin_centers_ppm.tolist(), "chi_squared":chi_squared_red_ppm}}
+        except:
+            self.precursor_stats["precursor tolerance"] = 'no delta_ppm peak fit'
+
+        try:
+            self.precursor_stats["dynamic exclusion window"]= {
+                                "fit_pulse_time": {"delta_time peak time": fit_time[0], "pulse peak intensity to five secound before": fit_time[3]/y_before, "pulse peak intensity to five secounds after": fit_time[3]/y_after},
+                                "histogram_time": {"counts": counts_time.tolist(),"bin_edges": bins_time.tolist(),"bin_centers": bin_centers_time.tolist(),"chi_squared": chi_squared_red_time }}
+        except:
+            self.precursor_stats["dynamic exclusion window"] = 'no dynamic exclusion window found'
+
+
+       
+                        
+    ####################################################################################################
+    #### Returns whether or not a delta_ppm and delta_time are within set perameters
+    def within_ppm_time(self, delta_time, delta_ppm):
+        max_time = 65 #Secounds
+        min_time = 0 #Secounds
+        max_delta_ppm = 30 #ppm
+        
+        
+        if delta_time >= min_time and delta_time <= max_time:
+            if abs(delta_ppm) <= max_delta_ppm:
+                return True
+        return False
 
     ####################################################################################################
-    #### Record the isolation window information
-    def record_isolation_window_stats(self, spectrum, stats):
+    #### Returns a gaussian fit for delta_ppm
+    def precursor_raised_gaussian(self, x, a, x0, sigma, baseline, beta=1.5):
+        delta = numpy.abs(x - x0)
+        delta = numpy.clip(delta, 1e-12, None)
+        return a * numpy.exp(-delta**beta / (2 * sigma**beta)) + baseline
+    
+    
+    ####################################################################################################
+    #### Pulse exp decay function with peak_level param
+    def time_exp_decay(self, t, pulse_start, pulse_duration, initial_level, peak_level, new_level, tau):
+        y = numpy.full_like(t, initial_level, dtype=float)
+        pulse_end = pulse_start + pulse_duration
+        
+        pulse_mask = (t >= pulse_start) & (t < pulse_end)
+        y[pulse_mask] = peak_level
+        
+        decay_mask = t >= pulse_end
+        y[decay_mask] = new_level + (peak_level - new_level) * numpy.exp(-(t[decay_mask] - pulse_end) / tau)
+        
+        return y
+        
+
+    ####################################################################################################
+    #### Record the isolation window information and precursor ion and scan time information
+    def record_isolation_window_stats(self, spectrum, stats, ms_one_tolerance_dict):
         isolation_window_target_mz = None
         isolation_window_lower_offset = None
         isolation_window_upper_offset = None
+        precursor_ion = None
+        start_scan_time = None
+
         try:
             isolation_window_target_mz = spectrum['precursorList']['precursor'][0]['isolationWindow']['isolation window target m/z']
             isolation_window_lower_offset = spectrum['precursorList']['precursor'][0]['isolationWindow']['isolation window lower offset']
             isolation_window_upper_offset = spectrum['precursorList']['precursor'][0]['isolationWindow']['isolation window upper offset']
+   
+            precursor_ion = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
+            start_scan_time = spectrum['scanList']['scan'][0]['scan start time']
+
+            mz_int = precursor_ion.split('.')[0]
+            if mz_int not in ms_one_tolerance_dict:
+                ms_one_tolerance_dict[mz_int] = {"mz":[], "time":[]}
+
+            ms_one_tolerance_dict['mz'].append(precursor_ion)
+            ms_one_tolerance_dict['time'].append(start_scan_time)
+            
         except:
             # Cannot get the isolation window information. oh well
             pass
@@ -300,7 +473,6 @@ class MzMLAssessor:
             if full_width not in stats['isolation_window_full_widths']:
                 stats['isolation_window_full_widths'][full_width] = 0
             stats['isolation_window_full_widths'][full_width] += 1
-
 
     ####################################################################################################
     #### Parse the filter string
@@ -1022,6 +1194,10 @@ class MzMLAssessor:
 
         else:
             self.metadata['files'][self.mzml_file]['summary']['tolerance'] = 'No sigma values recorded'
+
+        self.metadata['files'][self.mzml_file]['summary']['precursor stats'] = self.precursor_stats
+
+
 
         #### If no ROIs were computed, cannot continue
         if 'ROIs' not in self.metadata['files'][self.mzml_file]:
