@@ -338,7 +338,7 @@ class MzMLAssessor:
             counts_before_peak = counts_time[:max_peak_index - 2]
 
 
-            p0 = [main_peak, 0.5, numpy.mean(counts_before_peak), max(counts_time), numpy.mean(counts_after_peak), 5]
+            p0 = [main_peak, 0.5, numpy.mean(counts_before_peak), max(counts_time), numpy.mean(counts_after_peak), 1]
 
             fit_time, cov = curve_fit(self.time_exp_decay, bin_centers_time, counts_time, p0=p0)
             expected_counts = self.time_exp_decay(bin_centers_time, *fit_time)
