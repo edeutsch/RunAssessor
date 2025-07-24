@@ -47,7 +47,12 @@ def test_large_files_present():
         "https://peptideatlas.org/data/RunAssessor/testfiles/140924_11.mzML.gz",
         "https://peptideatlas.org/data/RunAssessor/testfiles/ALS081215_10.mzML.gz",
         "https://peptideatlas.org/data/RunAssessor/testfiles/Orbi_CID_HCD_iTRAQ8plex.mzML.gz",
-        "https://peptideatlas.org/data/RunAssessor/testfiles/QExactive_TMT6.mzML.gz"
+        "https://peptideatlas.org/data/RunAssessor/testfiles/QExactive_TMT6.mzML.gz",
+        "https://peptideatlas.org/data/RunAssessor/testfiles/ADPhosTMT3R2.mzML.gz",
+        "https://peptideatlas.org/data/RunAssessor/testfiles/20250613_PRM34_AST_EV1109_G20_PRM_Pool10_iRT25_HeLaS3-P1.mzML.gz",
+        "https://peptideatlas.org/data/RunAssessor/testfiles/20171001_QE3_nLC7_DBJ_SA_LFQphos_Tech_Rep_03.mzML.gz",
+        "https://peptideatlas.org/data/RunAssessor/testfiles/ea02315_OrbiterFAIMS_CHX_HEK293T_F6.mzML.gz",
+        "https://peptideatlas.org/data/RunAssessor/testfiles/CRC_phospho_iTRAQ_20.mzML.gz"
     ]
     )
     for input_file in input_mzML_file:
