@@ -46,7 +46,7 @@ def test_mzML_assessor():
     assert stats['n_ms1_spectra'] == 92
     assert stats['n_ms2_spectra'] == 8
 
-    ROIs = assessor.assess_composite_spectra()
+    ROIs = assessor.assess_lowend_composite_spectra()
     assert ROIs['TMT6_126']['peak']['mode_bin']['n_spectra'] == 2
 
     assert assessor.metadata['state']['status'] != 'ERROR'

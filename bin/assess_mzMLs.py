@@ -23,7 +23,8 @@ def process_job(job):
     assessor = MzMLAssessor(job['filename'], metadata=job['metadata'], verbose=job['verbose'])
     assessor.read_header()
     assessor.read_spectra(write_fragmentation_type_file=job['write_fragmentation_type_files'])
-    assessor.assess_composite_spectra()
+    assessor.assess_lowend_composite_spectra()
+    assessor.assess_neutral_loss_composite_spectra()
     if assessor.metadata['state']['status'] != 'ERROR':
         assessor.assess_ROIs()
     return assessor
