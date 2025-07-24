@@ -12,6 +12,7 @@ def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 sys.path.append(os.path.dirname(os.path.realpath(__file__))+"/../lib")
 from mzML_assessor import MzMLAssessor
 from metadata_handler import MetadataHandler
+from graph_generator import GraphGenerator
 
 
 
@@ -42,6 +43,7 @@ def main():
     argparser.add_argument('--verbose', action='count', help='If set, print more information about ongoing processing' )
     argparser.add_argument('--version', action='version', version='%(prog)s 0.8')
     argparser.add_argument('--write_sdrf_file', action='count', help='If set, then write an SDRF file based on the metadata file')
+    argparser.add_argument('--write_delta_graphs', action='count', help='If set, then generate a pdf of delta time and ppm graphs from precursor stats')
     argparser.add_argument('files', type=str, nargs='+', help='Filenames of one or more mzML files to read')
     params = argparser.parse_args()
 
@@ -155,6 +157,11 @@ def main():
         timestamp = str(datetime.now().isoformat())
         t1 = timeit.default_timer()
         eprint(f"INFO: RunAssessor finished in {t1-t0:.2f} seconds at {timestamp}")
+    
+    #### Write out graphs is parameter given
+    if params.write_delta_graphs:
+        grapher = GraphGenerator(params.metadata_filepath, verbose=params.verbose)
+        grapher.buildGraphs()
 
 
 
