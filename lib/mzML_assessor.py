@@ -92,7 +92,7 @@ class MzMLAssessor:
         #### Set up information
         t0 = timeit.default_timer()
         stats = self.get_empty_stats()
-        ms_one_tolerance_dict = {"mz":[],"time":[]}
+        ms_one_tolerance_dict = {}
         self.metadata['files'][self.mzml_file]['spectra_stats'] = stats
 
         #### Store the fragmentation types in a list for storing in the fragmentation_type_file
@@ -223,7 +223,6 @@ class MzMLAssessor:
         #if self.verbose >= 1: eprint("")
 
         #### Find the tolerance of the MS1 scan
-
         self.find_ms_one_tolerance(ms_one_tolerance_dict)
 
         # If the user requested writing of a fragmentation_type_file, write it out
@@ -291,37 +290,21 @@ class MzMLAssessor:
     def find_ms_one_tolerance(self, ms_one_tolerance_dict):
 
 
-        times = ms_one_tolerance_dict['time']
-        ions = ms_one_tolerance_dict['mz']
-
-        p_a = 0
-        p_b = p_a + 1
-        p_c = 0
-        used_index = set()
         delta_ppm_list = []
         delta_time_list = []
 
-        if (len(times) != len(ions)) or not len(ions):
-            print('Unable to find tolerance for MS1 scan')
-        
-        while p_c < len(ions) and p_b < len(ions): #Figure out what end condition is
-            delta_time = (times[p_b] - times[p_a]) * 60
-            delta_ppm = ((ions[p_b] - ions[p_a]) / ions[p_a]) * 10**6
-            if self.within_ppm_time(delta_time, delta_ppm):
-                delta_ppm_list.append(delta_ppm)
-                delta_time_list.append(delta_time)
-                used_index.add(p_b)
-                p_a = p_b
-                p_b = p_a + 1
+        #ms_tol_dict format: int(mz): {"mz":[], "time":[]}
+
+        for key in ms_one_tolerance_dict:
+            if len(ms_one_tolerance_dict[key]["mz"]) > 1:
+                self.find_deltas(ms_one_tolerance_dict[key], delta_ppm_list, delta_time_list)
 
             else:
-                p_b += 1
-                if p_b >= len(ions):
-                    used_index.add(p_c)
-                    while p_c in used_index:
-                         p_c += 1
-                    p_a = p_c
-                    p_b = p_a + 1
+                pass
+        
+        data = numpy.column_stack((delta_ppm_list, delta_time_list))
+        numpy.savetxt("new_output.tsv", data, delimiter='\t', fmt='%.6f', header="delta_ppm\tdelta_time", comments='')
+                
 
         try:
             #Fit delta_time_list with histogram
@@ -329,7 +312,7 @@ class MzMLAssessor:
             bin_centers_ppm = 0.5 * (bins_ppm[1:] + bins_ppm[:-1])
             soft_raised_fixed_beta_ppm = partial(self.precursor_raised_gaussian, beta=1.5)
             p0_ppm = [max(counts_ppm), numpy.mean(delta_ppm_list), numpy.std(delta_ppm_list), 0.1]
-            fit_ppm, _ = curve_fit(soft_raised_fixed_beta_ppm, bin_centers_ppm, counts_ppm, p0=p0_ppm)
+            fit_ppm, _ = curve_fit(soft_raised_fixed_beta_ppm, bin_centers_ppm, counts_ppm, p0=p0_ppm, bounds=([0, -numpy.inf, 1e-6, 0], [numpy.inf, numpy.inf, numpy.inf, numpy.inf]))
         
             #Find chi^2 value for a goodness of fit
             expected_counts = soft_raised_fixed_beta_ppm(bin_centers_ppm, *fit_ppm)
@@ -345,17 +328,17 @@ class MzMLAssessor:
         
         try:
             #Fit delta_time_list with histogram
-            counts_time, bins_time = numpy.histogram(delta_time_list, bins=60)
+            counts_time, bins_time = numpy.histogram(delta_time_list, bins=100)
             bin_centers_time = 0.5 * (bins_time[1:] + bins_time[:-1])
             max_peak_index = numpy.argmax(counts_time)
             main_peak = bin_centers_time[max_peak_index]
 
             counts_after_peak = counts_time[max_peak_index + 2:]
-            mean_after_peak = numpy.mean(counts_after_peak)
+
+            counts_before_peak = counts_time[:max_peak_index - 2]
 
 
-
-            p0 = [main_peak, 0.5, min(counts_time), max(counts_time), mean_after_peak, 0.1]
+            p0 = [main_peak, 0.5, numpy.mean(counts_before_peak), max(counts_time), numpy.mean(counts_after_peak), 5]
 
             fit_time, cov = curve_fit(self.time_exp_decay, bin_centers_time, counts_time, p0=p0)
             expected_counts = self.time_exp_decay(bin_centers_time, *fit_time)
@@ -367,6 +350,9 @@ class MzMLAssessor:
 
             y_before = self.time_exp_decay(numpy.array([t_before]), *fit_time)[0]
             y_after = self.time_exp_decay(numpy.array([t_after]), *fit_time)[0]
+
+            bound_y_before = max(y_before, 1e-8)
+            bound_y_after = max(y_after, 1e-8)
 
 
             # Compute chi-squared
@@ -385,28 +371,88 @@ class MzMLAssessor:
         except:
             pass
 
+        ppm_fit_call = "no fit"
+        time_fit_call = "no fit"
 
         try:
+            if chi_squared_red_ppm < 1.5:
+                ppm_fit_call = "good fit found, okay to use"
+            elif chi_squared_red_ppm > 1.5 and chi_squared_red_ppm < 10:
+                ppm_fit_call = "uncertain about fit, manually check ppm graph and decide for yourself"
+            else:
+                ppm_fit_call = "probably not a good fit, no tolerance suggested, check ppm graph"
+                
+            if chi_squared_red_time < 10:
+                time_fit_call = "good fit, dynamic exclusion window found"
+            elif chi_squared_red_time > 10 and chi_squared_red_time < 20:
+                time_fit_call = "uncertain fit, manually check time graph and decide for yourself"
+            else:
+                time_fit_call = "not a good fit, no dynamic exculsion window found"
+        except:
+            pass
+
+
+
+        try:
+ 
             self.precursor_stats["precursor tolerance"] = {
-                            "fit_ppm":{"lower_three_sigma":-fit_ppm[2]*3, "upper_three_sigma":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0]},
+                            "good ppm_fit?": ppm_fit_call,
+                            "fit_ppm":{"lower_three_sigma":-fit_ppm[2]*3, "upper_three_sigma":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma": fit_ppm[2], "y_offset": fit_ppm[3]},
                             "histogram_ppm":{"counts": counts_ppm.tolist(), "bin_edges": bins_ppm.tolist(), "bin_centers": bin_centers_ppm.tolist(), "chi_squared":chi_squared_red_ppm}}
+
         except:
             self.precursor_stats["precursor tolerance"] = 'no delta_ppm peak fit'
 
         try:
+            
+
             self.precursor_stats["dynamic exclusion window"]= {
-                                "fit_pulse_time": {"delta_time peak time": fit_time[0], "pulse peak intensity to five secound before": fit_time[3]/y_before, "pulse peak intensity to five secounds after": fit_time[3]/y_after},
+                                "dynamic exclusion time?": time_fit_call,
+                                "fit_pulse_time": {"pulse start": fit_time[0], "pulse duration":fit_time[1], "inital level":fit_time[2], "peak level":fit_time[3], "final level":fit_time[4], "decay constant":fit_time[5], "peak to preceding level ratio": fit_time[3]/bound_y_before, "peak to following level ratio": fit_time[3]/bound_y_after},
                                 "histogram_time": {"counts": counts_time.tolist(),"bin_edges": bins_time.tolist(),"bin_centers": bin_centers_time.tolist(),"chi_squared": chi_squared_red_time }}
+            
         except:
             self.precursor_stats["dynamic exclusion window"] = 'no dynamic exclusion window found'
 
 
-       
-                        
+    ####################################################################################################
+    #### Finds the different deltas in a ms_one_tolerance_dict key     
+    def find_deltas(self, info_dict, delta_ppm_list, delta_time_list):
+        ions = info_dict['mz']
+        times = info_dict['time']
+        p_a = 0
+        p_b = p_a + 1
+        p_c = 0
+        used_index = set()
+
+        if (len(times) != len(ions)) or not len(ions):
+            print('Unable to find tolerance for MS1 scan')
+
+        while p_c < len(ions) and p_b < len(ions): #Figure out what end condition is
+            delta_time = (times[p_b] - times[p_a]) * 60
+            delta_ppm = ((ions[p_b] - ions[p_a]) / ions[p_a]) * 10**6
+            if self.within_ppm_time(delta_time, delta_ppm):
+                delta_ppm_list.append(delta_ppm)
+                delta_time_list.append(delta_time)
+                used_index.add(p_b)
+                p_a = p_b
+                p_b = p_a + 1
+        
+
+            else:
+                p_b += 1
+                if p_b >= len(ions) or delta_time > 65:
+                    used_index.add(p_c)
+                    while p_c in used_index:
+                         p_c += 1
+                    p_a = p_c
+                    p_b = p_a + 1
+
+
     ####################################################################################################
     #### Returns whether or not a delta_ppm and delta_time are within set perameters
     def within_ppm_time(self, delta_time, delta_ppm):
-        max_time = 65 #Secounds
+        max_time = 80 #Secounds
         min_time = 0 #Secounds
         max_delta_ppm = 30 #ppm
         
@@ -427,16 +473,27 @@ class MzMLAssessor:
     ####################################################################################################
     #### Pulse exp decay function with peak_level param
     def time_exp_decay(self, t, pulse_start, pulse_duration, initial_level, peak_level, new_level, tau):
-        y = numpy.full_like(t, initial_level, dtype=float)
-        pulse_end = pulse_start + pulse_duration
         
-        pulse_mask = (t >= pulse_start) & (t < pulse_end)
-        y[pulse_mask] = peak_level
-        
-        decay_mask = t >= pulse_end
-        y[decay_mask] = new_level + (peak_level - new_level) * numpy.exp(-(t[decay_mask] - pulse_end) / tau)
-        
+        exponent_rise = numpy.clip(-(t - pulse_start) * 50, -700, 700)
+        exponent_fall = numpy.clip(-(t - (pulse_start + pulse_duration)) * 50, -700, 700)
+
+        rise = 1 / (1 + numpy.exp(exponent_rise))
+        fall = 1 / (1 + numpy.exp(exponent_fall))
+        plateau = rise * (1 - fall)
+
+    
+        y = initial_level + (peak_level - initial_level) * plateau
+
+    
+        decay_mask = t >= (pulse_start + pulse_duration)
+        safe_tau = max(tau, 1e-8)
+        decay = numpy.zeros_like(t)
+        decay[decay_mask] = (peak_level - new_level) * numpy.exp(-(t[decay_mask] - (pulse_start + pulse_duration)) / safe_tau)
+        y[decay_mask] = new_level + decay[decay_mask]
+
         return y
+
+
         
 
     ####################################################################################################
@@ -456,13 +513,14 @@ class MzMLAssessor:
             precursor_ion = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
             start_scan_time = spectrum['scanList']['scan'][0]['scan start time']
 
-            mz_int = precursor_ion.split('.')[0]
+            mz_int = int(precursor_ion)
+
             if mz_int not in ms_one_tolerance_dict:
                 ms_one_tolerance_dict[mz_int] = {"mz":[], "time":[]}
 
-            ms_one_tolerance_dict['mz'].append(precursor_ion)
-            ms_one_tolerance_dict['time'].append(start_scan_time)
-            
+            ms_one_tolerance_dict[mz_int]['mz'].append(precursor_ion)
+            ms_one_tolerance_dict[mz_int]['time'].append(start_scan_time)
+
         except:
             # Cannot get the isolation window information. oh well
             pass
@@ -1236,7 +1294,7 @@ class MzMLAssessor:
             else:
                 results['labeling']['call'] = 'ambiguous'
 
-
+        
 
     ####################################################################################################
     #### Log an event
