@@ -429,8 +429,8 @@ class MetadataHandler:
                     all_3sigma_values_away['Status'] = True
 
                 elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
-                    all_3sigma_values_away['Lowest'] = fileinfo['summary']['tolerance']['lower_m/z']
-                    all_3sigma_values_away['Highest'] = fileinfo['summary']['tolerance']['upper_m/z']
+                    all_3sigma_values_away['Lowest'].append(fileinfo['summary']['tolerance']['lower_m/z'])
+                    all_3sigma_values_away['Highest'].append(fileinfo['summary']['tolerance']['upper_m/z'])
                     all_3sigma_values_away['Status'] = True
                 
             except:
@@ -467,12 +467,32 @@ class MetadataHandler:
                         pass
             #### Gather info for table with: call, instrament, and precursor tolerance (upper, lower)
             try:
-                pre_tol = fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']
-                info.append([file, labeling, file_instrument, pre_tol['upper_three_sigma'], pre_tol['lower_three_sigma']])
+                if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
+                    low_tol = fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower']
+                    high_tol = fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper']
+
+
+                elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
+                    low_tol = fileinfo['summary']['tolerance']['lower_m/z']
+                    low_tol = fileinfo['summary']['tolerance']['upper_m/z']
+
+                try:
+                    dynamic_exclusion_time = fileinfo['summary']['precursor stats']['dynamic exclusion window']['fit_pulse_time']['pulse start']
+                except:
+                    dynamic_exclusion_time = "No exclusion time found"
+
+                isolation_window = {}
+                try:
+                    isolation_window = fileinfo['spectra_stats']['isolation_window_full_widths']
+                except:
+                    isolation_window = "no isolation window widths found"
+    
+                info.append([file, labeling, file_instrument, criteria['acquisition_type'], criteria['high_accuracy_precursors'], criteria['fragmentation_type'], isolation_window, high_tol, low_tol, dynamic_exclusion_time])
+
             except:
                 info.append([file, "No summary/info", "", "", ""])
         ### Write info summary table
-        headers = ["file", "labeling", "file_instrument", "upper_three_sigma", "lower_three_sigma"]
+        headers = ["file", "labeling", "file_instrument", 'acquisition type', "High accuracy precursor", "fragmentation type", "isolation window", "upper_three_sigma", "lower_three_sigma", "dynamic exclusion time peak"]
         info_array = numpy.array(info, dtype=object)
         with open("summary_file_type.tsv", "w") as f:
             f.write("\t".join(headers) + "\n")  
