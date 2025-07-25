@@ -54,6 +54,43 @@ class MzMLAssessor:
         if verbose is None: verbose = 0
         self.verbose = verbose
 
+        self.composite_spectrum_attributes = {
+                'lowend': {
+                    'HR_HCD': {
+                        'minimum': 100,
+                        'maximum': 400,
+                        'binsize': 0.0002
+                    },
+                    'LR_IT_CID': {
+                        'minimum': 100,
+                        'maximum': 460,
+                        'binsize': 0.05
+                    },
+                    'LR_IT_ETD': {
+                        'minimum': 100,
+                        'maximum': 400,
+                        'binsize': 0.05
+                    }
+                },
+                'precursor_loss': {
+                    'HR_HCD': {
+                        'minimum': 0,
+                        'maximum': 100,
+                        'binsize': 0.001
+                    },
+                    'LR_IT_CID': {
+                        'minimum': 0,
+                        'maximum': 100,
+                        'binsize': 0.05
+                    },
+                    'LR_IT_ETD': {
+                        'minimum': 0,
+                        'maximum': 100,
+                        'binsize': 0.05
+                    }
+                }
+            }
+
 
     ####################################################################################################
     #### Get empty stats
@@ -222,6 +259,23 @@ class MzMLAssessor:
         infile.close()
         #if self.verbose >= 1: eprint("")
 
+        
+        # Plotting the composite spectrum and dumping the array of m/z versus intensities
+        destination = "precursor_loss_HR_HCD"
+        intensities = self.composite[destination]['n_peaks']
+        maximum = self.composite[destination]['maximum']
+        minimum = self.composite[destination]['minimum']
+        binsize = self.composite[destination]['binsize']
+        mz = numpy.arange((maximum-minimum)/binsize+1)*binsize+minimum
+        plt.plot(mz, intensities)
+        plt.xlabel("m/z loss (precursor_loss)")
+        plt.ylabel("Intensity")
+        plt.tight_layout()
+
+        #data = numpy.column_stack((mz, intensities))
+        #numpy.savetxt("composite_array.tsv", data, delimiter='\t', header="m/z\t\t\t\t\t\tintensity")
+
+        
         #### Find the tolerance of the MS1 scan
         self.find_ms_one_tolerance(ms_one_tolerance_dict)
 
@@ -694,70 +748,45 @@ class MzMLAssessor:
             self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra_examined'] = 0
         self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra_examined'] += 1
 
-        destination = f"lowend_{spectrum_type}"
-        #destination2 = f"neutral_loss_{spectrum_type}"
+        composite_types = ["lowend", "precursor_loss"]
 
-        if destination not in self.composite:
-            if spectrum_type == 'HR_HCD':
+        for composite_type in composite_types:
+            destination = f"{composite_type}_{spectrum_type}"
+ 
+            if destination not in self.composite:
+                if spectrum_type not in self.composite_spectrum_attributes[composite_type]:
+                    eprint(f"ERROR: Unrecognized spectrum type {spectrum_type}")
+                    return
+                
                 #print(f"INFO: Creating a composite spectrum {destination}")
-                minimum = 100
-                maximum = 400
-                binsize = 0.0002
+                minimum = self.composite_spectrum_attributes[composite_type][spectrum_type]['minimum']
+                maximum = self.composite_spectrum_attributes[composite_type][spectrum_type]['maximum']
+                binsize = self.composite_spectrum_attributes[composite_type][spectrum_type]['binsize']
+
                 array_size = int( (maximum - minimum ) / binsize ) + 1
                 self.composite[destination] = { 'minimum': minimum, 'maximum': maximum, 'binsize': binsize }
                 self.composite[destination]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
                 self.composite[destination]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
 
-                #print(f"INFO: Creating a composite spectrum {destination2}")
-                # minimum = 0
-                # maximum = 165
-                # binsize = 0.001
-                # array_size = int( (maximum - minimum ) / binsize ) + 1
-                # self.composite[destination2] = { 'minimum': minimum, 'maximum': maximum, 'binsize': binsize }
-                # self.composite[destination2]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
-                # self.composite[destination2]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
 
-            elif spectrum_type == 'LR_IT_CID':
-                #print(f"INFO: Creating a composite spectrum {destination}")
-                minimum = 100
-                maximum = 460
-                binsize = 0.05
-                array_size = int( (maximum - minimum ) / binsize ) + 1
-                self.composite[destination] = { 'minimum': minimum, 'maximum': maximum, 'binsize': binsize }
-                self.composite[destination]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
-                self.composite[destination]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
+            #### Convert the peak lists to numpy arrays
+            intensity_array = numpy.asarray(peaklist['intensity array'])
+            mz_array = numpy.asarray(peaklist['m/z array'])
 
-            elif spectrum_type == 'LR_IT_ETD':
-                #print(f"INFO: Creating a composite spectrum {destination}")
-                minimum = 100
-                maximum = 400
-                binsize = 0.05
-                array_size = int( (maximum - minimum ) / binsize ) + 1
-                self.composite[destination] = { 'minimum': minimum, 'maximum': maximum, 'binsize': binsize }
-                self.composite[destination]['intensities'] = numpy.zeros(array_size,dtype=numpy.float32)
-                self.composite[destination]['n_peaks'] = numpy.zeros(array_size,dtype=numpy.int32)
-
-            else:
-                #print(f"ERROR: Unrecognized spectrum type {spectrum_type}")
-                return
-
-        #### Convert the peak lists to numpy arrays
-        intensity_array = numpy.asarray(peaklist['intensity array'])
-        mz_array = numpy.asarray(peaklist['m/z array'])
-
-       
+            if composite_type == 'precursor_loss':
+                mz_array = precursor_mz - mz_array
 
 
-        #### Limit the numpy arrays to the region we're interested in
-        intensity_array = intensity_array[ ( mz_array > self.composite[destination]['minimum'] ) & ( mz_array < self.composite[destination]['maximum'] ) ]
-        mz_array = mz_array[ ( mz_array > self.composite[destination]['minimum'] ) & ( mz_array < self.composite[destination]['maximum'] ) ]
+            #### Limit the numpy arrays to the region we're interested in
+            intensity_array = intensity_array[ ( mz_array > self.composite[destination]['minimum'] ) & ( mz_array < self.composite[destination]['maximum'] ) ]
+            mz_array = mz_array[ ( mz_array > self.composite[destination]['minimum'] ) & ( mz_array < self.composite[destination]['maximum'] ) ]
 
-        
 
-        #### Compute their bin locations and store n_peaks and intensities
-        bin_array = (( mz_array - self.composite[destination]['minimum'] ) / self.composite[destination]['binsize']).astype(int)
-        self.composite[destination]['n_peaks'][bin_array] += 1
-        self.composite[destination]['intensities'][bin_array] += intensity_array
+            #### Compute their bin locations and store n_peaks and intensities
+            bin_array = (( mz_array - self.composite[destination]['minimum'] ) / self.composite[destination]['binsize']).astype(int)
+            self.composite[destination]['n_peaks'][bin_array] += 1
+            self.composite[destination]['intensities'][bin_array] += intensity_array
+            
 
         #### The stuff below was trying to compute neutral losses. It works, but it's too slow. Need a Cython implementation I guess
 
@@ -983,8 +1012,8 @@ class MzMLAssessor:
 
 
     ####################################################################################################
-    #### Assess composite spectra
-    def assess_composite_spectra(self):
+    #### Assess low end composite spectra
+    def assess_lowend_composite_spectra(self):
         #with open('zzcomposite_spectrum.pickle','rb') as infile:
         #    spec = pickle.load(infile)
         spec = self.composite
@@ -1018,11 +1047,11 @@ class MzMLAssessor:
             'TMT6_129': { 'type': 'TMT', 'mz': 129.131468, 'initial_window': 0.01 },
             'TMT6_130': { 'type': 'TMT', 'mz': 130.141141, 'initial_window': 0.01 },
             'TMT6_131': { 'type': 'TMT', 'mz': 131.138176, 'initial_window': 0.01 },
-            'TMT10_127_C': {'type': 'TMT', 'mz': 127.131081, 'initial_window': 0.01 },
-            'TMT10_128_N': {'type': 'TMT', 'mz': 128.128116, 'initial_window': 0.01 },
-            'TMT10_129_C': {'type': 'TMT', 'mz': 129.137790, 'initial_window': 0.01 },
-            'TMT10_130_N': {'type': 'TMT', 'mz': 130.134825, 'initial_window': 0.01 },
-            'TMT11_131_C': {'type': 'TMT', 'mz': 131.144499, 'initial_window': 0.01 },
+            'TMT10_127_C': {'type': 'TMT10', 'mz': 127.131081, 'initial_window': 0.01 },
+            'TMT10_128_N': {'type': 'TMT10', 'mz': 128.128116, 'initial_window': 0.01 },
+            'TMT10_129_C': {'type': 'TMT10', 'mz': 129.137790, 'initial_window': 0.01 },
+            'TMT10_130_N': {'type': 'TMT10', 'mz': 130.134825, 'initial_window': 0.01 },
+            'TMT11_131_C': {'type': 'TMT10', 'mz': 131.144499, 'initial_window': 0.01 },
             'TMT6plex': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 0.01 },
             'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 0.01 },
             'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 0.01 },
@@ -1064,11 +1093,11 @@ class MzMLAssessor:
                 'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 1.0 },
                 'iTRAQ4_y1K': { 'type': 'iTRAQ4', 'mz': 376.2757, 'initial_window': 1.0 },
                 'iTRAQ8_y1K': { 'type': 'iTRAQ8', 'mz': 451.3118, 'initial_window': 1.0 },
-                'TMT10_127_C': {'type': 'TMT', 'mz': 127.131081, 'initial_window': 1.0 },
-                'TMT10_128_N': {'type': 'TMT', 'mz': 128.128116, 'initial_window': 1.0 },
-                'TMT10_129_C': {'type': 'TMT', 'mz': 129.137790, 'initial_window': 1.0 },
-                'TMT10_130_N': {'type': 'TMT', 'mz': 130.134825, 'initial_window': 1.0 },
-                'TMT11_131_C': {'type': 'TMT', 'mz': 131.144499, 'initial_window': 1.0 },
+                'TMT10_127_C': {'type': 'TMT10', 'mz': 127.131081, 'initial_window': 1.0 },
+                'TMT10_128_N': {'type': 'TMT10', 'mz': 128.128116, 'initial_window': 1.0 },
+                'TMT10_129_C': {'type': 'TMT10', 'mz': 129.137790, 'initial_window': 1.0 },
+                'TMT10_130_N': {'type': 'TMT10', 'mz': 130.134825, 'initial_window': 1.0 },
+                'TMT11_131_C': {'type': 'TMT10', 'mz': 131.144499, 'initial_window': 1.0 },
             }
             with open(additionalPeaks, "r") as f:
                 next(f)
@@ -1079,7 +1108,6 @@ class MzMLAssessor:
                     elif float(parts[4]) > 200:
                         ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 1.0}
             
-
 
         for ROI in ROIs:
             #print(f"INFO: Looking for {ROI} at {ROIs[ROI]['mz']}")
@@ -1094,9 +1122,9 @@ class MzMLAssessor:
 
             try:
                 ### Finds the number of standard deviations away the peak is from the theoretical mz value
-                sigma_away_from_theoretcial = (ROIs[ROI]['peak']['fit']["delta_ppm"])/(ROIs[ROI]['peak']['fit']["sigma_ppm"])
+                sigma_away_from_theoretical = (ROIs[ROI]['peak']['fit']["delta_ppm"])/(ROIs[ROI]['peak']['fit']["sigma_ppm"])
                 ### Assigning the information in the dictionary
-                ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretcial
+                ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretical
                 
             except:
                 pass
@@ -1120,9 +1148,106 @@ class MzMLAssessor:
                 pass
 
 
-        self.metadata['files'][self.mzml_file]['ROIs'] = ROIs
+        self.metadata['files'][self.mzml_file]['lowend_peaks'] = ROIs
         return ROIs
     
+
+    ####################################################################################################
+    #### Assess neutral loss composite spectra
+    def assess_neutral_loss_composite_spectra(self):
+        #with open('zzcomposite_spectrum.pickle','rb') as infile:
+        #    spec = pickle.load(infile)
+        spec = self.composite
+
+        ###Dictionary to hold upper and lower sigma_ppm relative to theoretical value
+        self.all_3sigma_values_away = {"Status": False,"upper": [], "lower": []}
+
+        supported_composite_type_list = [ 'precursor_loss_HR_HCD', 'precursor_loss_LR_IT_CID' ]
+
+        composite_type = None
+        for supported_composite_type in supported_composite_type_list:
+            if supported_composite_type in spec:
+                composite_type = supported_composite_type
+
+        if composite_type is None:
+            self.log_event('WARNING','UnknownFragmentation',f"Not able to determine more about these spectra yet.")
+            return
+
+        minimum = spec[composite_type]['minimum']
+        maximum = spec[composite_type]['maximum']
+        binsize = spec[composite_type]['binsize']
+        spec[composite_type]['mz'] = numpy.arange(minimum, maximum + binsize, binsize)
+
+        singly_charged_peaks = [
+            { 'name': 'Phospho', 'type': 'Phospho', 'mass': 79.966331 },
+            { 'name': 'water', 'type': 'water_loss', 'mass': 18.0105647 },
+            { 'name': 'phosphoric_acid', 'type': 'phosphoric_acid_loss', 'mass': 97.9768957 }
+        ]
+        ROIs = {}
+        charges = [1, 2, 3]
+        for item in singly_charged_peaks:
+            for z in charges:
+                ROI_name = f"{item['name']}_z{z}"
+                mz = (item['mass'] / z)
+                type = f"{item['type']}"
+
+                ROIs[ROI_name] = {'type': type, 'mz': mz, 'initial_window': 0.01}
+
+        #### What should we look at for ion trap data?
+        if composite_type == 'precursor_loss_LR_IT_CID':
+            ROIs = {}
+            charges = [1, 2, 3]
+            for item in singly_charged_peaks:
+                for z in charges:
+                    ROI_name = f"{item['name']}_z{z}"
+                    mz = (item['mass'] / z)
+                    type = f"{item['type']}"
+
+                    ROIs[ROI_name] = {'type': type, 'mz': mz, 'initial_window': 1.0}
+
+
+        for ROI in ROIs:
+            #print(f"INFO: Looking for {ROI} at {ROIs[ROI]['mz']}")
+            #center = ROIs[ROI]['mz']
+            #range = ROIs[ROI]['initial_window']
+            #first_bin = int((center - range/2.0 - minimum) / binsize)
+            #last_bin = int((center + range/2.0 - minimum) / binsize)
+
+            #### Look for the largest peak
+            peak = self.find_peak(spec,ROIs,ROI,composite_type)
+            ROIs[ROI]['peak'] = peak
+
+            try:
+                ### Finds the number of standard deviations away the peak is from the theoretical mz value
+                sigma_away_from_theoretical = (ROIs[ROI]['peak']['fit']["delta_ppm"])/(ROIs[ROI]['peak']['fit']["sigma_ppm"])
+                ### Assigning the information in the dictionary
+                ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretical
+                
+            except:
+                pass
+
+            #If a 3 standard deviation is availible from the guassian curve, check to see if its distance is a max or min in the whole spectra set
+            try:
+                if composite_type == "precursor_loss_HR_HCD":
+                    upper = peak['extended']['three_sigma_ppm_upper']
+                    lower = peak['extended']['three_sigma_ppm_lower']
+                elif composite_type == "precursor_loss_LR_IT_CID":
+                    upper = peak['extended']['three_sigma_mz_upper']
+                    lower = peak['extended']['three_sigma_mz_lower']
+                else:
+                    upper = lower = None  # fallback or skip logic
+
+                self.all_3sigma_values_away['upper'].append(upper)
+                self.all_3sigma_values_away['lower'].append(lower)
+                self.all_3sigma_values_away['Status'] = True
+
+            except KeyError:
+                pass
+
+
+        self.metadata['files'][self.mzml_file]['neutral_loss_peaks'] = ROIs
+        return ROIs
+
 
     ####################################################################################################
     #### Peak finding routine
@@ -1212,7 +1337,7 @@ class MzMLAssessor:
         else:
             peak['assessment'] = { 'is_found': False, 'fraction': 0.0, 'comment': 'Too few peaks found in ROI' }
 
-        return(peak)
+        return peak
 
 
     ####################################################################################################
@@ -1258,11 +1383,11 @@ class MzMLAssessor:
 
 
         #### If no ROIs were computed, cannot continue
-        if 'ROIs' not in self.metadata['files'][self.mzml_file]:
+        if 'lowend_peaks' not in self.metadata['files'][self.mzml_file] or 'neutral_loss_peaks' not in self.metadata['files'][self.mzml_file]:
             return
 
-        for ROI in self.metadata['files'][self.mzml_file]['ROIs']:
-            ROIobj = self.metadata['files'][self.mzml_file]['ROIs'][ROI]
+        for ROI in self.metadata['files'][self.mzml_file]['lowend_peaks']:
+            ROIobj = self.metadata['files'][self.mzml_file]['lowend_peaks'][ROI]
             if ROIobj['peak']['assessment']['is_found']:
                 type = ROIobj['type']
                 n_spectra = ROIobj['peak']['extended']['n_spectra']
@@ -1271,6 +1396,20 @@ class MzMLAssessor:
                     results['labeling']['scores'][type] += ROIobj['peak']['assessment']['fraction']
                 except:
                     pass
+        
+        #### Positive control
+        self.metadata['files'][self.mzml_file]['summary']['water_loss'] = {}
+        if self.metadata['files'][self.mzml_file]['neutral_loss_peaks']['water_z2']['peak']['mode_bin']['n_spectra'] >= 100:
+            self.metadata['files'][self.mzml_file]['summary']['water_loss'] = True
+
+            #### Determine if Phospho or not
+            if self.metadata['files'][self.mzml_file]['neutral_loss_peaks']['Phospho_z2']['peak']['mode_bin']['n_spectra'] >= 100:
+                self.metadata['files'][self.mzml_file]['summary']['Phospho_spectra'] = True
+            elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks']['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 100:
+                self.metadata['files'][self.mzml_file]['summary']['Phospho_spectra'] = True
+            else:
+                self.metadata['files'][self.mzml_file]['summary']['Phospho_spectra'] = False
+            
 
         #### Make the call for TMT or iTRAQ
         if results['labeling']['scores']['TMT'] > results['labeling']['scores']['iTRAQ']:
@@ -1376,7 +1515,8 @@ def main():
         assessor.read_header()
         if not params.use_cache:
             assessor.read_spectra()
-        assessor.assess_composite_spectra()
+        assessor.assess_lowend_composite_spectra()
+        assessor.assess_neutral_loss_composite_spectra()
         print(assessor.metadata['state']['status'])
         if assessor.metadata['state']['status'] != 'ERROR':
             assessor.assess_ROIs()

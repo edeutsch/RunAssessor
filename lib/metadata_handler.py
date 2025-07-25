@@ -439,8 +439,8 @@ class MetadataHandler:
 
             #### Add info to ion data
             
-            for ions in fileinfo['ROIs']:
-                if fileinfo['ROIs'][ions]['type'] == "fragment_ion":
+            for ions in fileinfo['lowend_peaks']:
+                if fileinfo['lowend_peaks'][ions]['type'] == "fragment_ion":
                     
                     try:
                         if file not in ion_three_sigma_table:
@@ -449,19 +449,19 @@ class MetadataHandler:
                         if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
                             ion_three_sigma_table[file].append({
                                 "ion": ions,
-                                "three_sigma_lower": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_lower"],
-                                "three_sigma_upper": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_ppm_upper"],
-                                "fit_mz": fileinfo["ROIs"][ions]['peak']["fit"]['mz'],
-                                "intensity": fileinfo["ROIs"][ions]['peak']["fit"]['intensity'],
+                                "three_sigma_lower": fileinfo["lowend_peaks"][ions]["peak"]["extended"]["three_sigma_ppm_lower"],
+                                "three_sigma_upper": fileinfo["lowend_peaks"][ions]["peak"]["extended"]["three_sigma_ppm_upper"],
+                                "fit_mz": fileinfo["lowend_peaks"][ions]['peak']["fit"]['mz'],
+                                "intensity": fileinfo["lowend_peaks"][ions]['peak']["fit"]['intensity'],
                             })
 
                         elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
                             ion_three_sigma_table[file].append({
                                 "ion": ions,
-                                "three_sigma_lower": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_mz_lower"],
-                                "three_sigma_upper": fileinfo["ROIs"][ions]["peak"]["extended"]["three_sigma_mz_upper"],
-                                "fit_mz": fileinfo["ROIs"][ions]['peak']["fit"]['mz'],
-                                "intensity": fileinfo["ROIs"][ions]['peak']["fit"]['intensity'],
+                                "three_sigma_lower": fileinfo["lowend_peaks"][ions]["peak"]["extended"]["three_sigma_mz_lower"],
+                                "three_sigma_upper": fileinfo["lowend_peaks"][ions]["peak"]["extended"]["three_sigma_mz_upper"],
+                                "fit_mz": fileinfo["lowend_peaks"][ions]['peak']["fit"]['mz'],
+                                "intensity": fileinfo["lowend_peaks"][ions]['peak']["fit"]['intensity'],
                             })              
                     except:
                         pass
