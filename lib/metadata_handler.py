@@ -309,6 +309,9 @@ class MetadataHandler:
         ion_three_sigma_table = {}
         ### Creates a variable to store 3sigma values across all values
         all_3sigma_values_away = {"Status":False, "Highest": [], "Lowest":[]}
+
+        ### Creates a list to hold information to generate a table with info about all files
+        info = []
         
 
         #### Short handle for the search criteria information
@@ -462,6 +465,18 @@ class MetadataHandler:
                             })              
                     except:
                         pass
+            #### Gather info for table with: call, instrament, and precursor tolerance (upper, lower)
+            try:
+                pre_tol = fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']
+                info.append([file, labeling, file_instrument, pre_tol['upper_three_sigma'], pre_tol['lower_three_sigma']])
+            except:
+                info.append([file, "No summary/info", "", "", ""])
+        ### Write info summary table
+        headers = ["file", "labeling", "file_instrument", "upper_three_sigma", "lower_three_sigma"]
+        info_array = numpy.array(info, dtype=object)
+        with open("summary_file_type.tsv", "w") as f:
+            f.write("\t".join(headers) + "\n")  
+            numpy.savetxt(f, info_array, delimiter="\t", fmt="%s") 
 
         #### Set the the main tolerance based on three_sigma values from all files
         self.set_main_tolerance(all_3sigma_values_away)
