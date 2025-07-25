@@ -263,13 +263,10 @@ class MzMLAssessor:
         minimum = self.composite[destination]['minimum']
         binsize = self.composite[destination]['binsize']
         mz = numpy.arange((maximum-minimum)/binsize+1)*binsize+minimum
-        eprint("echo")
         plt.plot(mz, intensities)
         plt.xlabel("m/z loss (precursor_loss)")
         plt.ylabel("Intensity")
-        eprint("Echo1")
         plt.tight_layout()
-        plt.show()
 
         #data = numpy.column_stack((mz, intensities))
         #numpy.savetxt("composite_array.tsv", data, delimiter='\t', header="m/z\t\t\t\t\t\tintensity")
