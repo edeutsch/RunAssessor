@@ -260,22 +260,6 @@ class MzMLAssessor:
         #if self.verbose >= 1: eprint("")
 
         
-        # Plotting the composite spectrum and dumping the array of m/z versus intensities
-        destination = "precursor_loss_HR_HCD"
-        intensities = self.composite[destination]['n_peaks']
-        maximum = self.composite[destination]['maximum']
-        minimum = self.composite[destination]['minimum']
-        binsize = self.composite[destination]['binsize']
-        mz = numpy.arange((maximum-minimum)/binsize+1)*binsize+minimum
-        plt.plot(mz, intensities)
-        plt.xlabel("m/z loss (precursor_loss)")
-        plt.ylabel("Intensity")
-        plt.tight_layout()
-
-        #data = numpy.column_stack((mz, intensities))
-        #numpy.savetxt("composite_array.tsv", data, delimiter='\t', header="m/z\t\t\t\t\t\tintensity")
-
-        
         #### Find the tolerance of the MS1 scan
         self.find_ms_one_tolerance(ms_one_tolerance_dict)
 
@@ -743,6 +727,7 @@ class MzMLAssessor:
 
         stats, precursor_mz, peaklist = params
         spectrum_type = stats['fragmentation_type']
+        print(spectrum_type)
 
         if 'n_spectra_examined' not in self.metadata['files'][self.mzml_file]['spectra_stats']:
             self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra_examined'] = 0
@@ -1433,7 +1418,7 @@ class MzMLAssessor:
             else:
                 results['labeling']['call'] = 'ambiguous'
 
-        
+
 
     ####################################################################################################
     #### Log an event

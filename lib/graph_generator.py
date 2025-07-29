@@ -174,3 +174,57 @@ class GraphGenerator:
                 print(f"Saved plot for {filename}")
 
         print("Saving PDF to:", os.path.abspath(output_pdf_path))
+
+
+    def plot_precursor_loss_composite_spectra(self, assessor):
+        
+        #### Plotting the precursor loss composite spectrum around water z=2 and phosphoric acid z=2
+
+        destinations_list = list(assessor.composite.keys())
+        print(destinations_list)
+        for destination in destinations_list:
+            if destination.startswith("precursor_loss_"):
+                intensities = assessor.composite[destination]['intensities']
+                maximum = assessor.composite[destination]['maximum']
+                minimum = assessor.composite[destination]['minimum']
+                binsize = assessor.composite[destination]['binsize']
+                mz = np.arange((maximum-minimum)/binsize+1)*binsize+minimum
+
+                water_z2_min = 8.905
+                water_z2_max = 9.105
+
+                phosphoric_acid_z2_min = 48.888
+                phosphoric_acid_z2_max = 49.088
+
+                file_name_root = assessor.mzml_file.split('.')[0]
+                file_name = f"{file_name_root}_neutral_loss_window.pdf"
+
+                with PdfPages(file_name) as pdf:
+                    water_z2_range = (mz >= water_z2_min) & (mz <= water_z2_max)
+                    plt.plot(mz[water_z2_range], intensities[water_z2_range])
+                    plt.xlabel(f"m/z loss ({destination})")
+                    plt.ylabel("Intensity")
+                    plt.tight_layout()
+                    pdf.savefig()
+                    plt.close()
+
+                    phosphoric_acid_z2_range = (mz >= phosphoric_acid_z2_min) & (mz <= phosphoric_acid_z2_max)
+                    plt.plot(mz[phosphoric_acid_z2_range], intensities[phosphoric_acid_z2_range])
+                    plt.xlabel(f"m/z loss ({destination})")
+                    plt.ylabel("Intensity")
+                    plt.tight_layout()
+                    pdf.savefig()
+                    plt.close()
+
+                    plt.plot(mz, intensities)
+                    plt.xlabel(f"m/z loss ({destination})")
+                    plt.ylabel("Intensity")
+                    plt.tight_layout()
+                    pdf.savefig()
+                    plt.close()
+        
+        print("Saving neutral loss window PDF to:", os.path.abspath(file_name))
+
+
+        #data = np.column_stack((mz, intensities))
+        #np.savetxt("composite_array.tsv", data, delimiter='\t', header="m/z\t\t\t\t\t\tintensity")
