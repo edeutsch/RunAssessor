@@ -48,7 +48,7 @@ class GraphGenerator:
 
                     time_initial_level = dynamic_exclusion_window.get("fit_pulse_time", {}).get("inital level", [])
                     pulse_start = dynamic_exclusion_window.get("fit_pulse_time", {}).get("pulse start", [])
-                    pulse_duration = dynamic_exclusion_window.get("fit_pulse_time", {}).get("pulse duration", [])
+                    pulse_duration = dynamic_exclusion_window.get("fit_pulse_time", {}).get("dynamic exclusion time offset", [])
                     peak_level = dynamic_exclusion_window.get("fit_pulse_time", {}).get("peak level", [])
                     decay_constant = dynamic_exclusion_window.get("fit_pulse_time", {}).get("decay constant", [])
                     final_level = dynamic_exclusion_window.get("fit_pulse_time", {}).get("final level", [])

@@ -26,8 +26,11 @@ def process_job(job):
     assessor.read_spectra(write_fragmentation_type_file=job['write_fragmentation_type_files'])
     assessor.assess_lowend_composite_spectra()
     assessor.assess_neutral_loss_composite_spectra()
-    if assessor.metadata['state']['status'] != 'ERROR':
+
+    if assessor.metadata['state']['status'] != 'ERROR' or 'multiple fragmentation types' in assessor.metadata['state']['message']:
         assessor.assess_ROIs()
+        
+        
     return assessor
 
 

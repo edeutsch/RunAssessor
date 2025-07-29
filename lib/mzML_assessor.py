@@ -260,6 +260,22 @@ class MzMLAssessor:
         #if self.verbose >= 1: eprint("")
 
         
+        # Plotting the composite spectrum and dumping the array of m/z versus intensities
+        destination = "precursor_loss_HR_HCD"
+        intensities = self.composite[destination]['n_peaks']
+        maximum = self.composite[destination]['maximum']
+        minimum = self.composite[destination]['minimum']
+        binsize = self.composite[destination]['binsize']
+        mz = numpy.arange((maximum-minimum)/binsize+1)*binsize+minimum
+        plt.plot(mz, intensities)
+        plt.xlabel("m/z loss (precursor_loss)")
+        plt.ylabel("Intensity")
+        plt.tight_layout()
+
+        #data = numpy.column_stack((mz, intensities))
+        #numpy.savetxt("composite_array.tsv", data, delimiter='\t', header="m/z\t\t\t\t\t\tintensity")
+
+        
         #### Find the tolerance of the MS1 scan
         self.find_ms_one_tolerance(ms_one_tolerance_dict)
 
@@ -446,7 +462,7 @@ class MzMLAssessor:
 
             self.precursor_stats["dynamic exclusion window"]= {
                                 "dynamic exclusion time?": time_fit_call,
-                                "fit_pulse_time": {"pulse start": fit_time[0], "pulse duration":fit_time[1], "inital level":fit_time[2], "peak level":fit_time[3], "final level":fit_time[4], "decay constant":fit_time[5], "peak to preceding level ratio": fit_time[3]/bound_y_before, "peak to following level ratio": fit_time[3]/bound_y_after},
+                                "fit_pulse_time": {"pulse start": fit_time[0], "dynamic exclusion time offset":fit_time[1], "inital level":fit_time[2], "peak level":fit_time[3], "final level":fit_time[4], "decay constant":fit_time[5], "peak to preceding level ratio": fit_time[3]/bound_y_before, "peak to following level ratio": fit_time[3]/bound_y_after},
                                 "histogram_time": {"counts": counts_time.tolist(),"bin_edges": bins_time.tolist(),"bin_centers": bin_centers_time.tolist(),"chi_squared": chi_squared_red_time }}
             
         except:
@@ -726,18 +742,18 @@ class MzMLAssessor:
     def add_spectrum(self,params):
 
         stats, precursor_mz, peaklist = params
-        spectrum_type = stats['fragmentation_type']
-        print(spectrum_type)
+
+        spectrum_type = stats['fragmentation_tag'].replace(" ", "_")
 
         if 'n_spectra_examined' not in self.metadata['files'][self.mzml_file]['spectra_stats']:
             self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra_examined'] = 0
         self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra_examined'] += 1
 
         composite_types = ["lowend", "precursor_loss"]
-
+        
         for composite_type in composite_types:
             destination = f"{composite_type}_{spectrum_type}"
- 
+
             if destination not in self.composite:
                 if spectrum_type not in self.composite_spectrum_attributes[composite_type]:
                     eprint(f"ERROR: Unrecognized spectrum type {spectrum_type}")
@@ -1007,133 +1023,140 @@ class MzMLAssessor:
         additionalPeaks = os.path.dirname(os.path.abspath(__file__)) + "/Additional_Peaks.tsv"
 
         ###Dictionary to hold upper and lower sigma_ppm relative to theoretical value
-        self.all_3sigma_values_away = {"Status": False,"upper": [], "lower": []}
+        self.all_3sigma_values_away = {"Status": False,"upper_ppm": [], "lower_ppm": [], "upper_mz":[], "lower_mz":[]}
 
         supported_composite_type_list = [ 'lowend_HR_HCD', 'lowend_LR_IT_CID' ]
 
-        composite_type = None
+        composite_type_list = []
         for supported_composite_type in supported_composite_type_list:
             if supported_composite_type in spec:
-                composite_type = supported_composite_type
+                
+                composite_type_list.append(supported_composite_type)
 
-        if composite_type is None:
+        if not composite_type_list:
             self.log_event('WARNING','UnknownFragmentation',f"Not able to determine more about these spectra yet.")
             return
-
-        minimum = spec[composite_type]['minimum']
-        maximum = spec[composite_type]['maximum']
-        binsize = spec[composite_type]['binsize']
-        spec[composite_type]['mz'] = numpy.arange(minimum, maximum + binsize, binsize)
-
-        ROIs = {
-            'TMT6_126': { 'type': 'TMT', 'mz': 126.127725, 'initial_window': 0.01 },
-            'TMT6_127': { 'type': 'TMT', 'mz': 127.124760, 'initial_window': 0.01 },
-            'TMT6_128': { 'type': 'TMT', 'mz': 128.134433, 'initial_window': 0.01 },
-            'TMT6_129': { 'type': 'TMT', 'mz': 129.131468, 'initial_window': 0.01 },
-            'TMT6_130': { 'type': 'TMT', 'mz': 130.141141, 'initial_window': 0.01 },
-            'TMT6_131': { 'type': 'TMT', 'mz': 131.138176, 'initial_window': 0.01 },
-            'TMT10_127_C': {'type': 'TMT10', 'mz': 127.131081, 'initial_window': 0.01 },
-            'TMT10_128_N': {'type': 'TMT10', 'mz': 128.128116, 'initial_window': 0.01 },
-            'TMT10_129_C': {'type': 'TMT10', 'mz': 129.137790, 'initial_window': 0.01 },
-            'TMT10_130_N': {'type': 'TMT10', 'mz': 130.134825, 'initial_window': 0.01 },
-            'TMT11_131_C': {'type': 'TMT10', 'mz': 131.144499, 'initial_window': 0.01 },
-            'TMT6plex': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 0.01 },
-            'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 0.01 },
-            'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 0.01 },
-            'iTRAQ_114': { 'type': 'iTRAQ', 'mz': 114.11068, 'initial_window': 0.01 },
-            'iTRAQ_115': { 'type': 'iTRAQ', 'mz': 115.107715, 'initial_window': 0.01 },
-            'iTRAQ_116': { 'type': 'iTRAQ', 'mz': 116.111069, 'initial_window': 0.01 },
-            'iTRAQ_117': { 'type': 'iTRAQ', 'mz': 117.114424, 'initial_window': 0.01 },
-            'iTRAQ4_nterm': { 'type': 'iTRAQ4', 'mz': 145.109, 'initial_window': 0.01 },
-            'iTRAQ8_118': { 'type': 'iTRAQ8', 'mz': 118.111459, 'initial_window': 0.01 },
-            'iTRAQ8_119': { 'type': 'iTRAQ8', 'mz': 119.114814, 'initial_window': 0.01 },
-            'iTRAQ8_121': { 'type': 'iTRAQ8', 'mz': 121.121524, 'initial_window': 0.01 },
-            'iTRAQ8_113': { 'type': 'iTRAQ8', 'mz': 113.107325, 'initial_window': 0.01 },
-        }
         
-        #Read additional peaks into ROI dictionary 
-        # 0: mean monoisotopic m/z       
-        # 1: average intensity           
-        # 2: # MS runs                  
-        # 3: percentage of spectra       
-        # 4: theoretical m/z             
-        # 5: delta PPM                  
-        # 6: primary identification      
-        # 7: other identifications    
-        with open(additionalPeaks, "r") as f:
-            next(f)
-            for line in f:
-                parts = line.strip().split("\t")
-                if r"a{AI}" in parts[6] or r"b{AK}-NH3" in parts[6]: # On 7/11/2025 we decided to not take these ions (m/z might be wrong)
-                    pass
-                elif float(parts[4]) > 100:
-                    ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 0.01}
-        
-        #### What should we look at for ion trap data?
-        if composite_type == 'lowend_LR_IT_CID':
+        for composite_type in composite_type_list:
+            minimum = spec[composite_type]['minimum']
+            maximum = spec[composite_type]['maximum']
+            binsize = spec[composite_type]['binsize']
+            spec[composite_type]['mz'] = numpy.arange(minimum, maximum + binsize, binsize)
+            self.metadata['files'][self.mzml_file].setdefault('lowend_peaks',{})
+
             ROIs = {
-                'TMT6plex': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 1.0 },
-                'TMT6_y1K': { 'type': 'TMT', 'mz': 376.2757, 'initial_window': 1.0 },
-                'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 1.0 },
-                'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 1.0 },
-                'iTRAQ4_y1K': { 'type': 'iTRAQ4', 'mz': 376.2757, 'initial_window': 1.0 },
-                'iTRAQ8_y1K': { 'type': 'iTRAQ8', 'mz': 451.3118, 'initial_window': 1.0 },
-                'TMT10_127_C': {'type': 'TMT10', 'mz': 127.131081, 'initial_window': 1.0 },
-                'TMT10_128_N': {'type': 'TMT10', 'mz': 128.128116, 'initial_window': 1.0 },
-                'TMT10_129_C': {'type': 'TMT10', 'mz': 129.137790, 'initial_window': 1.0 },
-                'TMT10_130_N': {'type': 'TMT10', 'mz': 130.134825, 'initial_window': 1.0 },
-                'TMT11_131_C': {'type': 'TMT10', 'mz': 131.144499, 'initial_window': 1.0 },
+                'TMT6_126': { 'type': 'TMT', 'mz': 126.127725, 'initial_window': 0.01 },
+                'TMT6_127': { 'type': 'TMT', 'mz': 127.124760, 'initial_window': 0.01 },
+                'TMT6_128': { 'type': 'TMT', 'mz': 128.134433, 'initial_window': 0.01 },
+                'TMT6_129': { 'type': 'TMT', 'mz': 129.131468, 'initial_window': 0.01 },
+                'TMT6_130': { 'type': 'TMT', 'mz': 130.141141, 'initial_window': 0.01 },
+                'TMT6_131': { 'type': 'TMT', 'mz': 131.138176, 'initial_window': 0.01 },
+                'TMT10_127_C': {'type': 'TMT10', 'mz': 127.131081, 'initial_window': 0.01 },
+                'TMT10_128_N': {'type': 'TMT10', 'mz': 128.128116, 'initial_window': 0.01 },
+                'TMT10_129_C': {'type': 'TMT10', 'mz': 129.137790, 'initial_window': 0.01 },
+                'TMT10_130_N': {'type': 'TMT10', 'mz': 130.134825, 'initial_window': 0.01 },
+                'TMT11_131_C': {'type': 'TMT10', 'mz': 131.144499, 'initial_window': 0.01 },
+                'TMT6plex': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 0.01 },
+                'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 0.01 },
+                'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 0.01 },
+                'iTRAQ_114': { 'type': 'iTRAQ', 'mz': 114.11068, 'initial_window': 0.01 },
+                'iTRAQ_115': { 'type': 'iTRAQ', 'mz': 115.107715, 'initial_window': 0.01 },
+                'iTRAQ_116': { 'type': 'iTRAQ', 'mz': 116.111069, 'initial_window': 0.01 },
+                'iTRAQ_117': { 'type': 'iTRAQ', 'mz': 117.114424, 'initial_window': 0.01 },
+                'iTRAQ4_nterm': { 'type': 'iTRAQ4', 'mz': 145.109, 'initial_window': 0.01 },
+                'iTRAQ8_118': { 'type': 'iTRAQ8', 'mz': 118.111459, 'initial_window': 0.01 },
+                'iTRAQ8_119': { 'type': 'iTRAQ8', 'mz': 119.114814, 'initial_window': 0.01 },
+                'iTRAQ8_121': { 'type': 'iTRAQ8', 'mz': 121.121524, 'initial_window': 0.01 },
+                'iTRAQ8_113': { 'type': 'iTRAQ8', 'mz': 113.107325, 'initial_window': 0.01 },
             }
+            
+            #Read additional peaks into ROI dictionary 
+            # 0: mean monoisotopic m/z       
+            # 1: average intensity           
+            # 2: # MS runs                  
+            # 3: percentage of spectra       
+            # 4: theoretical m/z             
+            # 5: delta PPM                  
+            # 6: primary identification      
+            # 7: other identifications    
             with open(additionalPeaks, "r") as f:
                 next(f)
                 for line in f:
                     parts = line.strip().split("\t")
                     if r"a{AI}" in parts[6] or r"b{AK}-NH3" in parts[6]: # On 7/11/2025 we decided to not take these ions (m/z might be wrong)
                         pass
-                    elif float(parts[4]) > 200:
-                        ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 1.0}
+                    elif float(parts[4]) > 100:
+                        ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 0.01}
             
-
-        for ROI in ROIs:
-            #print(f"INFO: Looking for {ROI} at {ROIs[ROI]['mz']}")
-            #center = ROIs[ROI]['mz']
-            #range = ROIs[ROI]['initial_window']
-            #first_bin = int((center - range/2.0 - minimum) / binsize)
-            #last_bin = int((center + range/2.0 - minimum) / binsize)
-
-            #### Look for the largest peak
-            peak = self.find_peak(spec,ROIs,ROI,composite_type)
-            ROIs[ROI]['peak'] = peak
-
-            try:
-                ### Finds the number of standard deviations away the peak is from the theoretical mz value
-                sigma_away_from_theoretical = (ROIs[ROI]['peak']['fit']["delta_ppm"])/(ROIs[ROI]['peak']['fit']["sigma_ppm"])
-                ### Assigning the information in the dictionary
-                ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretical
+            #### What should we look at for ion trap data?
+            if composite_type == 'lowend_LR_IT_CID':
+                ROIs = {
+                    'TMT6plex': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 1.0 },
+                    'TMT6_y1K': { 'type': 'TMT', 'mz': 376.2757, 'initial_window': 1.0 },
+                    'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 1.0 },
+                    'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 1.0 },
+                    'iTRAQ4_y1K': { 'type': 'iTRAQ4', 'mz': 376.2757, 'initial_window': 1.0 },
+                    'iTRAQ8_y1K': { 'type': 'iTRAQ8', 'mz': 451.3118, 'initial_window': 1.0 },
+                    'TMT10_127_C': {'type': 'TMT10', 'mz': 127.131081, 'initial_window': 1.0 },
+                    'TMT10_128_N': {'type': 'TMT10', 'mz': 128.128116, 'initial_window': 1.0 },
+                    'TMT10_129_C': {'type': 'TMT10', 'mz': 129.137790, 'initial_window': 1.0 },
+                    'TMT10_130_N': {'type': 'TMT10', 'mz': 130.134825, 'initial_window': 1.0 },
+                    'TMT11_131_C': {'type': 'TMT10', 'mz': 131.144499, 'initial_window': 1.0 },
+                }
+                with open(additionalPeaks, "r") as f:
+                    next(f)
+                    for line in f:
+                        parts = line.strip().split("\t")
+                        if r"a{AI}" in parts[6] or r"b{AK}-NH3" in parts[6]: # On 7/11/2025 we decided to not take these ions (m/z might be wrong)
+                            pass
+                        elif float(parts[4]) > 200:
+                            ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 1.0}
                 
-            except:
-                pass
 
-            #If a 3 standard deviation is availible from the guassian curve, check to see if its distance is a max or min in the whole spectra set
-            try:
-                if composite_type == "lowend_HR_HCD":
-                    upper = peak['extended']['three_sigma_ppm_upper']
-                    lower = peak['extended']['three_sigma_ppm_lower']
-                elif composite_type == "lowend_LR_IT_CID":
-                    upper = peak['extended']['three_sigma_mz_upper']
-                    lower = peak['extended']['three_sigma_mz_lower']
-                else:
-                    upper = lower = None  # fallback or skip logic
+            for ROI in ROIs:
+                #print(f"INFO: Looking for {ROI} at {ROIs[ROI]['mz']}")
+                #center = ROIs[ROI]['mz']
+                #range = ROIs[ROI]['initial_window']
+                #first_bin = int((center - range/2.0 - minimum) / binsize)
+                #last_bin = int((center + range/2.0 - minimum) / binsize)
 
-                self.all_3sigma_values_away['upper'].append(upper)
-                self.all_3sigma_values_away['lower'].append(lower)
-                self.all_3sigma_values_away['Status'] = True
+                #### Look for the largest peak
+                peak = self.find_peak(spec,ROIs,ROI,composite_type)
 
-            except KeyError:
-                pass
+                ROIs[ROI]['peak'] = peak
+
+                try:
+                    ### Finds the number of standard deviations away the peak is from the theoretical mz value
+                    sigma_away_from_theoretical = (ROIs[ROI]['peak']['fit']["delta_ppm"])/(ROIs[ROI]['peak']['fit']["sigma_ppm"])
+                    ### Assigning the information in the dictionary
+                    ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretical
+                    
+                except:
+                    pass
+
+                #If a 3 standard deviation is availible from the guassian curve, check to see if its distance is a max or min in the whole spectra set
+
+                try:
+                    if composite_type == "lowend_HR_HCD":
+                        upper = peak['extended']['three_sigma_ppm_upper']
+                        lower = peak['extended']['three_sigma_ppm_lower']
+                        self.all_3sigma_values_away['upper_ppm'].append(upper)
+                        self.all_3sigma_values_away['lower_ppm'].append(lower)
+                        self.all_3sigma_values_away['Status'] = True
+
+                    if composite_type == "lowend_LR_IT_CID":
+                        upper = peak['extended']['three_sigma_mz_upper']
+                        lower = peak['extended']['three_sigma_mz_lower']
+                        self.all_3sigma_values_away['upper_mz'].append(upper)
+                        self.all_3sigma_values_away['lower_mz'].append(lower)
+                        self.all_3sigma_values_away['Status'] = True
 
 
-        self.metadata['files'][self.mzml_file]['lowend_peaks'] = ROIs
+                except KeyError:
+                    pass
+
+            
+            self.metadata['files'][self.mzml_file]['lowend_peaks'][composite_type] = ROIs
         return ROIs
     
 
@@ -1144,42 +1167,30 @@ class MzMLAssessor:
         #    spec = pickle.load(infile)
         spec = self.composite
 
-        ###Dictionary to hold upper and lower sigma_ppm relative to theoretical value
-        self.all_3sigma_values_away = {"Status": False,"upper": [], "lower": []}
+  
 
         supported_composite_type_list = [ 'precursor_loss_HR_HCD', 'precursor_loss_LR_IT_CID' ]
-
-        composite_type = None
+        self.metadata['files'][self.mzml_file].setdefault('neutral_loss_peaks', {})
+        composite_type_list = []
         for supported_composite_type in supported_composite_type_list:
             if supported_composite_type in spec:
-                composite_type = supported_composite_type
+                
+                composite_type_list.append(supported_composite_type)
 
-        if composite_type is None:
+        if not composite_type_list:
             self.log_event('WARNING','UnknownFragmentation',f"Not able to determine more about these spectra yet.")
             return
+        for composite_type in composite_type_list:
+            minimum = spec[composite_type]['minimum']
+            maximum = spec[composite_type]['maximum']
+            binsize = spec[composite_type]['binsize']
+            spec[composite_type]['mz'] = numpy.arange(minimum, maximum + binsize, binsize)
 
-        minimum = spec[composite_type]['minimum']
-        maximum = spec[composite_type]['maximum']
-        binsize = spec[composite_type]['binsize']
-        spec[composite_type]['mz'] = numpy.arange(minimum, maximum + binsize, binsize)
-
-        singly_charged_peaks = [
-            { 'name': 'Phospho', 'type': 'Phospho', 'mass': 79.966331 },
-            { 'name': 'water', 'type': 'water_loss', 'mass': 18.0105647 },
-            { 'name': 'phosphoric_acid', 'type': 'phosphoric_acid_loss', 'mass': 97.9768957 }
-        ]
-        ROIs = {}
-        charges = [1, 2, 3]
-        for item in singly_charged_peaks:
-            for z in charges:
-                ROI_name = f"{item['name']}_z{z}"
-                mz = (item['mass'] / z)
-                type = f"{item['type']}"
-
-                ROIs[ROI_name] = {'type': type, 'mz': mz, 'initial_window': 0.01}
-
-        #### What should we look at for ion trap data?
-        if composite_type == 'precursor_loss_LR_IT_CID':
+            singly_charged_peaks = [
+                { 'name': 'Phospho', 'type': 'Phospho', 'mass': 79.966331 },
+                { 'name': 'water', 'type': 'water_loss', 'mass': 18.0105647 },
+                { 'name': 'phosphoric_acid', 'type': 'phosphoric_acid_loss', 'mass': 97.9768957 }
+            ]
             ROIs = {}
             charges = [1, 2, 3]
             for item in singly_charged_peaks:
@@ -1188,49 +1199,63 @@ class MzMLAssessor:
                     mz = (item['mass'] / z)
                     type = f"{item['type']}"
 
-                    ROIs[ROI_name] = {'type': type, 'mz': mz, 'initial_window': 1.0}
+                    ROIs[ROI_name] = {'type': type, 'mz': mz, 'initial_window': 0.01}
+
+            #### What should we look at for ion trap data?
+            if composite_type == 'precursor_loss_LR_IT_CID':
+                ROIs = {}
+                charges = [1, 2, 3]
+                for item in singly_charged_peaks:
+                    for z in charges:
+                        ROI_name = f"{item['name']}_z{z}"
+                        mz = (item['mass'] / z)
+                        type = f"{item['type']}"
+
+                        ROIs[ROI_name] = {'type': type, 'mz': mz, 'initial_window': 1.0}
 
 
-        for ROI in ROIs:
-            #print(f"INFO: Looking for {ROI} at {ROIs[ROI]['mz']}")
-            #center = ROIs[ROI]['mz']
-            #range = ROIs[ROI]['initial_window']
-            #first_bin = int((center - range/2.0 - minimum) / binsize)
-            #last_bin = int((center + range/2.0 - minimum) / binsize)
+            for ROI in ROIs:
+                #print(f"INFO: Looking for {ROI} at {ROIs[ROI]['mz']}")
+                #center = ROIs[ROI]['mz']
+                #range = ROIs[ROI]['initial_window']
+                #first_bin = int((center - range/2.0 - minimum) / binsize)
+                #last_bin = int((center + range/2.0 - minimum) / binsize)
 
-            #### Look for the largest peak
-            peak = self.find_peak(spec,ROIs,ROI,composite_type)
-            ROIs[ROI]['peak'] = peak
+                #### Look for the largest peak
+                peak = self.find_peak(spec,ROIs,ROI,composite_type)
+                ROIs[ROI]['peak'] = peak
 
-            try:
-                ### Finds the number of standard deviations away the peak is from the theoretical mz value
-                sigma_away_from_theoretical = (ROIs[ROI]['peak']['fit']["delta_ppm"])/(ROIs[ROI]['peak']['fit']["sigma_ppm"])
-                ### Assigning the information in the dictionary
-                ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretical
-                
-            except:
-                pass
+                try:
+                    ### Finds the number of standard deviations away the peak is from the theoretical mz value
+                    sigma_away_from_theoretical = (ROIs[ROI]['peak']['fit']["delta_ppm"])/(ROIs[ROI]['peak']['fit']["sigma_ppm"])
+                    ### Assigning the information in the dictionary
+                    ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretical
+                    
+                except:
+                    pass
 
-            #If a 3 standard deviation is availible from the guassian curve, check to see if its distance is a max or min in the whole spectra set
-            try:
-                if composite_type == "precursor_loss_HR_HCD":
-                    upper = peak['extended']['three_sigma_ppm_upper']
-                    lower = peak['extended']['three_sigma_ppm_lower']
-                elif composite_type == "precursor_loss_LR_IT_CID":
-                    upper = peak['extended']['three_sigma_mz_upper']
-                    lower = peak['extended']['three_sigma_mz_lower']
-                else:
-                    upper = lower = None  # fallback or skip logic
+                #If a 3 standard deviation is availible from the guassian curve, check to see if its distance is a max or min in the whole spectra set
+                try:
+                    if composite_type == "lowend_HR_HCD":
+                        upper = peak['extended']['three_sigma_ppm_upper']
+                        lower = peak['extended']['three_sigma_ppm_lower']
+                        self.all_3sigma_values_away['upper_ppm'].append(upper)
+                        self.all_3sigma_values_away['lower_ppm'].append(lower)
+                        self.all_3sigma_values_away['Status'] = True
+                        
+                    if composite_type == "lowend_LR_IT_CID":
+                        upper = peak['extended']['three_sigma_mz_upper']
+                        lower = peak['extended']['three_sigma_mz_lower']
+                        self.all_3sigma_values_away['upper_mz'].append(upper)
+                        self.all_3sigma_values_away['lower_mz'].append(lower)
+                        self.all_3sigma_values_away['Status'] = True
+                    
+                except KeyError:
+                    pass
+            
 
-                self.all_3sigma_values_away['upper'].append(upper)
-                self.all_3sigma_values_away['lower'].append(lower)
-                self.all_3sigma_values_away['Status'] = True
-
-            except KeyError:
-                pass
-
-
-        self.metadata['files'][self.mzml_file]['neutral_loss_peaks'] = ROIs
+            
+            self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][composite_type] = ROIs
         return ROIs
 
 
@@ -1307,6 +1332,9 @@ class MzMLAssessor:
                     peak['extended']['three_sigma_mz_lower'] = peak['fit']['delta_mz']-popt[2]*3
                     peak['extended']['three_sigma_mz_upper'] = peak['fit']['delta_mz']+popt[2]*3
                 
+                elif composite_type.startswith("precursor_"):
+                    pass
+                
                 peak['assessment'] = { 'is_found': True, 'fraction': 0.0, 'comment': 'Peak found and fit' }
             except:
             #else:
@@ -1322,103 +1350,166 @@ class MzMLAssessor:
         else:
             peak['assessment'] = { 'is_found': False, 'fraction': 0.0, 'comment': 'Too few peaks found in ROI' }
 
+        
+
         return peak
 
 
     ####################################################################################################
     #### Assess Regions of Interest to make calls
     def assess_ROIs(self):
-        results = { 'labeling': { 'scores': { 'TMT': 0, 'TMT6': 0, 'TMT10': 0, 'TMTpro': 0, 'iTRAQ': 0, 'iTRAQ4': 0, 'iTRAQ8': 0} } }
-
-        #### Determine what the denominator of MS2 spectra should be
-        n_ms2_spectra = self.metadata['files'][self.mzml_file]['spectra_stats']['n_ms2_spectra']
-        if ( 'n_HCD_spectra' in self.metadata['files'][self.mzml_file]['spectra_stats'] and
-                self.metadata['files'][self.mzml_file]['spectra_stats']['n_HCD_spectra'] > 0 and 
-                self.metadata['files'][self.mzml_file]['spectra_stats']['n_HCD_spectra'] <
-                self.metadata['files'][self.mzml_file]['spectra_stats']['n_ms2_spectra'] ):
-            n_ms2_spectra = self.metadata['files'][self.mzml_file]['spectra_stats']['n_HCD_spectra']
-
-        #### Determine the fragmentation_type
-        results['fragmentation_type'] = self.metadata['files'][self.mzml_file]['spectra_stats']['fragmentation_type']
-        self.metadata['files'][self.mzml_file]['summary'] = results
-
-        #### If standard deviations have been found, find the difference between them, if none have been found, mention it
-        self.metadata['files'][self.mzml_file]['summary'].setdefault('tolerance', {})
-        if (self.all_3sigma_values_away['Status']):
-            percentile = 90 #Picks this percentile for the three_sigma value
-            lower = self.all_3sigma_values_away['lower']
-            upper = self.all_3sigma_values_away['upper']
-
-            three_sigma_upper = numpy.percentile(upper, percentile) # Gives x percentile for a sorted list
-            three_sigma_lower = numpy.percentile(lower, 100-percentile)
-
-            if results['fragmentation_type'].startswith('HR'):
-                self.metadata['files'][self.mzml_file]['summary']['tolerance']['fragment_tolerance_ppm_lower'] = three_sigma_lower
-                self.metadata['files'][self.mzml_file]['summary']['tolerance']['fragment_tolerance_ppm_upper'] = three_sigma_upper
+        possible_frag_type = ['n_HR_HCD_spectra', 'n_LR_HCD_spectra', 'n_HR_IT_CID_spectra', 'n_LR_IT_CID_spectra', 'n_HR_IT_ETD_spectra', 'n_LR_IT_ETD_spectra', 'n_HR_EThcD_spectra', 'n_LR_EThcD_spectra', 'n_HR_ETciD_spectra', 'n_LR_ETciD_spectra', 'n_HR_QTOF_spectra']
+        fragmentation_types = []
+        for frag_type in self.metadata['files'][self.mzml_file]['spectra_stats']:
+            if frag_type in possible_frag_type:
+                if int(self.metadata['files'][self.mzml_file]['spectra_stats'][frag_type]) > 0:
+                    fragmentation_types.append(frag_type.replace("n_","").replace("_spectra", ""))
+                    
+  
+        
+        for fragmentations in fragmentation_types:
+            results = { 'labeling': { 'scores': { 'TMT': 0, 'TMT6': 0, 'TMT10': 0, 'TMTpro': 0, 'iTRAQ': 0, 'iTRAQ4': 0, 'iTRAQ8': 0} } }
+            #### Determine what the denominator of MS2 spectra should be
+            n_ms2_spectra = self.metadata['files'][self.mzml_file]['spectra_stats']['n_ms2_spectra']
+            if ( 'n_HCD_spectra' in self.metadata['files'][self.mzml_file]['spectra_stats'] and
+                    self.metadata['files'][self.mzml_file]['spectra_stats']['n_HCD_spectra'] > 0 and 
+                    self.metadata['files'][self.mzml_file]['spectra_stats']['n_HCD_spectra'] <
+                    self.metadata['files'][self.mzml_file]['spectra_stats']['n_ms2_spectra'] ):
+                n_ms2_spectra = self.metadata['files'][self.mzml_file]['spectra_stats']['n_HCD_spectra']
             
-            elif results['fragmentation_type'].startswith('LR'):
-                self.metadata['files'][self.mzml_file]['summary']['tolerance']['lower_m/z'] = three_sigma_lower
-                self.metadata['files'][self.mzml_file]['summary']['tolerance']['upper_m/z'] = three_sigma_upper
+            #### Determine the fragmentation_type
+            results['fragmentation_type'] = fragmentations
+            
+            self.metadata['files'][self.mzml_file].setdefault('summary', {})
+            self.metadata['files'][self.mzml_file]['summary'][fragmentations] = results
 
-        else:
-            self.metadata['files'][self.mzml_file]['summary']['tolerance'] = 'No sigma values recorded'
+            #### If standard deviations have been found, find the difference between them, if none have been found, mention it
+            self.metadata['files'][self.mzml_file]['summary'][fragmentations].setdefault('tolerance', {})
+
+            if (self.all_3sigma_values_away['Status']):
+                percentile = 90 #Picks this percentile for the three_sigma value
+                try:
+                    if fragmentations.startswith('HR'):
+                        lower = self.all_3sigma_values_away['lower_ppm']
+                        upper = self.all_3sigma_values_away['upper_ppm']
+                        three_sigma_upper = numpy.percentile(upper, percentile)
+                        three_sigma_lower = numpy.percentile(lower, 100-percentile)
+
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_lower'] = three_sigma_lower
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_upper'] = three_sigma_upper
+                    
+                    elif fragmentations.startswith('LR'):
+                        lower = self.all_3sigma_values_away['lower_mz']
+                        upper = self.all_3sigma_values_away['upper_mz']
+                        three_sigma_upper = numpy.percentile(upper, percentile)
+                        three_sigma_lower = numpy.percentile(lower, 100-percentile)
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['lower_m/z'] = three_sigma_lower
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['upper_m/z'] = three_sigma_upper
+
+                except:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance'] = 'no tolerance values recorded'
+            else:
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance'] = 'no tolerance values recorded'
+
+           
+
+
+
+            #### If no ROIs were computed, cannot continue
+            if 'lowend_peaks' not in self.metadata['files'][self.mzml_file] or 'neutral_loss_peaks' not in self.metadata['files'][self.mzml_file]:
+                return
+
+  
+            ROI_type = "lowend_" + fragmentations
+            for ROI in self.metadata['files'][self.mzml_file]['lowend_peaks'][ROI_type]:
+                ROIobj = self.metadata['files'][self.mzml_file]['lowend_peaks'][ROI_type][ROI]
+                if ROIobj['peak']['assessment']['is_found']:
+                    type = ROIobj['type']
+                    n_spectra = ROIobj['peak']['extended']['n_spectra']
+                    ROIobj['peak']['assessment']['fraction'] = n_spectra / n_ms2_spectra
+                    try:
+                        results['labeling']['scores'][type] += ROIobj['peak']['assessment']['fraction']
+                    except:
+                        pass
+            
+            
+            #### Positive control
+            loss_type = 'precursor_loss_' + fragmentations
+            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = {}
+            if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] >= 100:
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = True
+
+                #### Determine if Phospho or not
+                if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['Phospho_z2']['peak']['mode_bin']['n_spectra'] >= 100:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = True
+                elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 100:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = True
+                else:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = False
+                
+
+            #### Make the call for TMT or iTRAQ
+            if results['labeling']['scores']['TMT'] > results['labeling']['scores']['iTRAQ']:
+                if results['labeling']['scores']['TMT'] > 2:
+                    if results['labeling']['scores']['TMTpro'] > 0.7:
+                        results['labeling']['call'] = 'TMTpro'
+                    else:
+                        results['labeling']['call'] = 'TMT'
+                elif results['labeling']['scores']['TMT'] < 1:
+                    results['labeling']['call'] = 'none'
+                else:
+                    results['labeling']['call'] = 'ambiguous'
+            else:
+                if results['labeling']['scores']['iTRAQ'] > 1:
+                    if results['labeling']['scores']['iTRAQ4'] > results['labeling']['scores']['iTRAQ8']:
+                        results['labeling']['call'] = 'iTRAQ4'
+                    else:
+                        results['labeling']['call'] = 'iTRAQ8'
+                elif results['labeling']['scores']['iTRAQ'] < 0.5:
+                    results['labeling']['call'] = 'none'
+                else:
+                    results['labeling']['call'] = 'ambiguous'
 
         self.metadata['files'][self.mzml_file]['summary']['precursor stats'] = self.precursor_stats
-
-
-
-        #### If no ROIs were computed, cannot continue
-        if 'lowend_peaks' not in self.metadata['files'][self.mzml_file] or 'neutral_loss_peaks' not in self.metadata['files'][self.mzml_file]:
-            return
-
-        for ROI in self.metadata['files'][self.mzml_file]['lowend_peaks']:
-            ROIobj = self.metadata['files'][self.mzml_file]['lowend_peaks'][ROI]
-            if ROIobj['peak']['assessment']['is_found']:
-                type = ROIobj['type']
-                n_spectra = ROIobj['peak']['extended']['n_spectra']
-                ROIobj['peak']['assessment']['fraction'] = n_spectra / n_ms2_spectra
-                try:
-                    results['labeling']['scores'][type] += ROIobj['peak']['assessment']['fraction']
-                except:
-                    pass
         
-        #### Positive control
-        self.metadata['files'][self.mzml_file]['summary']['water_loss'] = {}
-        if self.metadata['files'][self.mzml_file]['neutral_loss_peaks']['water_z2']['peak']['mode_bin']['n_spectra'] >= 100:
-            self.metadata['files'][self.mzml_file]['summary']['water_loss'] = True
+        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None}
+        self.metadata['files'][self.mzml_file]['summary']['combined summary'] = full_results
 
-            #### Determine if Phospho or not
-            if self.metadata['files'][self.mzml_file]['neutral_loss_peaks']['Phospho_z2']['peak']['mode_bin']['n_spectra'] >= 100:
-                self.metadata['files'][self.mzml_file]['summary']['Phospho_spectra'] = True
-            elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks']['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 100:
-                self.metadata['files'][self.mzml_file]['summary']['Phospho_spectra'] = True
-            else:
-                self.metadata['files'][self.mzml_file]['summary']['Phospho_spectra'] = False
+        file_summary = self.metadata['files'][self.mzml_file]['summary']
+        for keys in file_summary:
+            try:
+                if full_results["fragmentation type"] == None:
+                    full_results["fragmentation type"] = file_summary[keys]["fragmentation_type"]
+
+                elif full_results["fragmentation type"] != file_summary[keys]["fragmentation_type"]:
+                    full_results["fragmentation type"] = "muiltiple"
+            except: 
+                pass
+            try:
+                if full_results['call'] == None or full_results['call'] == 'none':
+                    full_results["call"] = file_summary[keys]['labeling']["call"]
+                
+                elif file_summary[keys]['labeling']["call"] == 'none':
+                    pass
+
+                elif full_results['call'] != file_summary[keys]['labeling']["call"]:
+                    full_results['call'] = "muiltiple"
+            except:
+                pass
+            try:
+                if full_results['fragmentation tolerance'] == None:
+                    full_results['fragmentation tolerance'] = file_summary[keys]['tolerance']
+                elif 'no' in file_summary[keys]['tolerance']:
+                    pass
+                elif full_results['fragmentation tolerance'] != file_summary[keys]['tolerance']:
+                    full_results['fragmentation tolerance'] = "muiltple"
+            except:
+                pass
+        
+
+        
             
-
-        #### Make the call for TMT or iTRAQ
-        if results['labeling']['scores']['TMT'] > results['labeling']['scores']['iTRAQ']:
-            if results['labeling']['scores']['TMT'] > 2:
-                if results['labeling']['scores']['TMTpro'] > 0.7:
-                    results['labeling']['call'] = 'TMTpro'
-                else:
-                    results['labeling']['call'] = 'TMT'
-            elif results['labeling']['scores']['TMT'] < 1:
-                results['labeling']['call'] = 'none'
-            else:
-                results['labeling']['call'] = 'ambiguous'
-        else:
-            if results['labeling']['scores']['iTRAQ'] > 1:
-                if results['labeling']['scores']['iTRAQ4'] > results['labeling']['scores']['iTRAQ8']:
-                    results['labeling']['call'] = 'iTRAQ4'
-                else:
-                    results['labeling']['call'] = 'iTRAQ8'
-            elif results['labeling']['scores']['iTRAQ'] < 0.5:
-                results['labeling']['call'] = 'none'
-            else:
-                results['labeling']['call'] = 'ambiguous'
-
-
+        
 
     ####################################################################################################
     #### Log an event
@@ -1448,8 +1539,8 @@ class MzMLAssessor:
             self.metadata['state']['status'] = status
             self.metadata['state']['code'] = code
             self.metadata['state']['message'] = message
-            if self.verbose >= 1:
-                eprint(full_message)
+            #if self.verbose >= 1:
+             #   eprint(full_message)
 
 
 ####################################################################################################
@@ -1502,12 +1593,12 @@ def main():
             assessor.read_spectra()
         assessor.assess_lowend_composite_spectra()
         assessor.assess_neutral_loss_composite_spectra()
-        print(assessor.metadata['state']['status'])
-        if assessor.metadata['state']['status'] != 'ERROR':
-            assessor.assess_ROIs()
 
+        if assessor.metadata['state']['status'] != 'ERROR' or 'multiple fragmentation types' in assessor.metadata['state']['message']:
+            assessor.assess_ROIs()
+        
     #### Infer parameters based on the latest data
-    if assessor.metadata['state']['status'] != 'ERROR':
+    if assessor.metadata['state']['status'] != 'ERROR' or 'multiple fragmentation types' in assessor.metadata['state']['message']:
         study.infer_search_criteria()
 
     #### Write out our state of mind
