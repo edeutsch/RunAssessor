@@ -337,6 +337,8 @@ class MetadataHandler:
         for file in self.metadata['files']:
             fileinfo = self.metadata['files'][file]
 
+            
+
             #### Assemble consensus instrument
             if 'instrument_model' in fileinfo:
                 file_instrument = fileinfo['instrument_model']['name'] or 'unknown'
@@ -387,8 +389,8 @@ class MetadataHandler:
             #### Assemble labeling
             if 'labeling' not in criteria: criteria['labeling'] = 'unknown'
             labeling = 'unknown'
-            if 'summary' in fileinfo and 'call' in fileinfo['summary']['labeling']:
-                labeling = fileinfo['summary']['labeling']['call']
+            if 'summary' in fileinfo and 'call' in fileinfo['summary']['combined summary']:
+                labeling = fileinfo['summary']['combined summary']['call']
                 if criteria['labeling'] == 'unknown':
                     if labeling != 'ambiguous':
                         criteria['labeling'] = labeling
@@ -438,43 +440,47 @@ class MetadataHandler:
            
 
             #### Add info to ion data
-            
-            for ions in fileinfo['lowend_peaks']:
-                if fileinfo['lowend_peaks'][ions]['type'] == "fragment_ion":
-                    
-                    try:
-                        if file not in ion_three_sigma_table:
-                            ion_three_sigma_table[file] = []
+            for frag_types in fileinfo['lowend_peaks']:
+                for ions in fileinfo['lowend_peaks'][frag_types]:
+                    if fileinfo['lowend_peaks'][frag_types][ions]['type'] == "fragment_ion":
                         
-                        if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
-                            ion_three_sigma_table[file].append({
-                                "ion": ions,
-                                "three_sigma_lower": fileinfo["lowend_peaks"][ions]["peak"]["extended"]["three_sigma_ppm_lower"],
-                                "three_sigma_upper": fileinfo["lowend_peaks"][ions]["peak"]["extended"]["three_sigma_ppm_upper"],
-                                "fit_mz": fileinfo["lowend_peaks"][ions]['peak']["fit"]['mz'],
-                                "intensity": fileinfo["lowend_peaks"][ions]['peak']["fit"]['intensity'],
-                            })
+                        try:
+                            if file not in ion_three_sigma_table:
+                                ion_three_sigma_table[file] = []
+                            
+                            if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
+                                ion_three_sigma_table[file].append({
+                                    "ion": ions,
+                                    "three_sigma_lower": fileinfo["lowend_peaks"][frag_types][ions]["peak"]["extended"]["three_sigma_ppm_lower"],
+                                    "three_sigma_upper": fileinfo["lowend_peaks"][frag_types][ions]["peak"]["extended"]["three_sigma_ppm_upper"],
+                                    "fit_mz": fileinfo["lowend_peaks"][frag_types][ions]['peak']["fit"]['mz'],
+                                    "intensity": fileinfo["lowend_peaks"][frag_types][ions]['peak']["fit"]['intensity'],
+                                })
 
-                        elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
-                            ion_three_sigma_table[file].append({
-                                "ion": ions,
-                                "three_sigma_lower": fileinfo["lowend_peaks"][ions]["peak"]["extended"]["three_sigma_mz_lower"],
-                                "three_sigma_upper": fileinfo["lowend_peaks"][ions]["peak"]["extended"]["three_sigma_mz_upper"],
-                                "fit_mz": fileinfo["lowend_peaks"][ions]['peak']["fit"]['mz'],
-                                "intensity": fileinfo["lowend_peaks"][ions]['peak']["fit"]['intensity'],
-                            })              
-                    except:
-                        pass
+                            elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
+                                ion_three_sigma_table[file].append({
+                                    "ion": ions,
+                                    "three_sigma_lower": fileinfo["lowend_peaks"][frag_types][ions]["peak"]["extended"]["three_sigma_mz_lower"],
+                                    "three_sigma_upper": fileinfo["lowend_peaks"][frag_types][ions]["peak"]["extended"]["three_sigma_mz_upper"],
+                                    "fit_mz": fileinfo["lowend_peaks"][frag_types][ions]['peak']["fit"]['mz'],
+                                    "intensity": fileinfo["lowend_peaks"][frag_types][ions]['peak']["fit"]['intensity'],
+                                })              
+                        except:
+                            pass
             #### Gather info for table with: call, instrament, and precursor tolerance (upper, lower)
             try:
                 if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
-                    low_tol = fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower']
-                    high_tol = fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper']
-
+                    low_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower']
+                    high_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper']
+     
 
                 elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
-                    low_tol = fileinfo['summary']['tolerance']['lower_m/z']
-                    low_tol = fileinfo['summary']['tolerance']['upper_m/z']
+                    low_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z']
+                    high_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z']
+                else:
+                    low_tol = "no values recorded"
+                    high_tol = "no values recorded"
+                
 
                 try:
                     dynamic_exclusion_time = fileinfo['summary']['precursor stats']['dynamic exclusion window']['fit_pulse_time']['pulse start']
@@ -486,13 +492,19 @@ class MetadataHandler:
                     isolation_window = fileinfo['spectra_stats']['isolation_window_full_widths']
                 except:
                     isolation_window = "no isolation window widths found"
-    
-                info.append([file, labeling, file_instrument, criteria['acquisition_type'], criteria['high_accuracy_precursors'], criteria['fragmentation_type'], isolation_window, high_tol, low_tol, dynamic_exclusion_time])
 
-            except:
-                info.append([file, "No summary/info", "", "", ""])
+                try:
+                    fragment_type = fileinfo['summary']['combined summary']['fragmentation type']
+                except:
+                    fragment_type = "no fragmentation type found"
+
+            
+                info.append([file, labeling, file_instrument, criteria['acquisition_type'], criteria['high_accuracy_precursors'], fragment_type, isolation_window, high_tol, low_tol, dynamic_exclusion_time])
+
+            except: 
+                info.append([file, "No summary/info", "", "", "", "","","","",""])
         ### Write info summary table
-        headers = ["file", "labeling", "file_instrument", 'acquisition type', "High accuracy precursor", "fragmentation type", "isolation window", "upper_three_sigma", "lower_three_sigma", "dynamic exclusion time peak"]
+        headers = ["file", "labeling", "file_instrument", 'acquisition type', "High accuracy precursor", "fragmentation type", "isolation window", "fragment tolerance upper_three_sigma", "fragment tolerance lower_three_sigma", "dynamic exclusion time peak"]
         info_array = numpy.array(info, dtype=object)
         with open("summary_file_type.tsv", "w") as f:
             f.write("\t".join(headers) + "\n")  
