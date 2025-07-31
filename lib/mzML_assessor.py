@@ -70,6 +70,16 @@ class MzMLAssessor:
                         'minimum': 100,
                         'maximum': 400,
                         'binsize': 0.05
+                    },
+                    'HR_IT_ETD':{
+                        'minimum': 100,
+                        'maximum': 400,
+                        'binsize': 0.05
+                    },
+                    'HR_QTOF':{
+                        'minimum': 100,
+                        'maximum': 400,
+                        'binsize': 0.001
                     }
                 },
                 'precursor_loss': {
@@ -87,6 +97,16 @@ class MzMLAssessor:
                         'minimum': 0,
                         'maximum': 100,
                         'binsize': 0.05
+                    },
+                    'HR_IT_ETD': {
+                        'minimum': 0,
+                        'maximum': 100,
+                        'binsize': 0.05
+                    },
+                    'HR_QTOF':{
+                        'minimum': 0,
+                        'maximum': 100,
+                        'binsize': 0.001
                     }
                 }
             }
@@ -434,7 +454,7 @@ class MzMLAssessor:
  
             self.precursor_stats["precursor tolerance"] = {
                             "good ppm_fit?": ppm_fit_call,
-                            "fit_ppm":{"lower_three_sigma":-fit_ppm[2]*3, "upper_three_sigma":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma": fit_ppm[2], "y_offset": fit_ppm[3]},
+                            "fit_ppm":{"lower_three_sigma (ppm)":-fit_ppm[2]*3, "upper_three_sigma (ppm)":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma (ppm)": fit_ppm[2], "y_offset": fit_ppm[3]},
                             "histogram_ppm":{"counts": counts_ppm.tolist(), "bin_edges": bins_ppm.tolist(), "bin_centers": bin_centers_ppm.tolist(), "chi_squared":chi_squared_red_ppm}}
 
         except:
@@ -1008,7 +1028,7 @@ class MzMLAssessor:
         ###Dictionary to hold upper and lower sigma_ppm relative to theoretical value
         self.all_3sigma_values_away = {"Status": False,"upper_ppm": [], "lower_ppm": [], "upper_mz":[], "lower_mz":[]}
 
-        supported_composite_type_list = [ 'lowend_HR_HCD', 'lowend_LR_IT_CID' ]
+        supported_composite_type_list = [ 'lowend_HR_HCD', 'lowend_LR_IT_CID', 'lowend_HR_QTOF', 'lowend_HR_IT_ETD']
 
         composite_type_list = []
         for supported_composite_type in supported_composite_type_list:
@@ -1039,18 +1059,20 @@ class MzMLAssessor:
                 'TMT10_129_C': {'type': 'TMT10', 'mz': 129.137790, 'initial_window': 0.01 },
                 'TMT10_130_N': {'type': 'TMT10', 'mz': 130.134825, 'initial_window': 0.01 },
                 'TMT11_131_C': {'type': 'TMT10', 'mz': 131.144499, 'initial_window': 0.01 },
-                'TMT6plex': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 0.01 },
+                'TMT6plex': { 'type': 'TMT6', 'mz': 230.1702, 'initial_window': 0.01 },
+                'TMT6plex+H2O': { 'type': 'TMT6', 'mz': 248.18079, 'initial_window': 0.01 },
                 'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 0.01 },
                 'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 0.01 },
                 'iTRAQ_114': { 'type': 'iTRAQ', 'mz': 114.11068, 'initial_window': 0.01 },
                 'iTRAQ_115': { 'type': 'iTRAQ', 'mz': 115.107715, 'initial_window': 0.01 },
                 'iTRAQ_116': { 'type': 'iTRAQ', 'mz': 116.111069, 'initial_window': 0.01 },
                 'iTRAQ_117': { 'type': 'iTRAQ', 'mz': 117.114424, 'initial_window': 0.01 },
-                'iTRAQ4_nterm': { 'type': 'iTRAQ4', 'mz': 145.109, 'initial_window': 0.01 },
+                'iTRAQ4plex': { 'type': 'iTRAQ4', 'mz': 145.109, 'initial_window': 0.01 },
                 'iTRAQ8_118': { 'type': 'iTRAQ8', 'mz': 118.111459, 'initial_window': 0.01 },
                 'iTRAQ8_119': { 'type': 'iTRAQ8', 'mz': 119.114814, 'initial_window': 0.01 },
                 'iTRAQ8_121': { 'type': 'iTRAQ8', 'mz': 121.121524, 'initial_window': 0.01 },
                 'iTRAQ8_113': { 'type': 'iTRAQ8', 'mz': 113.107325, 'initial_window': 0.01 },
+                'iTRAQ8plex': { 'type': 'iTRAQ8', 'mz': 304.205360+1.00727, 'initial_window': 0.01 }
             }
             
             #Read additional peaks into ROI dictionary 
@@ -1074,17 +1096,13 @@ class MzMLAssessor:
             #### What should we look at for ion trap data?
             if composite_type == 'lowend_LR_IT_CID':
                 ROIs = {
-                    'TMT6plex': { 'type': 'TMT', 'mz': 230.1702, 'initial_window': 1.0 },
-                    'TMT6_y1K': { 'type': 'TMT', 'mz': 376.2757, 'initial_window': 1.0 },
+                    'TMT6plex': { 'type': 'TMT6', 'mz': 230.1702, 'initial_window': 1.0 },
+                    'TMT6plex+H2O': { 'type': 'TMT6', 'mz': 248.18079, 'initial_window': 1.0 },
+                    'TMT6_y1K': { 'type': 'TMT6', 'mz': 376.2757, 'initial_window': 1.0 },
                     'TMTpro': { 'type': 'TMTpro', 'mz': 305.2144, 'initial_window': 1.0 },
                     'TMTpro+H2O': { 'type': 'TMTpro', 'mz': 323.22499, 'initial_window': 1.0 },
                     'iTRAQ4_y1K': { 'type': 'iTRAQ4', 'mz': 376.2757, 'initial_window': 1.0 },
-                    'iTRAQ8_y1K': { 'type': 'iTRAQ8', 'mz': 451.3118, 'initial_window': 1.0 },
-                    'TMT10_127_C': {'type': 'TMT10', 'mz': 127.131081, 'initial_window': 1.0 },
-                    'TMT10_128_N': {'type': 'TMT10', 'mz': 128.128116, 'initial_window': 1.0 },
-                    'TMT10_129_C': {'type': 'TMT10', 'mz': 129.137790, 'initial_window': 1.0 },
-                    'TMT10_130_N': {'type': 'TMT10', 'mz': 130.134825, 'initial_window': 1.0 },
-                    'TMT11_131_C': {'type': 'TMT10', 'mz': 131.144499, 'initial_window': 1.0 },
+                    'iTRAQ8_y1K': { 'type': 'iTRAQ8', 'mz': 451.3118, 'initial_window': 1.0 }
                 }
                 with open(additionalPeaks, "r") as f:
                     next(f)
@@ -1157,7 +1175,7 @@ class MzMLAssessor:
 
   
 
-        supported_composite_type_list = [ 'precursor_loss_HR_HCD', 'precursor_loss_LR_IT_CID' ]
+        supported_composite_type_list = [ 'precursor_loss_HR_HCD', 'precursor_loss_LR_IT_CID', 'precursor_loss_HR_IT_ETD', 'precursor_loss_HR_QTOF']
         self.metadata['files'][self.mzml_file].setdefault('neutral_loss_peaks', {})
         composite_type_list = []
         for supported_composite_type in supported_composite_type_list:
@@ -1304,6 +1322,7 @@ class MzMLAssessor:
                 done = 1
             iextent += 1
 
+
         min_spectra = thresholds['min_spectra']
         min_percentage = thresholds['min_percentage']
 
@@ -1356,6 +1375,7 @@ class MzMLAssessor:
     ####################################################################################################
     #### Assess Regions of Interest to make calls
     def assess_ROIs(self):
+
         possible_frag_type = ['n_HR_HCD_spectra', 'n_LR_HCD_spectra', 'n_HR_IT_CID_spectra', 'n_LR_IT_CID_spectra', 'n_HR_IT_ETD_spectra', 'n_LR_IT_ETD_spectra', 'n_HR_EThcD_spectra', 'n_LR_EThcD_spectra', 'n_HR_ETciD_spectra', 'n_LR_ETciD_spectra', 'n_HR_QTOF_spectra']
         fragmentation_types = []
         for frag_type in self.metadata['files'][self.mzml_file]['spectra_stats']:
@@ -1364,11 +1384,14 @@ class MzMLAssessor:
                     fragmentation_types.append(frag_type.replace("n_","").replace("_spectra", ""))
                     
   
-        
+
         for fragmentations in fragmentation_types:
+
             results = { 'labeling': { 'scores': { 'TMT': 0, 'TMT6': 0, 'TMT10': 0, 'TMTpro': 0, 'iTRAQ': 0, 'iTRAQ4': 0, 'iTRAQ8': 0} } }
+            TMT_all = 0
+            iTRAQ_all = 0
             #### Determine what the denominator of MS2 spectra should be
-            n_ms2_spectra = self.metadata['files'][self.mzml_file]['spectra_stats']['n_ms2_spectra']
+            n_ms2_spectra = self.metadata['files'][self.mzml_file]['spectra_stats']["n_" + fragmentations + "_spectra"]
             if ( 'n_HCD_spectra' in self.metadata['files'][self.mzml_file]['spectra_stats'] and
                     self.metadata['files'][self.mzml_file]['spectra_stats']['n_HCD_spectra'] > 0 and 
                     self.metadata['files'][self.mzml_file]['spectra_stats']['n_HCD_spectra'] <
@@ -1415,6 +1438,8 @@ class MzMLAssessor:
 
             #### If no ROIs were computed, cannot continue
             if 'lowend_peaks' not in self.metadata['files'][self.mzml_file] or 'neutral_loss_peaks' not in self.metadata['files'][self.mzml_file]:
+                full_results = {"fragmentation type": fragmentations, "call": "unavailable", "fragmentation tolerance": 'unavailable', "water_loss":'unavailable', "phospho_spectra": 'unavailable'}
+                self.metadata['files'][self.mzml_file]['summary']['combined summary'] = full_results
                 return
 
   
@@ -1441,18 +1466,32 @@ class MzMLAssessor:
             #### Detect Phospho or not
             if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] > self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']:
                 if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['Phospho_z2']['peak']['mode_bin']['n_spectra'] >= 100:
-                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = True
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = True
                 elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 100:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = True
             else:
                 self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = False
+
                 
 
             #### Make the call for TMT or iTRAQ
-            if results['labeling']['scores']['TMT'] > results['labeling']['scores']['iTRAQ']:
-                if results['labeling']['scores']['TMT'] > 2:
+            
+            ##Add up all the TMT and iTRAQ values
+            for types in results['labeling']['scores']:
+                if 'TMT' in types:
+                    TMT_all += results['labeling']['scores'][types]
+                elif 'iTRAQ' in types:
+                    iTRAQ_all += results['labeling']['scores'][types]
+
+
+            if TMT_all > iTRAQ_all:
+                if TMT_all > 2:
                     if results['labeling']['scores']['TMTpro'] > 0.7:
                         results['labeling']['call'] = 'TMTpro'
+                    elif results['labeling']['scores']['TMT10'] > 0.7:
+                        results['labeling']['call'] = 'TMT10plex'
+                    elif results['labeling']['scores']['TMT6'] > 0.7:
+                        results['labeling']['call'] = 'TMT6plex'
                     else:
                         results['labeling']['call'] = 'TMT'
                 elif results['labeling']['scores']['TMT'] < 1:
@@ -1460,11 +1499,11 @@ class MzMLAssessor:
                 else:
                     results['labeling']['call'] = 'ambiguous'
             else:
-                if results['labeling']['scores']['iTRAQ'] > 1:
+                if iTRAQ_all > 0.9:
                     if results['labeling']['scores']['iTRAQ4'] > results['labeling']['scores']['iTRAQ8']:
-                        results['labeling']['call'] = 'iTRAQ4'
+                        results['labeling']['call'] = 'iTRAQ4plex'
                     else:
-                        results['labeling']['call'] = 'iTRAQ8'
+                        results['labeling']['call'] = 'iTRAQ8plex'
                 elif results['labeling']['scores']['iTRAQ'] < 0.5:
                     results['labeling']['call'] = 'none'
                 else:
@@ -1472,9 +1511,8 @@ class MzMLAssessor:
 
         self.metadata['files'][self.mzml_file]['summary']['precursor stats'] = self.precursor_stats
         
-        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None}
+        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None, "water_loss":None, "phospho_spectra": None}
         self.metadata['files'][self.mzml_file]['summary']['combined summary'] = full_results
-
         file_summary = self.metadata['files'][self.mzml_file]['summary']
         for keys in file_summary:
             try:
@@ -1482,7 +1520,7 @@ class MzMLAssessor:
                     full_results["fragmentation type"] = file_summary[keys]["fragmentation_type"]
 
                 elif full_results["fragmentation type"] != file_summary[keys]["fragmentation_type"]:
-                    full_results["fragmentation type"] = "muiltiple"
+                    full_results["fragmentation type"] = "multiple"
             except: 
                 pass
             try:
@@ -1492,8 +1530,11 @@ class MzMLAssessor:
                 elif file_summary[keys]['labeling']["call"] == 'none':
                     pass
 
+                elif full_results['call'] != file_summary[keys]['labeling']["call"] and "LR" in keys:
+                    pass
+
                 elif full_results['call'] != file_summary[keys]['labeling']["call"]:
-                    full_results['call'] = "muiltiple"
+                    full_results['call'] = "multiple"
             except:
                 pass
             try:
@@ -1502,10 +1543,30 @@ class MzMLAssessor:
                 elif 'no' in file_summary[keys]['tolerance']:
                     pass
                 elif full_results['fragmentation tolerance'] != file_summary[keys]['tolerance']:
-                    full_results['fragmentation tolerance'] = "muiltple"
+                    full_results['fragmentation tolerance'] = "multiple"
+
             except:
                 pass
-        
+
+            try:
+                if full_results['water_loss'] == None:
+                    full_results['water_loss'] = file_summary[keys]['water_loss']
+                elif file_summary[keys]['water_loss']:
+                    full_results['water_loss'] = file_summary[keys]['water_loss']
+            except:
+                pass
+
+            try:
+                if full_results['water_loss']:
+                    if full_results['phospho_spectra'] == None:
+                        full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
+                    elif not full_results['phospho_spectra']:
+                        full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
+                else:
+                   full_results['phospho_spectra'] = False 
+            except:
+                pass
+
 
         
             

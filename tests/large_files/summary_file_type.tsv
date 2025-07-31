@@ -1,0 +1,19 @@
+file	labeling	file_instrument	acquisition type	High accuracy precursor	fragmentation type	isolation window	fragment tolerance lower_three_sigma	fragment tolerance upper_three_sigma	dynamic exclusion time peak	precursor tolerance three_sigma_lower (ppm)	precursor tolerance three_sigma_higher (ppm)	has water_loss	has phospho_spectra
+06CPTAC_BCprospective_W_BI_20161116_BA_f17.mzML.gz	TMT10plex	Orbitrap Fusion Lumos	DDA	true	HR_HCD	{0.7: 40217}	-1.77	5.16	46.0	-4.01	4.01	True	False
+140924_11.mzML.gz	none	LTQ Orbitrap Discovery	DDA	true	LR_IT_CID	{2.0: 5498}	-14.24	16.43	45.35	-3.99	3.99	False	False
+20150730_LWP_HBE_1.mzML.gz	none	AB SCIEX instrument model	DDA	true	HR_QTOF	{}	no values recorded	no values recorded	0.0	not found	not found	True	False
+20171001_QE3_nLC7_DBJ_SA_LFQphos_Tech_Rep_03.mzML.gz	none	Q Exactive HF-X	DDA	true	HR_HCD	{1.3: 18464}	-7.5	1.44	30.78	-3.07	3.07	False	False
+20180914_QE8_nLC0_BDA_SA_DIA_Skin_Dermal_T_cells_CD4_MT_200000_2.mzML.gz	none	Q Exactive HF-X	DIA	true	HR_HCD	{39.7: 2323}, {23.5: 2323}, {18.0: 2323} ...	-3.72	1.71	2.63	not found	not found	False	False
+20250613_PRM34_AST_EV1109_G20_PRM_Pool10_iRT25_HeLaS3-P1.mzML.gz	none	Orbitrap Astral	DDA	true	HR_HCD	{2.0: 112130}	-5.29	3.89	No exclusion time found	-0.97	0.97	True	True
+ADPhosTMT3R2.mzML.gz	TMT10plex	Orbitrap Fusion Lumos	DDA	true	HR_HCD	{2.0: 21758}	-6.46	2.51	30.77	-2.06	2.06	True	True
+ALS081215_10.mzML.gz	TMTpro	LTQ Orbitrap Velos	DDA	true	LR_IT_CID	{2.0: 35301}	-0.46	0.35	62.02	-5.43	5.43	True	True
+C_i012_PO4_SCX_15_ETD_qMODE.mzML.gz	none	LTQ Orbitrap Velos	DDA	true	HR_IT_ETD	{3.0: 1514}	no values recorded	no values recorded	62.88	not found	not found	False	False
+CRC_phospho_iTRAQ_20.mzML.gz	iTRAQ4plex	LTQ Orbitrap Velos	DDA	true	multiple	{2.0: 6591, 3.0: 6591}	no values recorded	no values recorded	0.72	-0.99	0.99	True	True
+ea02315_OrbiterFAIMS_CHX_HEK293T_F6.mzML.gz	TMTpro	Orbitrap Eclipse	DDA	true	LR_IT_CID	{0.5: 37283}	-0.34	0.22	2.26	-1.26	1.26	True	True
+iTRAQ_Phos_T1.mzML.gz	iTRAQ8plex	Q Exactive HF	DDA	true	HR_HCD	{1.0: 11700}	-10.32	5.39	30.68	-3.56	3.56	False	False
+Orbi_CID_HCD_iTRAQ8plex.mzML.gz	iTRAQ8plex	LTQ Orbitrap XL	DDA	true	multiple	{3.0: 9520}	no values recorded	no values recorded	1.91	not found	not found	True	True
+P50.mzML.gz	none	LTQ Orbitrap XL	DDA	true	LR_IT_CID	{2.0: 2976}	-0.49	0.29	No exclusion time found	-4.05	4.05	True	False
+Q20181210_06.mzML.gz	none	Q Exactive HF	DDA	true	HR_HCD	{1.0: 63014}	-4.08	5.95	24.43	-2.92	2.92	False	False
+QEX03_210305_PTMscan_wt_IP_63.mzML.gz	none	Q Exactive	DDA	true	HR_HCD	{1.5: 8715}	-3.15	9.45	5.52	-3.25	3.25	False	False
+QExactive_TMT6.mzML.gz	TMT6plex	Q Exactive	DDA	true	HR_HCD	{2.0: 10344}	-4.51	4.93	30.77	-4.26	4.26	True	False
+WS1_11.mzML.gz	none	LTQ Orbitrap XL	DDA	true	LR_IT_CID	{2.0: 11215}	-1.55	1.84	31.41	-4.1	4.1	True	True
