@@ -54,6 +54,10 @@ class MzMLAssessor:
         if verbose is None: verbose = 0
         self.verbose = verbose
 
+        #### Creates a list of supported composite types that the code can handle
+        self.supported_composite_type_list = ['HR_HCD', 'LR_IT_CID', 'HR_QTOF', 'HR_IT_ETD']
+
+
         self.composite_spectrum_attributes = {
                 'lowend': {
                     'HR_HCD': {
@@ -1028,7 +1032,7 @@ class MzMLAssessor:
         ###Dictionary to hold upper and lower sigma_ppm relative to theoretical value
         self.all_3sigma_values_away = {"Status": False,"upper_ppm": [], "lower_ppm": [], "upper_mz":[], "lower_mz":[]}
 
-        supported_composite_type_list = [ 'lowend_HR_HCD', 'lowend_LR_IT_CID', 'lowend_HR_QTOF', 'lowend_HR_IT_ETD']
+        supported_composite_type_list = [f"lowend_{composite}" for composite in self.supported_composite_type_list]
 
         composite_type_list = []
         for supported_composite_type in supported_composite_type_list:
@@ -1175,7 +1179,7 @@ class MzMLAssessor:
 
   
 
-        supported_composite_type_list = [ 'precursor_loss_HR_HCD', 'precursor_loss_LR_IT_CID', 'precursor_loss_HR_IT_ETD', 'precursor_loss_HR_QTOF']
+        supported_composite_type_list = [f"precursor_loss_{composite}" for composite in self.supported_composite_type_list]
         self.metadata['files'][self.mzml_file].setdefault('neutral_loss_peaks', {})
         composite_type_list = []
         for supported_composite_type in supported_composite_type_list:
@@ -1468,9 +1472,9 @@ class MzMLAssessor:
                 if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['Phospho_z2']['peak']['mode_bin']['n_spectra'] >= 100:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = True
                 elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 100:
-                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = True
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = True
             else:
-                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = False
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = False
 
                 
 
@@ -1515,57 +1519,58 @@ class MzMLAssessor:
         self.metadata['files'][self.mzml_file]['summary']['combined summary'] = full_results
         file_summary = self.metadata['files'][self.mzml_file]['summary']
         for keys in file_summary:
-            try:
-                if full_results["fragmentation type"] == None:
-                    full_results["fragmentation type"] = file_summary[keys]["fragmentation_type"]
+            if keys in fragmentation_types:
+                try:
+                    if full_results["fragmentation type"] == None:
+                        full_results["fragmentation type"] = file_summary[keys]["fragmentation_type"]
 
-                elif full_results["fragmentation type"] != file_summary[keys]["fragmentation_type"]:
-                    full_results["fragmentation type"] = "multiple"
-            except: 
-                pass
-            try:
-                if full_results['call'] == None or full_results['call'] == 'none':
-                    full_results["call"] = file_summary[keys]['labeling']["call"]
-                
-                elif file_summary[keys]['labeling']["call"] == 'none':
+                    elif full_results["fragmentation type"] != file_summary[keys]["fragmentation_type"]:
+                        full_results["fragmentation type"] = "multiple"
+                except: 
+                    pass
+                try:
+                    if full_results['call'] == None or full_results['call'] == 'none':
+                        full_results["call"] = file_summary[keys]['labeling']["call"]
+                    
+                    elif file_summary[keys]['labeling']["call"] == 'none':
+                        pass
+
+                    elif full_results['call'] != file_summary[keys]['labeling']["call"] and "LR" in keys:
+                        pass
+
+                    elif full_results['call'] != file_summary[keys]['labeling']["call"]:
+                        full_results['call'] = "multiple"
+                except:
+                    pass
+                try:
+                    if full_results['fragmentation tolerance'] == None:
+                        full_results['fragmentation tolerance'] = file_summary[keys]['tolerance']
+                    elif 'no' in file_summary[keys]['tolerance']:
+                        pass
+                    elif full_results['fragmentation tolerance'] != file_summary[keys]['tolerance']:
+                        full_results['fragmentation tolerance'] = "multiple"
+
+                except:
                     pass
 
-                elif full_results['call'] != file_summary[keys]['labeling']["call"] and "LR" in keys:
+                try:
+                    if full_results['water_loss'] == None:
+                        full_results['water_loss'] = file_summary[keys]['water_loss']
+                    elif file_summary[keys]['water_loss']:
+                        full_results['water_loss'] = file_summary[keys]['water_loss']
+                except:
                     pass
 
-                elif full_results['call'] != file_summary[keys]['labeling']["call"]:
-                    full_results['call'] = "multiple"
-            except:
-                pass
-            try:
-                if full_results['fragmentation tolerance'] == None:
-                    full_results['fragmentation tolerance'] = file_summary[keys]['tolerance']
-                elif 'no' in file_summary[keys]['tolerance']:
+                try:
+                    if full_results['water_loss']:
+                        if full_results['phospho_spectra'] == None:
+                            full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
+                        elif not full_results['phospho_spectra']:
+                            full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
+                    else:
+                        full_results['phospho_spectra'] = False 
+                except:
                     pass
-                elif full_results['fragmentation tolerance'] != file_summary[keys]['tolerance']:
-                    full_results['fragmentation tolerance'] = "multiple"
-
-            except:
-                pass
-
-            try:
-                if full_results['water_loss'] == None:
-                    full_results['water_loss'] = file_summary[keys]['water_loss']
-                elif file_summary[keys]['water_loss']:
-                    full_results['water_loss'] = file_summary[keys]['water_loss']
-            except:
-                pass
-
-            try:
-                if full_results['water_loss']:
-                    if full_results['phospho_spectra'] == None:
-                        full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
-                    elif not full_results['phospho_spectra']:
-                        full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
-                else:
-                   full_results['phospho_spectra'] = False 
-            except:
-                pass
 
 
         
