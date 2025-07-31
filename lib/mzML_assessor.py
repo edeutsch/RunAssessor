@@ -1175,7 +1175,7 @@ class MzMLAssessor:
 
   
 
-        supported_composite_type_list = [ 'lowend_HR_HCD', 'lowend_LR_IT_CID', 'lowend_HR_QTOF', 'lowend_HR_IT_ETD']
+        supported_composite_type_list = [ 'precursor_loss_HR_HCD', 'precursor_loss_LR_IT_CID', 'precursor_loss_HR_IT_ETD', 'precursor_loss_HR_QTOF']
         self.metadata['files'][self.mzml_file].setdefault('neutral_loss_peaks', {})
         composite_type_list = []
         for supported_composite_type in supported_composite_type_list:
