@@ -258,23 +258,6 @@ class MzMLAssessor:
 
         infile.close()
         #if self.verbose >= 1: eprint("")
-
-        
-        # Plotting the composite spectrum and dumping the array of m/z versus intensities
-        destination = "precursor_loss_HR_HCD"
-        intensities = self.composite[destination]['n_peaks']
-        maximum = self.composite[destination]['maximum']
-        minimum = self.composite[destination]['minimum']
-        binsize = self.composite[destination]['binsize']
-        mz = numpy.arange((maximum-minimum)/binsize+1)*binsize+minimum
-        plt.plot(mz, intensities)
-        plt.xlabel("m/z loss (precursor_loss)")
-        plt.ylabel("Intensity")
-        plt.tight_layout()
-
-        #data = numpy.column_stack((mz, intensities))
-        #numpy.savetxt("composite_array.tsv", data, delimiter='\t', header="m/z\t\t\t\t\t\tintensity")
-
         
         #### Find the tolerance of the MS1 scan
         self.find_ms_one_tolerance(ms_one_tolerance_dict)
@@ -1112,6 +1095,11 @@ class MzMLAssessor:
                         elif float(parts[4]) > 200:
                             ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 1.0}
                 
+            thresholds = {
+                'min_spectra': 100,
+                'min_percentage': 0.1
+            }
+
 
             for ROI in ROIs:
                 #print(f"INFO: Looking for {ROI} at {ROIs[ROI]['mz']}")
@@ -1121,7 +1109,7 @@ class MzMLAssessor:
                 #last_bin = int((center + range/2.0 - minimum) / binsize)
 
                 #### Look for the largest peak
-                peak = self.find_peak(spec,ROIs,ROI,composite_type)
+                peak = self.find_peak(spec,ROIs,ROI,composite_type,thresholds)
 
                 ROIs[ROI]['peak'] = peak
 
@@ -1213,6 +1201,13 @@ class MzMLAssessor:
 
                         ROIs[ROI_name] = {'type': type, 'mz': mz, 'initial_window': 1.0}
 
+            thresholds = {
+                'min_spectra': 100,
+                'min_percentage': 0.1
+            }
+            if composite_type == 'precursor_loss_HR_HCD':
+                thresholds['min_percentage'] = 0
+
 
             for ROI in ROIs:
                 #print(f"INFO: Looking for {ROI} at {ROIs[ROI]['mz']}")
@@ -1222,7 +1217,7 @@ class MzMLAssessor:
                 #last_bin = int((center + range/2.0 - minimum) / binsize)
 
                 #### Look for the largest peak
-                peak = self.find_peak(spec,ROIs,ROI,composite_type)
+                peak = self.find_peak(spec,ROIs,ROI,composite_type,thresholds)
                 ROIs[ROI]['peak'] = peak
 
                 try:
@@ -1261,7 +1256,7 @@ class MzMLAssessor:
 
     ####################################################################################################
     #### Peak finding routine
-    def find_peak(self,spec,ROIs,ROI,composite_type):
+    def find_peak(self,spec,ROIs,ROI,composite_type,thresholds):
         minimum = spec[composite_type]['minimum']
         #maximum = spec[composite_type]['maximum']
         binsize = spec[composite_type]['binsize']
@@ -1309,7 +1304,10 @@ class MzMLAssessor:
                 done = 1
             iextent += 1
 
-        if peak['extended']['n_spectra'] > 100 and peak['extended']['n_spectra'] >= self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra'] * 0.1:
+        min_spectra = thresholds['min_spectra']
+        min_percentage = thresholds['min_percentage']
+
+        if peak['extended']['n_spectra'] > min_spectra and peak['extended']['n_spectra'] >= self.metadata['files'][self.mzml_file]['spectra_stats']['n_spectra'] * min_percentage:
             extent = peak['extended']['extent'] * 2
             x = spec[composite_type]['mz'][ibin-extent:ibin+extent]
             y = spec[composite_type]['intensities'][ibin-extent:ibin+extent]
@@ -1433,19 +1431,21 @@ class MzMLAssessor:
                         pass
             
             
-            #### Positive control
+            #### Detect water loss z=2 or not
             loss_type = 'precursor_loss_' + fragmentations
-            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = {}
             if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] >= 100:
                 self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = True
+            else:
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = False
 
-                #### Determine if Phospho or not
+            #### Detect Phospho or not
+            if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] > self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']:
                 if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['Phospho_z2']['peak']['mode_bin']['n_spectra'] >= 100:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = True
                 elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 100:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = True
-                else:
-                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = False
+            else:
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = False
                 
 
             #### Make the call for TMT or iTRAQ
