@@ -13,6 +13,8 @@ class GraphGenerator:
         default_metadata_filepath = 'study_metadata.json'
         if metadata_filepath == None:
             self.metadata_file = default_metadata_filepath
+        elif not metadata_filepath.endswith('.json'):
+            self.metadata_file = metadata_filepath + ".json"
         else:
             self.metadata_file = metadata_filepath
 
@@ -30,7 +32,7 @@ class GraphGenerator:
         files = data.get("files", {})
 
         #### Output PDF file
-        output_pdf_path = "histograms_with_chi2.pdf"
+        output_pdf_path = self.metadata_file.replace(".json", ".histograms_with_chi2.pdf")
         with PdfPages(output_pdf_path) as pdf:
             for filename, file_data in files.items():
                 precursor_stats = file_data.get("summary", {}).get('precursor stats', {})
@@ -175,12 +177,13 @@ class GraphGenerator:
                 print(f"Saved plot for {filename}")
 
         print("Saving PDF to:", os.path.abspath(output_pdf_path))
+        eprint(self.metadata_file)
+        return self.metadata_file
 
 
     
     def plot_precursor_loss_composite_spectra(self, assessor, pdf):
         destinations_list = list(assessor.composite.keys())
-
 
         file_name_root = assessor.mzml_file.split('.')[0]
 
@@ -247,4 +250,5 @@ class GraphGenerator:
                 pdf.savefig()
                 plt.close()
 
-        print("All neutral loss spectra saved to: combined_neutral_loss_window.pdf")
+        nl_pdf= self.metadata_file.replace(".json", ".NLplots.pdf")
+        print(f"All neutral loss spectra saved to: {nl_pdf}")
