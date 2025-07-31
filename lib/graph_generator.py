@@ -175,3 +175,84 @@ class GraphGenerator:
                 print(f"Saved plot for {filename}")
 
         print("Saving PDF to:", os.path.abspath(output_pdf_path))
+
+
+    def plot_precursor_loss_composite_spectra(self, assessor):
+        
+        #### Plotting the precursor loss composite spectrum around water z=2 and phosphoric acid z=2
+
+        destinations_list = list(assessor.composite.keys())
+        print(destinations_list)
+
+        file_name_root = assessor.mzml_file.split('.')[0]
+        file_name = f"{file_name_root}_neutral_loss_window.pdf"
+
+        with PdfPages(file_name) as pdf:
+            for destination in destinations_list:
+                if destination.startswith("precursor_loss_"):
+                    print(destination)
+
+                    intensities = assessor.composite[destination]['intensities']
+                    maximum = assessor.composite[destination]['maximum']
+                    minimum = assessor.composite[destination]['minimum']
+                    binsize = assessor.composite[destination]['binsize']
+                    mz = np.arange((maximum-minimum)/binsize+1)*binsize+minimum
+                    
+                    # x-axis and peak shading ranges for LR and HR
+                    if "LR" in destination:
+                        water_z2_axis_min = 7.50528235
+                        water_z2_axis_max = 10.50528235
+                        water_z2_peak_min = 8.95528235
+                        water_z2_peak_max = 9.05528235
+
+                        phosphoric_acid_z2_axis_min = 47.48844785
+                        phosphoric_acid_z2_axis_max = 50.48844785
+                        phosphoric_acid_z2_peak_min = 48.93844785
+                        phosphoric_acid_z2_peak_max = 49.03844785
+                    if "HR" in destination:
+                        water_z2_axis_min = 8.97528235
+                        water_z2_axis_max = 9.03528235
+                        water_z2_peak_min = 9.00428235
+                        water_z2_peak_max = 9.00628235
+
+                        phosphoric_acid_z2_axis_min = 48.95844785
+                        phosphoric_acid_z2_axis_max = 49.01844785
+                        phosphoric_acid_z2_peak_min = 48.98744785
+                        phosphoric_acid_z2_peak_max = 48.98944785
+                    
+                    # water loss z=2
+                    plt.axvspan(xmin=water_z2_peak_min, xmax=water_z2_peak_max, color='burlywood', alpha=0.75, lw=0)
+                    water_z2_range = (mz >= water_z2_axis_min) & (mz <= water_z2_axis_max)
+                    plt.plot(mz[water_z2_range], intensities[water_z2_range])
+                    plt.xlabel(f"m/z loss (water loss z=2)")
+                    plt.ylabel("Intensity")
+                    plt.title(f"{file_name_root} ({destination})", fontsize=12)
+                    plt.tight_layout()
+                    pdf.savefig()
+                    plt.close()
+
+                    # phosphoric acid loss z=2
+                    plt.axvspan(xmin=phosphoric_acid_z2_peak_min, xmax=phosphoric_acid_z2_peak_max, color='burlywood', alpha=0.75, lw=0)
+                    phosphoric_acid_z2_range = (mz >= phosphoric_acid_z2_axis_min) & (mz <= phosphoric_acid_z2_axis_max)
+                    plt.plot(mz[phosphoric_acid_z2_range], intensities[phosphoric_acid_z2_range])
+                    plt.xlabel(f"m/z loss (phosphoric acid z=2)")
+                    plt.ylabel("Intensity")
+                    plt.title(f"{file_name_root} ({destination})", fontsize=12)
+                    plt.tight_layout()
+                    pdf.savefig()
+                    plt.close()
+
+                    # whole neutral loss spectrum (m/z = 0 to 100)
+                    plt.plot(mz, intensities)
+                    plt.xlabel(f"m/z loss")
+                    plt.ylabel("Intensity")
+                    plt.title(f"{file_name_root} ({destination})", fontsize=12)
+                    plt.tight_layout()
+                    pdf.savefig()
+                    plt.close()
+        
+        print("Saving neutral loss window PDF to:", os.path.abspath(file_name))
+
+
+        #data = np.column_stack((mz, intensities))
+        #np.savetxt("composite_array.tsv", data, delimiter='\t', header="m/z\t\t\t\t\t\tintensity")
