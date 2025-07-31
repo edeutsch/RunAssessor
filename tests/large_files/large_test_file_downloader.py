@@ -83,7 +83,13 @@ if __name__ == "__main__":
         "https://peptideatlas.org/data/RunAssessor/testfiles/20250613_PRM34_AST_EV1109_G20_PRM_Pool10_iRT25_HeLaS3-P1.mzML.gz",
         "https://peptideatlas.org/data/RunAssessor/testfiles/20171001_QE3_nLC7_DBJ_SA_LFQphos_Tech_Rep_03.mzML.gz",
         "https://peptideatlas.org/data/RunAssessor/testfiles/ea02315_OrbiterFAIMS_CHX_HEK293T_F6.mzML.gz",
-        "https://peptideatlas.org/data/RunAssessor/testfiles/CRC_phospho_iTRAQ_20.mzML.gz"
+        "https://peptideatlas.org/data/RunAssessor/testfiles/CRC_phospho_iTRAQ_20.mzML.gz",
+        "https://peptideatlas.org/data/RunAssessor/testfiles/20180914_QE8_nLC0_BDA_SA_DIA_Skin_Dermal_T_cells_CD4_MT_200000_2.mzML.gz",
+        "https://peptideatlas.org/data/RunAssessor/testfiles/EXP22038_2022ms0310aX49_A_BA7_1_9837.mzML.gz",
+        "https://peptideatlas.org/data/RunAssessor/testfiles/WS1_11.mzML.gz",
+        "https://peptideatlas.org/data/RunAssessor/testfiles/iTRAQ_Phos_T1.mzML.gz",
+        "https://peptideatlas.org/data/RunAssessor/testfiles/C_i012_PO4_SCX_15_ETD_qMODE.mzML.gz",
+        "https://peptideatlas.org/data/RunAssessor/testfiles/20150730_LWP_HBE_1.mzML.gz"
     ]
     )
 # To run the large_test_file_downloader.py in command line,
