@@ -35,6 +35,7 @@ class GraphGenerator:
             for filename, file_data in files.items():
                 precursor_stats = file_data.get("summary", {}).get('precursor stats', {})
                 dynamic_exclusion_window = precursor_stats.get('dynamic exclusion window', {})
+                eprint()
 
                 try:
                     pre_tol = precursor_stats.get('precursor tolerance', {})
@@ -43,7 +44,7 @@ class GraphGenerator:
 
                     amplitude_ppm = pre_tol.get('fit_ppm', {}).get("intensity", [])
                     mu_ppm = pre_tol.get('fit_ppm', {}).get("delta_ppm peak", [])
-                    sigma_ppm = pre_tol.get('fit_ppm', {}).get("sigma", [])
+                    sigma_ppm = pre_tol.get('fit_ppm', {}).get("sigma (ppm)", [])
                     y_offset_ppm = pre_tol.get('fit_ppm', {}).get("y_offset", [])
 
                     time_initial_level = dynamic_exclusion_window.get("fit_pulse_time", {}).get("inital level", [])
