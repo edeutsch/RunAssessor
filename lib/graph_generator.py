@@ -182,7 +182,6 @@ class GraphGenerator:
         #### Plotting the precursor loss composite spectrum around water z=2 and phosphoric acid z=2
 
         destinations_list = list(assessor.composite.keys())
-        print(destinations_list)
 
         file_name_root = assessor.mzml_file.split('.')[0]
         file_name = f"{file_name_root}_neutral_loss_window.pdf"
@@ -190,38 +189,38 @@ class GraphGenerator:
         with PdfPages(file_name) as pdf:
             for destination in destinations_list:
                 if destination.startswith("precursor_loss_"):
-                    print(destination)
 
                     intensities = assessor.composite[destination]['intensities']
                     maximum = assessor.composite[destination]['maximum']
                     minimum = assessor.composite[destination]['minimum']
                     binsize = assessor.composite[destination]['binsize']
                     mz = np.arange((maximum-minimum)/binsize+1)*binsize+minimum
-                    
+
+                    water_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['extended']['extent']
+                    phosphoric_acid_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['extended']['extent']
+
                     # x-axis and peak shading ranges for LR and HR
-                    if "LR" in destination:
-                        water_z2_axis_min = 7.50528235
-                        water_z2_axis_max = 10.50528235
-                        water_z2_peak_min = 8.95528235
-                        water_z2_peak_max = 9.05528235
+                    water_z2 = 9.00528235
+                    water_z2_axis_min = water_z2 - 30*binsize
+                    water_z2_axis_max = water_z2 + 30*binsize
+                    water_z2_extent_min = water_z2 - water_z2_extent_bins*binsize
+                    water_z2_extent_max = water_z2 + water_z2_extent_bins*binsize
+                    water_z2_fitting_min = water_z2 - water_z2_extent_bins*2*binsize
+                    water_z2_fitting_max = water_z2 + water_z2_extent_bins*2*binsize
 
-                        phosphoric_acid_z2_axis_min = 47.48844785
-                        phosphoric_acid_z2_axis_max = 50.48844785
-                        phosphoric_acid_z2_peak_min = 48.93844785
-                        phosphoric_acid_z2_peak_max = 49.03844785
-                    if "HR" in destination:
-                        water_z2_axis_min = 8.97528235
-                        water_z2_axis_max = 9.03528235
-                        water_z2_peak_min = 9.00428235
-                        water_z2_peak_max = 9.00628235
-
-                        phosphoric_acid_z2_axis_min = 48.95844785
-                        phosphoric_acid_z2_axis_max = 49.01844785
-                        phosphoric_acid_z2_peak_min = 48.98744785
-                        phosphoric_acid_z2_peak_max = 48.98944785
+                    phosphoric_acid_z2 = 48.98844785
+                    phosphoric_acid_z2_axis_min = phosphoric_acid_z2 - 30*binsize
+                    phosphoric_acid_z2_axis_max = phosphoric_acid_z2 + 30*binsize
+                    phosphoric_acid_z2_extent_min = phosphoric_acid_z2 - phosphoric_acid_z2_extent_bins*binsize
+                    phosphoric_acid_z2_extent_max = phosphoric_acid_z2 + phosphoric_acid_z2_extent_bins*binsize
+                    phosphoric_acid_z2_fitting_min = phosphoric_acid_z2 - phosphoric_acid_z2_extent_bins*2*binsize
+                    phosphoric_acid_z2_fitting_max = phosphoric_acid_z2 + phosphoric_acid_z2_extent_bins*2*binsize
                     
                     # water loss z=2
-                    plt.axvspan(xmin=water_z2_peak_min, xmax=water_z2_peak_max, color='burlywood', alpha=0.75, lw=0)
+                    if water_z2_extent_bins*2 < 30:
+                        plt.axvspan(xmin=water_z2_fitting_min, xmax=water_z2_fitting_max, color='lightsteelblue', alpha=0.25, lw=0)   # fitting, only shows if within range of plotted x-axis
+                    plt.axvspan(xmin=water_z2_extent_min, xmax=water_z2_extent_max, color='peachpuff', alpha=0.75, lw=0)    # extent
+                    plt.axvline(x=water_z2, color='orange', alpha=0.75)      # peak
                     water_z2_range = (mz >= water_z2_axis_min) & (mz <= water_z2_axis_max)
                     plt.plot(mz[water_z2_range], intensities[water_z2_range])
                     plt.xlabel(f"m/z loss (water loss z=2)")
@@ -232,7 +231,10 @@ class GraphGenerator:
                     plt.close()
 
                     # phosphoric acid loss z=2
-                    plt.axvspan(xmin=phosphoric_acid_z2_peak_min, xmax=phosphoric_acid_z2_peak_max, color='burlywood', alpha=0.75, lw=0)
+                    if phosphoric_acid_z2_extent_bins*2 < 30:
+                        plt.axvspan(xmin=phosphoric_acid_z2_fitting_min, xmax=phosphoric_acid_z2_fitting_max, color='lightsteelblue', alpha=0.25, lw=0)   # fitting, only shows if within range of plotted x-axis
+                    plt.axvspan(xmin=phosphoric_acid_z2_extent_min, xmax=phosphoric_acid_z2_extent_max, color='peachpuff', alpha=0.75, lw=0)    # extent
+                    plt.axvline(x=phosphoric_acid_z2, color='orange', alpha=0.75)      # peak
                     phosphoric_acid_z2_range = (mz >= phosphoric_acid_z2_axis_min) & (mz <= phosphoric_acid_z2_axis_max)
                     plt.plot(mz[phosphoric_acid_z2_range], intensities[phosphoric_acid_z2_range])
                     plt.xlabel(f"m/z loss (phosphoric acid z=2)")
