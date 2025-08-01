@@ -262,11 +262,12 @@ class GraphGenerator:
                         fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['fit']
                         sigma_mz = fit_param['sigma_mz']
                         mu_mz = fit_param['mz']
+                        y_offset = fit_param['y_offset']
                         mz_subset = mz[water_z2_range]
                         intensity_subset = intensities[water_z2_range]
 
                         gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
-                        scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian)
+                        scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset/ np.max(gaussian)
                         plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
                     else:
                         eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
@@ -293,11 +294,12 @@ class GraphGenerator:
                         fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['fit']
                         sigma_mz = fit_param['sigma_mz']
                         mu_mz = fit_param['mz']
+                        y_offset = fit_param['y_offset']
                         mz_subset = mz[phosphoric_acid_z2_range]
                         intensity_subset = intensities[phosphoric_acid_z2_range]
 
                         gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
-                        scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian)
+                        scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset
 
                         plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
                     else:

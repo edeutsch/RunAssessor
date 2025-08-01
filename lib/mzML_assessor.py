@@ -1343,10 +1343,10 @@ class MzMLAssessor:
 
             try:
             #if 1:
-                popt,pcov = curve_fit(gaussian_function,x,y,p0=[y[center],x[center],binsize])
+                popt,pcov = curve_fit(gaussian_function,x,y,p0=[y[center],x[center],binsize, 0.0])
                 sigma_ppm = popt[2]/ROIs[ROI]['mz']*1e6
                 
-                peak['fit'] = { 'mz': popt[1], 'intensity': popt[0], 'sigma_mz': popt[2], 'delta_mz': popt[1]-ROIs[ROI]['mz'], 'delta_ppm': (popt[1]-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6, 'sigma_ppm': sigma_ppm}
+                peak['fit'] = { 'mz': popt[1], 'intensity': popt[0], 'sigma_mz': popt[2], 'delta_mz': popt[1]-ROIs[ROI]['mz'], 'delta_ppm': (popt[1]-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6, 'sigma_ppm': sigma_ppm, "y_offset": popt[3]}
                 if composite_type == "lowend_HR_HCD":
                     peak['extended']['three_sigma_ppm_lower'] = peak['fit']['delta_ppm']-sigma_ppm*3
                     peak['extended']['three_sigma_ppm_upper'] = peak['fit']['delta_ppm']+3*sigma_ppm
@@ -1625,8 +1625,8 @@ class MzMLAssessor:
 
 ####################################################################################################
 #### Gaussian function used for curve fitting
-def gaussian_function(x,a,x0,sigma):
-    return a*numpy.exp(-(x-x0)**2/(2*sigma**2))
+def gaussian_function(x,a,x0,sigma, y_offset):
+    return a*numpy.exp(-(x-x0)**2/(2*sigma**2)) + y_offset
 
 
 ####################################################################################################
