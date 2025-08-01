@@ -1120,11 +1120,6 @@ class MzMLAssessor:
 
 
             for ROI in ROIs:
-                #print(f"INFO: Looking for {ROI} at {ROIs[ROI]['mz']}")
-                #center = ROIs[ROI]['mz']
-                #range = ROIs[ROI]['initial_window']
-                #first_bin = int((center - range/2.0 - minimum) / binsize)
-                #last_bin = int((center + range/2.0 - minimum) / binsize)
 
                 #### Look for the largest peak
                 peak = self.find_peak(spec,ROIs,ROI,composite_type,thresholds)
@@ -1173,8 +1168,6 @@ class MzMLAssessor:
         #    spec = pickle.load(infile)
         spec = self.composite
 
-  
-
         supported_composite_type_list = [ 'precursor_loss_HR_HCD', 'precursor_loss_LR_IT_CID', 'precursor_loss_HR_IT_ETD', 'precursor_loss_HR_QTOF']
         self.metadata['files'][self.mzml_file].setdefault('neutral_loss_peaks', {})
         composite_type_list = []
@@ -1193,9 +1186,10 @@ class MzMLAssessor:
             spec[composite_type]['mz'] = numpy.arange(minimum, maximum + binsize, binsize)
 
             singly_charged_peaks = [
-                { 'name': 'Phospho', 'type': 'Phospho', 'mass': 79.966331 },
+                { 'name': 'phospho', 'type': 'phospho', 'mass': 79.966331 },
                 { 'name': 'water', 'type': 'water_loss', 'mass': 18.0105647 },
                 { 'name': 'phosphoric_acid', 'type': 'phosphoric_acid_loss', 'mass': 97.9768957 }
+                #{ 'name': 'ammonia', 'type': 'ammonia_loss', 'mass': 17.026549105 }
             ]
             ROIs = {}
             charges = [1, 2, 3]
@@ -1228,44 +1222,16 @@ class MzMLAssessor:
 
 
             for ROI in ROIs:
-                #print(f"INFO: Looking for {ROI} at {ROIs[ROI]['mz']}")
-                #center = ROIs[ROI]['mz']
-                #range = ROIs[ROI]['initial_window']
-                #first_bin = int((center - range/2.0 - minimum) / binsize)
-                #last_bin = int((center + range/2.0 - minimum) / binsize)
 
                 #### Look for the largest peak
                 peak = self.find_peak(spec,ROIs,ROI,composite_type,thresholds)
                 ROIs[ROI]['peak'] = peak
 
                 try:
-                    ### Finds the number of standard deviations away the peak is from the theoretical mz value
-                    sigma_away_from_theoretical = (ROIs[ROI]['peak']['fit']["delta_ppm"])/(ROIs[ROI]['peak']['fit']["sigma_ppm"])
-                    ### Assigning the information in the dictionary
-                    ROIs[ROI]['peak']['assessment']['# of sigma_ppm(s) away from theoretical peak (ppm)'] = sigma_away_from_theoretical
-                    
+                    del(peak['fit']['sigma_ppm'])
+                    del(peak['fit']['delta_ppm'])
                 except:
                     pass
-
-                #If a 3 standard deviation is availible from the guassian curve, check to see if its distance is a max or min in the whole spectra set
-                try:
-                    if composite_type == "lowend_HR_HCD":
-                        upper = peak['extended']['three_sigma_ppm_upper']
-                        lower = peak['extended']['three_sigma_ppm_lower']
-                        self.all_3sigma_values_away['upper_ppm'].append(upper)
-                        self.all_3sigma_values_away['lower_ppm'].append(lower)
-                        self.all_3sigma_values_away['Status'] = True
-                        
-                    if composite_type == "lowend_LR_IT_CID":
-                        upper = peak['extended']['three_sigma_mz_upper']
-                        lower = peak['extended']['three_sigma_mz_lower']
-                        self.all_3sigma_values_away['upper_mz'].append(upper)
-                        self.all_3sigma_values_away['lower_mz'].append(lower)
-                        self.all_3sigma_values_away['Status'] = True
-                    
-                except KeyError:
-                    pass
-            
 
             
             self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][composite_type] = ROIs
@@ -1458,19 +1424,19 @@ class MzMLAssessor:
             
             #### Detect water loss z=2 or not
             loss_type = 'precursor_loss_' + fragmentations
-            if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] >= 100:
+            if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] >= 50:
                 self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = True
             else:
                 self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = False
 
             #### Detect Phospho or not
             if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] > self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']:
-                if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['Phospho_z2']['peak']['mode_bin']['n_spectra'] >= 100:
+                if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phospho_z2']['peak']['mode_bin']['n_spectra'] >= 50:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = True
-                elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 100:
-                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = True
+                elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 50:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = True
             else:
-                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['Phospho_spectra'] = False
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = False
 
                 
 
@@ -1557,13 +1523,10 @@ class MzMLAssessor:
                 pass
 
             try:
-                if full_results['water_loss']:
-                    if full_results['phospho_spectra'] == None:
-                        full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
-                    elif not full_results['phospho_spectra']:
-                        full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
-                else:
-                   full_results['phospho_spectra'] = False 
+                if full_results['phospho_spectra'] == None:
+                    full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
+                elif file_summary[keys]['phospho_spectra']:
+                    full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
             except:
                 pass
 
