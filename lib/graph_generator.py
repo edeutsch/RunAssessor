@@ -186,144 +186,126 @@ class GraphGenerator:
         file_name_root = assessor.mzml_file.split('.')[0]
         
 
-        for destination in destinations_list:
-            if destination.startswith("precursor_loss_"):
-                
+ 
+            for destination in destinations_list:
+                if destination.startswith("precursor_loss_"):
 
-                intensities = assessor.composite[destination]['intensities']
-                maximum = assessor.composite[destination]['maximum']
-                minimum = assessor.composite[destination]['minimum']
-                binsize = assessor.composite[destination]['binsize']
-                mz = np.arange((maximum-minimum)/binsize+1)*binsize+minimum
+                    intensities = assessor.composite[destination]['intensities']
+                    maximum = assessor.composite[destination]['maximum']
+                    minimum = assessor.composite[destination]['minimum']
+                    binsize = assessor.composite[destination]['binsize']
+                    mz = np.arange((maximum - minimum) / binsize + 1) * binsize + minimum
 
-                # Define plotting windows
-                if "LR" in destination:
-                    water_z2_axis_min = 7.50528235
-                    water_z2_axis_max = 10.50528235
-                    water_z2_peak_min = 8.95528235
-                    water_z2_peak_max = 9.05528235
+                    water_z2 = 9.00528235
+                    phosphoric_acid_z2 = 48.98844785
 
-                    phosphoric_acid_z2_axis_min = 47.48844785
-                    phosphoric_acid_z2_axis_max = 50.48844785
-                    phosphoric_acid_z2_peak_min = 48.93844785
-                    phosphoric_acid_z2_peak_max = 49.03844785
+                    water_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['extended']['extent']
+                    phosphoric_acid_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['extended']['extent']
 
-                    sum_type = destination.replace("precursor_loss_", "")
-                    if self.files[assessor.mzml_file]['summary'][sum_type]['has water_loss']:
-                        water_color = 'limegreen' 
-                    else:
-                        water_color = 'burlywood' 
-                    
-                    if self.files[assessor.mzml_file]['summary'][sum_type]['has phospho_spectra']:
-                        phospho_color = 'limegreen'
-                    else:
-                        phospho_color = 'burlywood'
-                    
-                    ratio = self.files[assessor.mzml_file]['summary'][sum_type]['z=2 phospho_spectra to z=2 water_loss_spectra']
-                    num_water = self.files[assessor.mzml_file]['summary'][sum_type]['number of z=2 water_loss spectra']
-                    num_phospho = self.files[assessor.mzml_file]['summary'][sum_type]['number of z=2 phospho_spectra']
+                    water_z2_axis_min = water_z2 - 30 * binsize
+                    water_z2_axis_max = water_z2 + 30 * binsize
+                    water_z2_extent_min = water_z2 - water_z2_extent_bins * binsize
+                    water_z2_extent_max = water_z2 + water_z2_extent_bins * binsize
+                    water_z2_fitting_min = water_z2 - 2 * water_z2_extent_bins * binsize
+                    water_z2_fitting_max = water_z2 + 2 * water_z2_extent_bins * binsize
 
-                if "HR" in destination:
-                    water_z2_axis_min = 8.97528235
-                    water_z2_axis_max = 9.03528235
-                    water_z2_peak_min = 9.00428235
-                    water_z2_peak_max = 9.00628235
-
-                    phosphoric_acid_z2_axis_min = 48.95844785
-                    phosphoric_acid_z2_axis_max = 49.01844785
-                    phosphoric_acid_z2_peak_min = 48.98744785
-                    phosphoric_acid_z2_peak_max = 48.98944785
+                    phosphoric_acid_z2_axis_min = phosphoric_acid_z2 - 30 * binsize
+                    phosphoric_acid_z2_axis_max = phosphoric_acid_z2 + 30 * binsize
+                    phosphoric_acid_z2_extent_min = phosphoric_acid_z2 - phosphoric_acid_z2_extent_bins * binsize
+                    phosphoric_acid_z2_extent_max = phosphoric_acid_z2 + phosphoric_acid_z2_extent_bins * binsize
+                    phosphoric_acid_z2_fitting_min = phosphoric_acid_z2 - 2 * phosphoric_acid_z2_extent_bins * binsize
+                    phosphoric_acid_z2_fitting_max = phosphoric_acid_z2 + 2 * phosphoric_acid_z2_extent_bins * binsize
 
                     sum_type = destination.replace("precursor_loss_", "")
-                    if self.files[assessor.mzml_file]['summary'][sum_type]['has water_loss']:
-                        water_color = 'limegreen' 
-                    else:
-                        water_color = 'burlywood' 
+                    summary = self.files[assessor.mzml_file]['summary'][sum_type]
+
+                    # Colors based on detection
+                    water_color = 'limegreen' if summary.get('has water_loss') else 'burlywood'
+                    phospho_color = 'limegreen' if summary.get('has phospho_spectra') else 'burlywood'
+
+                    ratio = summary.get('z=2 phospho_spectra to z=2 water_loss_spectra', 'N/A')
+                    num_water = summary.get('number of z=2 water_loss spectra', 'N/A')
+                    num_phospho = summary.get('number of z=2 phospho_spectra', 'N/A')
+
+                    # Plot water z=2
+                    if water_z2_extent_bins * 2 < 30:
+                        plt.axvspan(xmin=water_z2_fitting_min, xmax=water_z2_fitting_max, color='lightsteelblue', alpha=0.25, lw=0)
+                    plt.axvspan(xmin=water_z2_extent_min, xmax=water_z2_extent_max, color=water_color, alpha=0.75, lw=0)
+                    plt.axvline(x=water_z2, color='orange', alpha=0.75)
+                    water_z2_range = (mz >= water_z2_axis_min) & (mz <= water_z2_axis_max)
+                    plt.plot(mz[water_z2_range], intensities[water_z2_range])
                     
-                    if self.files[assessor.mzml_file]['summary'][sum_type]['has phospho_spectra']:
-                        phospho_color = 'limegreen'
-                    else:
-                        phospho_color = 'burlywood'
+                    ## Plot possible fit
+                    little_lable = ''
+                    try:
+                        if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['assessment']['is_found']:
+                            fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['fit']
+                            sigma_mz = fit_param['sigma_mz']
+                            mu_mz = fit_param['mz']
+                            y_offset = fit_param['y_offset']
+                            mz_subset = mz[water_z2_range]
+                            intensity_subset = intensities[water_z2_range]
 
-                    ratio = self.files[assessor.mzml_file]['summary'][sum_type]['z=2 phospho_spectra to z=2 water_loss_spectra']
-                    num_water = self.files[assessor.mzml_file]['summary'][sum_type]['number of z=2 water_loss spectra']
-                    num_phospho = self.files[assessor.mzml_file]['summary'][sum_type]['number of z=2 phospho_spectra']
+                            gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
+                            scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset/ np.max(gaussian)
+                            plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
+                        else:
+                            eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
+                            little_lable = " (no fit found)"
+                    except:
+                        pass
 
-                # Plot 1: water loss z=2
-                plt.axvspan(xmin=water_z2_peak_min, xmax=water_z2_peak_max, color=water_color, alpha=0.75, lw=0)
-                water_z2_range = (mz >= water_z2_axis_min) & (mz <= water_z2_axis_max)
-                plt.plot(mz[water_z2_range], intensities[water_z2_range])
 
+                    plt.xlabel("m/z loss (water loss z=2)")
+                    plt.ylabel("Intensity")
+                    plt.title(f"{file_name_root} ({destination})\nWater Loss: {num_water}, Phospho: {num_phospho}, Ratio: {ratio}", fontsize=10)
+                    plt.tight_layout()
+                    pdf.savefig()
+                    plt.close()
 
-                ## Plot possible fit
-                little_lable = ''
-                try:
-                    if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['assessment']['is_found']:
-                        fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['fit']
-                        sigma_mz = fit_param['sigma_mz']
-                        mu_mz = fit_param['mz']
-                        y_offset = fit_param['y_offset']
-                        mz_subset = mz[water_z2_range]
-                        intensity_subset = intensities[water_z2_range]
+                    # Plot phosphoric acid z=2
+                    if phosphoric_acid_z2_extent_bins * 2 < 30:
+                        plt.axvspan(xmin=phosphoric_acid_z2_fitting_min, xmax=phosphoric_acid_z2_fitting_max, color='lightsteelblue', alpha=0.25, lw=0)
+                    plt.axvspan(xmin=phosphoric_acid_z2_extent_min, xmax=phosphoric_acid_z2_extent_max, color=phospho_color, alpha=0.75, lw=0)
+                    plt.axvline(x=phosphoric_acid_z2, color='orange', alpha=0.75)
+                    phosphoric_acid_z2_range = (mz >= phosphoric_acid_z2_axis_min) & (mz <= phosphoric_acid_z2_axis_max)
+                    plt.plot(mz[phosphoric_acid_z2_range], intensities[phosphoric_acid_z2_range])
+                    plt.xlabel("m/z loss (phosphoric acid z=2)")
+                    little_lable = ""
+                    try:
+                        if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['assessment']['is_found']:
+                            fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['fit']
+                            sigma_mz = fit_param['sigma_mz']
+                            mu_mz = fit_param['mz']
+                            y_offset = fit_param['y_offset']
+                            mz_subset = mz[phosphoric_acid_z2_range]
+                            intensity_subset = intensities[phosphoric_acid_z2_range]
 
-                        gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
-                        scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset/ np.max(gaussian)
-                        plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
-                    else:
-                        eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
-                        little_lable = " (no fit found)"
-                except:
-                    pass
+                            gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
+                            scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset
 
-                plt.xlabel("m/z loss (water loss z=2)" + little_lable + "\nNumber of water_loss z=2 spectra: " + str(num_water))
-                plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination})", fontsize=12)
-                plt.tight_layout()
-                pdf.savefig()
-                plt.close()
+                            plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
+                        else:
+                            eprint(f"No phosphoric acid z =2 peak found in {assessor.mzml_file}")
+                            little_lable = " (no fit found)"
 
-                # Plot 2: phosphoric acid z=2
-                plt.axvspan(xmin=phosphoric_acid_z2_peak_min, xmax=phosphoric_acid_z2_peak_max, color=phospho_color, alpha=0.75, lw=0)
-                phosphoric_acid_z2_range = (mz >= phosphoric_acid_z2_axis_min) & (mz <= phosphoric_acid_z2_axis_max)
-                plt.plot(mz[phosphoric_acid_z2_range], intensities[phosphoric_acid_z2_range])
-                
-                ## Plot possible fit
-                little_lable = ""
-                try:
-                    if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['assessment']['is_found']:
-                        fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['fit']
-                        sigma_mz = fit_param['sigma_mz']
-                        mu_mz = fit_param['mz']
-                        y_offset = fit_param['y_offset']
-                        mz_subset = mz[phosphoric_acid_z2_range]
-                        intensity_subset = intensities[phosphoric_acid_z2_range]
+                    except:
+                        pass
 
-                        gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
-                        scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset
+                    plt.xlabel("m/z loss (phosphoric acid z=2)" + little_lable + "\nNumber of phosphoric acid z=2 spectra: " + str(num_phospho))
+                    plt.ylabel("Intensity")
+                    plt.title(f"{file_name_root} ({destination}) \nPhospho_spectra to water_loss: {ratio:.2f}", fontsize=12)
+                    plt.tight_layout()
+                    pdf.savefig()
+                    plt.close()
 
-                        plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
-                    else:
-                        eprint(f"No phosphoric acid z =2 peak found in {assessor.mzml_file}")
-                        little_lable = " (no fit found)"
-  
-                except:
-                    pass
-
-                plt.xlabel("m/z loss (phosphoric acid z=2)" + little_lable + "\nNumber of phosphoric acid z=2 spectra: " + str(num_phospho))
-                plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination}) \nPhospho_spectra to water_loss: {ratio:.2f}", fontsize=12)
-                plt.tight_layout()
-                pdf.savefig()
-                plt.close()
-
-                # Plot 3: full spectrum
-                plt.plot(mz, intensities)
-                plt.xlabel("m/z loss")
-                plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination})", fontsize=12)
-                plt.tight_layout()
-                pdf.savefig()
-                plt.close()
-
+                    # Full neutral loss spectrum
+                    plt.plot(mz, intensities)
+                    plt.xlabel("m/z loss")
+                    plt.ylabel("Intensity")
+                    plt.title(f"{file_name_root} ({destination}) - Full Neutral Loss Spectrum", fontsize=10)
+                    plt.tight_layout()
+                    pdf.savefig()
+                    plt.close()
         nl_pdf= self.metadata_file.replace(".json", ".NLplots.pdf")
         print(f"All neutral loss spectra saved to: {nl_pdf}")
