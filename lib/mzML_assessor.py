@@ -48,6 +48,8 @@ class MzMLAssessor:
 
         #### Create a dictionary to hold 3sigma values to find tolerance
         self.all_3sigma_values_away = {}
+
+        #### stores precursor data 
         self.precursor_stats = {}
 
         #### Set verbosity
@@ -1463,20 +1465,23 @@ class MzMLAssessor:
             #### Detect water loss z=2 or not
             loss_type = 'precursor_loss_' + fragmentations
             if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] >= 100:
-                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = True
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = True
             else:
-                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = False
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = False
 
             #### Detect Phospho or not
             if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] > self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']:
                 if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['Phospho_z2']['peak']['mode_bin']['n_spectra'] >= 100:
-                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = True
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = True
                 elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 100:
-                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = True
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = True
             else:
-                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = False
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = False
+            epsilon = 1e-10
 
-                
+            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['number of z=2 phospho_spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra']
+            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['number of z=2 water_loss spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']
+            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phospho_spectra to z=2 water_loss_spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra']/(self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] + epsilon)
 
             #### Make the call for TMT or iTRAQ
             
@@ -1515,7 +1520,7 @@ class MzMLAssessor:
 
         self.metadata['files'][self.mzml_file]['summary']['precursor stats'] = self.precursor_stats
         
-        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None, "water_loss":None, "phospho_spectra": None}
+        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None, "has water_loss":None, "has phospho_spectra": None, "total z=2 phospho_spectra": 0, "total z=2 water_loss_spectra":0, "z=2 phospho_spectra to z=2 water_loss_spectra":0}
         self.metadata['files'][self.mzml_file]['summary']['combined summary'] = full_results
         file_summary = self.metadata['files'][self.mzml_file]['summary']
         for keys in file_summary:
@@ -1554,26 +1559,35 @@ class MzMLAssessor:
                     pass
 
                 try:
-                    if full_results['water_loss'] == None:
-                        full_results['water_loss'] = file_summary[keys]['water_loss']
-                    elif file_summary[keys]['water_loss']:
-                        full_results['water_loss'] = file_summary[keys]['water_loss']
+                    if full_results['has water_loss'] == None:
+                        full_results['has water_loss'] = file_summary[keys]['has water_loss']
+                    elif file_summary[keys]['has water_loss']:
+                        full_results['has water_loss'] = file_summary[keys]['has water_loss']
                 except:
                     pass
 
-                try:
-                    if full_results['water_loss']:
-                        if full_results['phospho_spectra'] == None:
-                            full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
-                        elif not full_results['phospho_spectra']:
-                            full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
+                try:   
+                    if full_results['has phospho_spectra'] == None:
+                          full_results['has phospho_spectra'] = file_summary[keys]['has phospho_spectra']
+                    elif not full_results['has phospho_spectra'] and file_summary[keys]['has phospho_spectra']:
+                        full_results['has phospho_spectra'] = file_summary[keys]['has phospho_spectra']
+                    elif full_results['has phospho_spectra']:
+                        pass
                     else:
-                        full_results['phospho_spectra'] = False 
+                        full_results['has phospho_spectra'] = False 
                 except:
                     pass
+                
+            try:
+                full_results['total z=2 phospho_spectra'] += self.metadata['files'][self.mzml_file]['summary'][keys]['number of z=2 phospho_spectra']
+                full_results['total z=2 water_loss_spectra'] += self.metadata['files'][self.mzml_file]['summary'][keys]['number of z=2 water_loss spectra']
+            except:
+                pass
 
-
-        
+        try:
+            full_results['z=2 phospho_spectra to z=2 water_loss_spectra'] = full_results['total z=2 phospho_spectra']/(full_results['total z=2 water_loss_spectra']+epsilon)
+        except:
+            pass
             
         
 

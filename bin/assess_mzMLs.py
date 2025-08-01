@@ -54,7 +54,7 @@ def main():
     #### Set verbose level
     verbose = params.verbose
     if verbose is None:
-        verbose = 1
+        verbose = 0
     else:
         verbose = 1
     if verbose >= 1:
@@ -164,11 +164,10 @@ def main():
     
     #### Write out graphs is parameter given
     if params.write_pdfs:
-        eprint(params.metadata_filepath)
         grapher = GraphGenerator(params.metadata_filepath, verbose=params.verbose)
         metadata_name = grapher.buildGraphs()
         nl_pdf = metadata_name.replace(".json", ".NLplots.pdf")
-        
+
         with PdfPages(nl_pdf) as pdf:
             for assessor in results:
                 grapher.plot_precursor_loss_composite_spectra(assessor=assessor, pdf=pdf)

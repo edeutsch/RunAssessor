@@ -46,7 +46,7 @@ class MetadataHandler:
 
         #### Check if a verbose was provided and if not, set to default
         if verbose is None:
-            verbose = 1
+            verbose = 0
         self.verbose = verbose
 
 

@@ -18,26 +18,26 @@ class GraphGenerator:
         else:
             self.metadata_file = metadata_filepath
 
-
-    def buildGraphs(self):
-
-        #### Load JSON data
+         #### Load JSON data
         try:
             with open(self.metadata_file, "r") as f:
-                data = json.load(f)
+                self.data = json.load(f)
         except:
             eprint("INFO: Unable to read JSON file")
             return
+        
+        self.files = {}
 
-        files = data.get("files", {})
+    def buildGraphs(self):
+
+        self.files = self.data.get("files", {})
 
         #### Output PDF file
         output_pdf_path = self.metadata_file.replace(".json", ".histograms_with_chi2.pdf")
         with PdfPages(output_pdf_path) as pdf:
-            for filename, file_data in files.items():
+            for filename, file_data in self.files.items():
                 precursor_stats = file_data.get("summary", {}).get('precursor stats', {})
                 dynamic_exclusion_window = precursor_stats.get('dynamic exclusion window', {})
-                eprint()
 
                 try:
                     pre_tol = precursor_stats.get('precursor tolerance', {})
@@ -177,19 +177,18 @@ class GraphGenerator:
                 print(f"Saved plot for {filename}")
 
         print("Saving PDF to:", os.path.abspath(output_pdf_path))
-        eprint(self.metadata_file)
         return self.metadata_file
 
 
     
     def plot_precursor_loss_composite_spectra(self, assessor, pdf):
         destinations_list = list(assessor.composite.keys())
-
         file_name_root = assessor.mzml_file.split('.')[0]
+        
 
         for destination in destinations_list:
             if destination.startswith("precursor_loss_"):
-
+                
 
                 intensities = assessor.composite[destination]['intensities']
                 maximum = assessor.composite[destination]['maximum']
@@ -208,6 +207,18 @@ class GraphGenerator:
                     phosphoric_acid_z2_axis_max = 50.48844785
                     phosphoric_acid_z2_peak_min = 48.93844785
                     phosphoric_acid_z2_peak_max = 49.03844785
+
+                    sum_type = destination.replace("precursor_loss_", "")
+                    if self.files[assessor.mzml_file]['summary'][sum_type]['has water_loss']:
+                        water_color = 'limegreen' 
+                    else:
+                        water_color = 'burlywood' 
+                    
+                    if self.files[assessor.mzml_file]['summary'][sum_type]['has phospho_spectra']:
+                        phospho_color = 'limegreen'
+                    else:
+                        phospho_color = 'burlywood'
+
                 if "HR" in destination:
                     water_z2_axis_min = 8.97528235
                     water_z2_axis_max = 9.03528235
@@ -219,10 +230,40 @@ class GraphGenerator:
                     phosphoric_acid_z2_peak_min = 48.98744785
                     phosphoric_acid_z2_peak_max = 48.98944785
 
+                    sum_type = destination.replace("precursor_loss_", "")
+                    if self.files[assessor.mzml_file]['summary'][sum_type]['has water_loss']:
+                        water_color = 'limegreen' 
+                    else:
+                        water_color = 'burlywood' 
+                    
+                    if self.files[assessor.mzml_file]['summary'][sum_type]['has phospho_spectra']:
+                        phospho_color = 'limegreen'
+                    else:
+                        phospho_color = 'burlywood'
+
                 # Plot 1: water loss z=2
-                plt.axvspan(xmin=water_z2_peak_min, xmax=water_z2_peak_max, color='burlywood', alpha=0.75, lw=0)
+                plt.axvspan(xmin=water_z2_peak_min, xmax=water_z2_peak_max, color=water_color, alpha=0.75, lw=0)
                 water_z2_range = (mz >= water_z2_axis_min) & (mz <= water_z2_axis_max)
                 plt.plot(mz[water_z2_range], intensities[water_z2_range])
+
+                ## Plot possible fit
+                try:
+                    if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['assessment']['is_found']:
+                        fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['fit']
+                        sigma_mz = fit_param['sigma_mz']
+                        mu_mz = fit_param['mz']
+                        mz_subset = mz[water_z2_range]
+                        intensity_subset = intensities[water_z2_range]
+
+                        gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
+                        scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian)
+                        plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2, label='PPM Gaussian Fit')
+                    else:
+                        eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
+  
+                except:
+                    pass
+
                 plt.xlabel("m/z loss (water loss z=2)")
                 plt.ylabel("Intensity")
                 plt.title(f"{file_name_root} ({destination})", fontsize=12)
@@ -231,9 +272,29 @@ class GraphGenerator:
                 plt.close()
 
                 # Plot 2: phosphoric acid z=2
-                plt.axvspan(xmin=phosphoric_acid_z2_peak_min, xmax=phosphoric_acid_z2_peak_max, color='burlywood', alpha=0.75, lw=0)
+                plt.axvspan(xmin=phosphoric_acid_z2_peak_min, xmax=phosphoric_acid_z2_peak_max, color=phospho_color, alpha=0.75, lw=0)
                 phosphoric_acid_z2_range = (mz >= phosphoric_acid_z2_axis_min) & (mz <= phosphoric_acid_z2_axis_max)
                 plt.plot(mz[phosphoric_acid_z2_range], intensities[phosphoric_acid_z2_range])
+                
+                ## Plot possible fit
+                try:
+                    if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['assessment']['is_found']:
+                        fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['fit']
+                        sigma_mz = fit_param['sigma_mz']
+                        mu_mz = fit_param['mz']
+                        mz_subset = mz[phosphoric_acid_z2_range]
+                        intensity_subset = intensities[phosphoric_acid_z2_range]
+
+                        gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
+                        scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian)
+
+                        plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2, label='PPM Gaussian Fit')
+                    else:
+                        eprint(f"No phosphoric acid z =2 peak found in {assessor.mzml_file}")
+  
+                except:
+                    pass
+
                 plt.xlabel("m/z loss (phosphoric acid z=2)")
                 plt.ylabel("Intensity")
                 plt.title(f"{file_name_root} ({destination})", fontsize=12)
