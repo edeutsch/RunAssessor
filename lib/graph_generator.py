@@ -218,6 +218,10 @@ class GraphGenerator:
                         phospho_color = 'limegreen'
                     else:
                         phospho_color = 'burlywood'
+                    
+                    ratio = self.files[assessor.mzml_file]['summary'][sum_type]['z=2 phospho_spectra to z=2 water_loss_spectra']
+                    num_water = self.files[assessor.mzml_file]['summary'][sum_type]['number of z=2 water_loss spectra']
+                    num_phospho = self.files[assessor.mzml_file]['summary'][sum_type]['number of z=2 phospho_spectra']
 
                 if "HR" in destination:
                     water_z2_axis_min = 8.97528235
@@ -241,12 +245,18 @@ class GraphGenerator:
                     else:
                         phospho_color = 'burlywood'
 
+                    ratio = self.files[assessor.mzml_file]['summary'][sum_type]['z=2 phospho_spectra to z=2 water_loss_spectra']
+                    num_water = self.files[assessor.mzml_file]['summary'][sum_type]['number of z=2 water_loss spectra']
+                    num_phospho = self.files[assessor.mzml_file]['summary'][sum_type]['number of z=2 phospho_spectra']
+
                 # Plot 1: water loss z=2
                 plt.axvspan(xmin=water_z2_peak_min, xmax=water_z2_peak_max, color=water_color, alpha=0.75, lw=0)
                 water_z2_range = (mz >= water_z2_axis_min) & (mz <= water_z2_axis_max)
                 plt.plot(mz[water_z2_range], intensities[water_z2_range])
 
+
                 ## Plot possible fit
+                little_lable = ''
                 try:
                     if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['assessment']['is_found']:
                         fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['fit']
@@ -257,14 +267,14 @@ class GraphGenerator:
 
                         gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
                         scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian)
-                        plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2, label='PPM Gaussian Fit')
+                        plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
                     else:
                         eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
-  
+                        little_lable = " (no fit found)"
                 except:
                     pass
 
-                plt.xlabel("m/z loss (water loss z=2)")
+                plt.xlabel("m/z loss (water loss z=2)" + little_lable + "\nNumber of water_loss z=2 spectra: " + str(num_water))
                 plt.ylabel("Intensity")
                 plt.title(f"{file_name_root} ({destination})", fontsize=12)
                 plt.tight_layout()
@@ -277,6 +287,7 @@ class GraphGenerator:
                 plt.plot(mz[phosphoric_acid_z2_range], intensities[phosphoric_acid_z2_range])
                 
                 ## Plot possible fit
+                little_lable = ""
                 try:
                     if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['assessment']['is_found']:
                         fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['fit']
@@ -288,16 +299,17 @@ class GraphGenerator:
                         gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
                         scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian)
 
-                        plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2, label='PPM Gaussian Fit')
+                        plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
                     else:
                         eprint(f"No phosphoric acid z =2 peak found in {assessor.mzml_file}")
+                        little_lable = " (no fit found)"
   
                 except:
                     pass
 
-                plt.xlabel("m/z loss (phosphoric acid z=2)")
+                plt.xlabel("m/z loss (phosphoric acid z=2)" + little_lable + "\nNumber of phosphoric acid z=2 spectra: " + str(num_phospho))
                 plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination})", fontsize=12)
+                plt.title(f"{file_name_root} ({destination}) \nPhospho_spectra to water_loss: {ratio:.2f}", fontsize=12)
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()
