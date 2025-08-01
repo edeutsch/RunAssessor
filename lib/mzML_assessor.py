@@ -48,11 +48,17 @@ class MzMLAssessor:
 
         #### Create a dictionary to hold 3sigma values to find tolerance
         self.all_3sigma_values_away = {}
+
+        #### stores precursor data 
         self.precursor_stats = {}
 
         #### Set verbosity
         if verbose is None: verbose = 0
         self.verbose = verbose
+
+        #### Creates a list of supported composite types that the code can handle
+        self.supported_composite_type_list = ['HR_HCD', 'LR_IT_CID', 'HR_QTOF', 'HR_IT_ETD']
+
 
         self.composite_spectrum_attributes = {
                 'lowend': {
@@ -1028,7 +1034,7 @@ class MzMLAssessor:
         ###Dictionary to hold upper and lower sigma_ppm relative to theoretical value
         self.all_3sigma_values_away = {"Status": False,"upper_ppm": [], "lower_ppm": [], "upper_mz":[], "lower_mz":[]}
 
-        supported_composite_type_list = [ 'lowend_HR_HCD', 'lowend_LR_IT_CID', 'lowend_HR_QTOF', 'lowend_HR_IT_ETD']
+        supported_composite_type_list = [f"lowend_{composite}" for composite in self.supported_composite_type_list]
 
         composite_type_list = []
         for supported_composite_type in supported_composite_type_list:
@@ -1168,7 +1174,11 @@ class MzMLAssessor:
         #    spec = pickle.load(infile)
         spec = self.composite
 
-        supported_composite_type_list = [ 'precursor_loss_HR_HCD', 'precursor_loss_LR_IT_CID', 'precursor_loss_HR_IT_ETD', 'precursor_loss_HR_QTOF']
+
+  
+
+        supported_composite_type_list = [f"precursor_loss_{composite}" for composite in self.supported_composite_type_list]
+
         self.metadata['files'][self.mzml_file].setdefault('neutral_loss_peaks', {})
         composite_type_list = []
         for supported_composite_type in supported_composite_type_list:
@@ -1303,10 +1313,10 @@ class MzMLAssessor:
 
             try:
             #if 1:
-                popt,pcov = curve_fit(gaussian_function,x,y,p0=[y[center],x[center],binsize])
+                popt,pcov = curve_fit(gaussian_function,x,y,p0=[y[center],x[center],binsize, 0.0])
                 sigma_ppm = popt[2]/ROIs[ROI]['mz']*1e6
                 
-                peak['fit'] = { 'mz': popt[1], 'intensity': popt[0], 'sigma_mz': popt[2], 'delta_mz': popt[1]-ROIs[ROI]['mz'], 'delta_ppm': (popt[1]-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6, 'sigma_ppm': sigma_ppm}
+                peak['fit'] = { 'mz': popt[1], 'intensity': popt[0], 'sigma_mz': popt[2], 'delta_mz': popt[1]-ROIs[ROI]['mz'], 'delta_ppm': (popt[1]-ROIs[ROI]['mz'])/ROIs[ROI]['mz']*1e6, 'sigma_ppm': sigma_ppm, "y_offset": popt[3]}
                 if composite_type == "lowend_HR_HCD":
                     peak['extended']['three_sigma_ppm_lower'] = peak['fit']['delta_ppm']-sigma_ppm*3
                     peak['extended']['three_sigma_ppm_upper'] = peak['fit']['delta_ppm']+3*sigma_ppm
@@ -1424,21 +1434,26 @@ class MzMLAssessor:
             
             #### Detect water loss z=2 or not
             loss_type = 'precursor_loss_' + fragmentations
+
             if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] >= 50:
                 self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = True
             else:
-                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = False
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = False
 
             #### Detect Phospho or not
             if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] > self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']:
-                if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phospho_z2']['peak']['mode_bin']['n_spectra'] >= 50:
-                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = True
+                if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['Phospho_z2']['peak']['mode_bin']['n_spectra'] >= 50:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = True
                 elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 50:
-                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = True
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = True
             else:
-                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['phospho_spectra'] = False
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = False
+            
 
-                
+            epsilon = 1e-10
+            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['number of z=2 phospho_spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra']
+            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['number of z=2 water_loss spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']
+            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phospho_spectra to z=2 water_loss_spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra']/(self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] + epsilon)
 
             #### Make the call for TMT or iTRAQ
             
@@ -1477,61 +1492,76 @@ class MzMLAssessor:
 
         self.metadata['files'][self.mzml_file]['summary']['precursor stats'] = self.precursor_stats
         
-        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None, "water_loss":None, "phospho_spectra": None}
+        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None, "has water_loss":None, "has phospho_spectra": None, "total z=2 phospho_spectra": 0, "total z=2 water_loss_spectra":0, "z=2 phospho_spectra to z=2 water_loss_spectra":0}
         self.metadata['files'][self.mzml_file]['summary']['combined summary'] = full_results
         file_summary = self.metadata['files'][self.mzml_file]['summary']
         for keys in file_summary:
-            try:
-                if full_results["fragmentation type"] == None:
-                    full_results["fragmentation type"] = file_summary[keys]["fragmentation_type"]
+            if keys in fragmentation_types:
+                try:
+                    if full_results["fragmentation type"] == None:
+                        full_results["fragmentation type"] = file_summary[keys]["fragmentation_type"]
 
-                elif full_results["fragmentation type"] != file_summary[keys]["fragmentation_type"]:
-                    full_results["fragmentation type"] = "multiple"
-            except: 
-                pass
-            try:
-                if full_results['call'] == None or full_results['call'] == 'none':
-                    full_results["call"] = file_summary[keys]['labeling']["call"]
+                    elif full_results["fragmentation type"] != file_summary[keys]["fragmentation_type"]:
+                        full_results["fragmentation type"] = "multiple"
+                except: 
+                    pass
+                try:
+                    if full_results['call'] == None or full_results['call'] == 'none':
+                        full_results["call"] = file_summary[keys]['labeling']["call"]
+                    
+                    elif file_summary[keys]['labeling']["call"] == 'none':
+                        pass
+
+                    elif full_results['call'] != file_summary[keys]['labeling']["call"] and "LR" in keys:
+                        pass
+
+                    elif full_results['call'] != file_summary[keys]['labeling']["call"]:
+                        full_results['call'] = "multiple"
+                except:
+                    pass
+                try:
+                    if full_results['fragmentation tolerance'] == None:
+                        full_results['fragmentation tolerance'] = file_summary[keys]['tolerance']
+                    elif 'no' in file_summary[keys]['tolerance']:
+                        pass
+                    elif full_results['fragmentation tolerance'] != file_summary[keys]['tolerance']:
+                        full_results['fragmentation tolerance'] = "multiple"
+
+                except:
+                    pass
+
+                try:
+                    if full_results['has water_loss'] == None:
+                        full_results['has water_loss'] = file_summary[keys]['has water_loss']
+                    elif file_summary[keys]['has water_loss']:
+                        full_results['has water_loss'] = file_summary[keys]['has water_loss']
+                except:
+                    pass
+
+                try:   
+                    if full_results['has phospho_spectra'] == None:
+                          full_results['has phospho_spectra'] = file_summary[keys]['has phospho_spectra']
+                    elif not full_results['has phospho_spectra'] and file_summary[keys]['has phospho_spectra']:
+                        full_results['has phospho_spectra'] = file_summary[keys]['has phospho_spectra']
+                    elif full_results['has phospho_spectra']:
+                        pass
+                    else:
+                        full_results['has phospho_spectra'] = False 
+                except:
+                    pass
                 
-                elif file_summary[keys]['labeling']["call"] == 'none':
-                    pass
-
-                elif full_results['call'] != file_summary[keys]['labeling']["call"] and "LR" in keys:
-                    pass
-
-                elif full_results['call'] != file_summary[keys]['labeling']["call"]:
-                    full_results['call'] = "multiple"
-            except:
-                pass
             try:
-                if full_results['fragmentation tolerance'] == None:
-                    full_results['fragmentation tolerance'] = file_summary[keys]['tolerance']
-                elif 'no' in file_summary[keys]['tolerance']:
-                    pass
-                elif full_results['fragmentation tolerance'] != file_summary[keys]['tolerance']:
-                    full_results['fragmentation tolerance'] = "multiple"
+
+                full_results['total z=2 phospho_spectra'] += self.metadata['files'][self.mzml_file]['summary'][keys]['number of z=2 phospho_spectra']
+                full_results['total z=2 water_loss_spectra'] += self.metadata['files'][self.mzml_file]['summary'][keys]['number of z=2 water_loss spectra']
 
             except:
                 pass
 
-            try:
-                if full_results['water_loss'] == None:
-                    full_results['water_loss'] = file_summary[keys]['water_loss']
-                elif file_summary[keys]['water_loss']:
-                    full_results['water_loss'] = file_summary[keys]['water_loss']
-            except:
-                pass
-
-            try:
-                if full_results['phospho_spectra'] == None:
-                    full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
-                elif file_summary[keys]['phospho_spectra']:
-                    full_results['phospho_spectra'] = file_summary[keys]['phospho_spectra']
-            except:
-                pass
-
-
-        
+        try:
+            full_results['z=2 phospho_spectra to z=2 water_loss_spectra'] = full_results['total z=2 phospho_spectra']/(full_results['total z=2 water_loss_spectra']+epsilon)
+        except:
+            pass
             
         
 
@@ -1569,8 +1599,8 @@ class MzMLAssessor:
 
 ####################################################################################################
 #### Gaussian function used for curve fitting
-def gaussian_function(x,a,x0,sigma):
-    return a*numpy.exp(-(x-x0)**2/(2*sigma**2))
+def gaussian_function(x,a,x0,sigma, y_offset):
+    return a*numpy.exp(-(x-x0)**2/(2*sigma**2)) + y_offset
 
 
 ####################################################################################################

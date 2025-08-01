@@ -8,7 +8,7 @@ import copy
 from datetime import datetime
 import timeit
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
-
+from matplotlib.backends.backend_pdf import PdfPages
 sys.path.append(os.path.dirname(os.path.realpath(__file__))+"/../lib")
 from mzML_assessor import MzMLAssessor
 from metadata_handler import MetadataHandler
@@ -54,7 +54,7 @@ def main():
     #### Set verbose level
     verbose = params.verbose
     if verbose is None:
-        verbose = 1
+        verbose = 0
     else:
         verbose = 1
     if verbose >= 1:
@@ -165,9 +165,12 @@ def main():
     #### Write out graphs is parameter given
     if params.write_pdfs:
         grapher = GraphGenerator(params.metadata_filepath, verbose=params.verbose)
-        grapher.buildGraphs()
-        for assessor_stats in results:
-            grapher.plot_precursor_loss_composite_spectra(assessor=assessor_stats)
+        metadata_name = grapher.buildGraphs()
+        nl_pdf = metadata_name.replace(".json", ".NLplots.pdf")
+
+        with PdfPages(nl_pdf) as pdf:
+            for assessor in results:
+                grapher.plot_precursor_loss_composite_spectra(assessor=assessor, pdf=pdf)
 
 
 
