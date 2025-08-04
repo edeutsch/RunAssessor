@@ -166,12 +166,13 @@ def main():
     if params.write_pdfs:
         grapher = GraphGenerator(params.metadata_filepath, verbose=params.verbose)
         metadata_name = grapher.buildGraphs()
+        eprint("INFO: Delta Graphs generated and stored")
         nl_pdf = metadata_name.replace(".json", ".NLplots.pdf")
 
         with PdfPages(nl_pdf) as pdf:
             for assessor in results:
                 grapher.plot_precursor_loss_composite_spectra(assessor=assessor, pdf=pdf)
-
+        eprint("INFO: Neutral Loss Graphs generated and stored")
 
 
 if __name__ == "__main__": main()

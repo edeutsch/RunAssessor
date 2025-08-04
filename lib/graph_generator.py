@@ -26,6 +26,11 @@ class GraphGenerator:
             eprint("INFO: Unable to read JSON file")
             return
         
+        if verbose != None and verbose != 0:
+            self.verbose = 1
+        else:
+            self.verbose = 0
+        
         self.files = {}
 
     def buildGraphs(self):
@@ -173,10 +178,11 @@ class GraphGenerator:
         
                 pdf.savefig(fig)
                 plt.close(fig)
-
+                
+            if self.verbose >= 1:
                 print(f"Saved plot for {filename}")
-
-        print("Saving PDF to:", os.path.abspath(output_pdf_path))
+        if self.verbose >= 1:
+            eprint("Saving PDF to:", os.path.abspath(output_pdf_path))
         return self.metadata_file
 
 
@@ -195,9 +201,14 @@ class GraphGenerator:
 
                 water_z2 = 9.00528235
                 phosphoric_acid_z2 = 48.98844785
-
-                water_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['extended']['extent']
-                phosphoric_acid_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['extended']['extent']
+                try:
+                    water_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['extended']['extent']
+                except:
+                    water_z2_extent_bins = 0
+                try:
+                    phosphoric_acid_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['extended']['extent']
+                except:
+                    phosphoric_acid_z2_extent_bins = 0
 
                 water_z2_axis_min = water_z2 - 30 * binsize
                 water_z2_axis_max = water_z2 + 30 * binsize
@@ -308,4 +319,5 @@ class GraphGenerator:
                 pdf.savefig()
                 plt.close()
         nl_pdf= self.metadata_file.replace(".json", ".NLplots.pdf")
-        print(f"All neutral loss spectra saved to: {nl_pdf}")
+        if self.verbose >= 1:
+            eprint(f"All {assessor.mzml_file} neutral loss spectra saved to: {nl_pdf}")

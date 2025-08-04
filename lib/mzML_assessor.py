@@ -1414,7 +1414,7 @@ class MzMLAssessor:
 
             #### If no ROIs were computed, cannot continue
             if 'lowend_peaks' not in self.metadata['files'][self.mzml_file] or 'neutral_loss_peaks' not in self.metadata['files'][self.mzml_file]:
-                full_results = {"fragmentation type": fragmentations, "call": "unavailable", "fragmentation tolerance": 'unavailable', "water_loss":'unavailable', "phospho_spectra": 'unavailable'}
+                full_results = {"fragmentation type": fragmentations, "call": "unavailable", "fragmentation tolerance": 'unavailable', "has water_loss":'unavailable', "has phospho_spectra": 'unavailable'}
                 self.metadata['files'][self.mzml_file]['summary']['combined summary'] = full_results
                 return
 
@@ -1436,13 +1436,14 @@ class MzMLAssessor:
             loss_type = 'precursor_loss_' + fragmentations
 
             if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] >= 50:
-                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = True
+                if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['sigma_mz'] < 0.1:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = True
             else:
                 self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = False
 
             #### Detect Phospho or not
             if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] > self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']:
-                if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['Phospho_z2']['peak']['mode_bin']['n_spectra'] >= 50:
+                if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phospho_z2']['peak']['mode_bin']['n_spectra'] >= 50:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = True
                 elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 50:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = True
