@@ -88,46 +88,51 @@ class GraphGenerator:
                 fig.suptitle(filename, fontsize=14)
 
                 #### Time histogram
-                ax_time = axs[0, 0]
-                width_time = (time_bin_centers[1] - time_bin_centers[0]) if len(time_bin_centers) > 1 else 1
-                ax_time.bar(time_bin_centers, time_counts, width=width_time, color='skyblue', edgecolor='black', label='Time Data')
-
                 try:
-                    t_fine = np.linspace(min(time_bin_centers), max(time_bin_centers), 500)
-                    y = np.full_like(t_fine, time_initial_level, dtype=float)
+                    ax_time = axs[0, 0]
+                    width_time = (time_bin_centers[1] - time_bin_centers[0]) if len(time_bin_centers) > 1 else 1
+                    ax_time.bar(time_bin_centers, time_counts, width=width_time, color='skyblue', edgecolor='black', label='Time Data')
+                
+                    try:
+                        t_fine = np.linspace(min(time_bin_centers), max(time_bin_centers), 500)
+                        y = np.full_like(t_fine, time_initial_level, dtype=float)
 
-                    pulse_end = pulse_start + pulse_duration
-                    pulse_mask = (t_fine >= pulse_start) & (t_fine < pulse_end)
-                    y[pulse_mask] = peak_level
-                    decay_mask = t_fine >= pulse_end
-                    safe_tau = max(decay_constant, 1e-8)
-                    exponent = -(t_fine[decay_mask] - pulse_end) / safe_tau
-                    exponent = np.clip(exponent, -700, 700)
-                    y[decay_mask] = final_level + (peak_level - final_level) * np.exp(exponent)
+                        pulse_end = pulse_start + pulse_duration
+                        pulse_mask = (t_fine >= pulse_start) & (t_fine < pulse_end)
+                        y[pulse_mask] = peak_level
+                        decay_mask = t_fine >= pulse_end
+                        safe_tau = max(decay_constant, 1e-8)
+                        exponent = -(t_fine[decay_mask] - pulse_end) / safe_tau
+                        exponent = np.clip(exponent, -700, 700)
+                        y[decay_mask] = final_level + (peak_level - final_level) * np.exp(exponent)
 
-                    ax_time.plot(t_fine, y, color='blue', linewidth=2, label='Time Decay Fit')
+                        ax_time.plot(t_fine, y, color='blue', linewidth=2, label='Time Decay Fit')
+                    except:
+                        pass
                 except:
                     pass
-
                 ax_time.set_title("Time Between Precursors")
                 ax_time.set_xlabel("Time (seconds)")
                 ax_time.set_ylabel("Counts")
                 ax_time.legend()
 
-                #### PPM histogram 
-                ax_ppm = axs[0, 1]
-                width_ppm = (ppm_bin_centers[1] - ppm_bin_centers[0]) if len(ppm_bin_centers) > 1 else 1
-                ax_ppm.bar(ppm_bin_centers, ppm_counts, width=width_ppm, color='salmon', edgecolor='black', label='PPM Data')
-
-                try:
-                    x_ppm = np.linspace(min(ppm_bin_centers), max(ppm_bin_centers), 500)
-                    scale = amplitude_ppm * sigma_ppm * sqrt(2 * pi)
-                    y_ppm = scale * norm.pdf(x_ppm, mu_ppm, sigma_ppm) + y_offset_ppm
-                    ax_ppm.plot(x_ppm, y_ppm, color='darkred', linewidth=2, label='PPM Gaussian Fit')
+                #### PPM histogram
+                try: 
+                    ax_ppm = axs[0, 1]
+                    width_ppm = (ppm_bin_centers[1] - ppm_bin_centers[0]) if len(ppm_bin_centers) > 1 else 1
+                    ax_ppm.bar(ppm_bin_centers, ppm_counts, width=width_ppm, color='salmon', edgecolor='black', label='PPM Data')
+                
+                    try:
+                        x_ppm = np.linspace(min(ppm_bin_centers), max(ppm_bin_centers), 500)
+                        scale = amplitude_ppm * sigma_ppm * sqrt(2 * pi)
+                        y_ppm = scale * norm.pdf(x_ppm, mu_ppm, sigma_ppm) + y_offset_ppm
+                        ax_ppm.plot(x_ppm, y_ppm, color='darkred', linewidth=2, label='PPM Gaussian Fit')
+                    except:
+                        pass
                 except:
                     pass
 
-                ax_ppm.set_title("Precursor ppm Variance")
+                ax_ppm.set_title("Precursor m/z Variance in PPM")
                 ax_ppm.set_xlabel("PPM Varience")
                 ax_ppm.set_ylabel("Counts")
                 ax_ppm.legend()
@@ -192,14 +197,16 @@ class GraphGenerator:
         for page in cover_reader.pages:
             writer.add_page(page)
 
-        # Add your generated PDF pages
-        output_reader = PdfReader(output_pdf_path)
-        for page in output_reader.pages:
-            writer.add_page(page)
+        try:
+            output_reader = PdfReader(output_pdf_path)
+            for page in output_reader.pages:
+                writer.add_page(page)
 
-        # Write the final combined PDF
-        with open(output_pdf_path, "wb") as f:
-            writer.write(f)
+            # Write the final combined PDF
+            with open(output_pdf_path, "wb") as f:
+                writer.write(f)
+        except:
+            eprint("WARNING: No doumentation page added to chi_sqared graphs")
 
         if self.verbose >= 1:
             eprint("Saving PDF to:", os.path.abspath(output_pdf_path))
@@ -287,16 +294,19 @@ class GraphGenerator:
                         floor = np.min(scaled_gaussian)
                         peak_height_water_z2 = amplitude - floor
                     else:
-                        eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
+                        if self.verbose >= 1:
+                            eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
                         little_label = " (no fit found)"
 
                         peak_height_water_z2 = 1e-7
                 except:
                     pass
-
                 plt.xlabel("m/z loss (water z=2)" + little_label + "\nMode of water z=2 spectra: " + str(num_water))
                 plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz:.2f}", fontsize=8.5)
+                try:
+                    plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz:.2f}", fontsize=8.5)
+                except:
+                    plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz}", fontsize=8.5)
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()
@@ -328,7 +338,8 @@ class GraphGenerator:
                         floor = np.min(scaled_gaussian)
                         peak_height_phosphoric_acid_z2 = amplitude - floor
                     else:
-                        eprint(f"No phosphoric acid z =2 peak found in {assessor.mzml_file}")
+                        if self.verbose >= 1:
+                            eprint(f"No phosphoric acid z =2 peak found in {assessor.mzml_file}")
                         little_label = " (no fit found)"
 
                         peak_height_phosphoric_acid_z2 = 1e-7
@@ -339,7 +350,11 @@ class GraphGenerator:
 
                 plt.xlabel("m/z loss (phosphoric acid z=2)" + little_label + "\nMode of phosphoric acid z=2 spectra: " + str(num_phospho))
                 plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz:.2f}\nPhospho_spectra to water_loss: {ratio:.2f}", fontsize=8.5)
+                try:
+                    plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz:.2f}\nPhospho_spectra to water_loss: {ratio:.2f}", fontsize=8.5)
+                except:
+                    plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz}\nPhospho_spectra to water_loss: {ratio:.2f}", fontsize=8.5)
+
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()

@@ -1445,6 +1445,8 @@ class MzMLAssessor:
             if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] >= 50:
                 if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['sigma_mz'] < 0.1:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = True
+                else:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = False
             else:
                 self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = False
 

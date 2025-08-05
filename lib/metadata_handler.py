@@ -489,22 +489,23 @@ class MetadataHandler:
                 try:
                     frag_type = fileinfo['summary']['combined summary']['fragmentation type']
                 except (KeyError, TypeError):
-                    frag_type = "no fragmentation type found"
+                    frag_type = "N/A"
                 info_dict["fragmentation type"] = frag_type
 
                 # Fragmentation tolerances
                 try:
                     frag_type_value = self.metadata['files'][file]['spectra_stats']['fragmentation_type']
                     if frag_type_value.startswith('HR'):
-                        low_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'], 2)
-                        high_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'], 2)
+                        low_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'], 2)} ppm"
+                        high_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'], 2)} ppm"
+                    
                     elif frag_type_value.startswith('LR'):
-                        low_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'], 2)
-                        high_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'], 2)
+                        low_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'], 2)} m/z"
+                        high_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'], 2)} m/z"
                     else:
-                        low_tol = high_tol = "no values recorded"
+                        low_tol = high_tol = "N/A"
                 except (KeyError, TypeError):
-                    low_tol = high_tol = "no values recorded"
+                    low_tol = high_tol = "N/A"
                 info_dict["fragment tolerance lower_three_sigma"] = low_tol
                 info_dict["fragment tolerance upper_three_sigma"] = high_tol
 
@@ -512,15 +513,15 @@ class MetadataHandler:
                 try:
                     dynamic_exclusion_time = round(fileinfo['summary']['precursor stats']['dynamic exclusion window']['fit_pulse_time']['pulse start'], 2)
                 except (KeyError, TypeError):
-                    dynamic_exclusion_time = "No exclusion time found"
-                info_dict["dynamic exclusion time peak"] = dynamic_exclusion_time
+                    dynamic_exclusion_time = "N/A"
+                info_dict["dynamic exclusion time (s)"] = dynamic_exclusion_time
 
                 # Precursor tolerances
                 try:
                     precursor_low = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['lower_three_sigma (ppm)'], 2)
                     precursor_high = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['upper_three_sigma (ppm)'], 2)
                 except (KeyError, TypeError):
-                    precursor_low = precursor_high = "not found"
+                    precursor_low = precursor_high = "N/A"
                 info_dict["precursor tolerance three_sigma_lower (ppm)"] = precursor_low
                 info_dict["precursor tolerance three_sigma_higher (ppm)"] = precursor_high
 
@@ -534,15 +535,15 @@ class MetadataHandler:
                         else:
                             iso_str = ', '.join(f"{{{k}: {v}}}" for k, v in isolation_window.items())
                     else:
-                        iso_str = "no isolation window widths found"
+                        iso_str = "N/A"
                 except (KeyError, TypeError):
-                    iso_str = "no isolation window widths found"
+                    iso_str = "N/A"
                 info_dict["isolation window"] = iso_str
 
                 # Water/phospho info
                 try:
                     has_water = fileinfo['summary']['combined summary']['has water_loss']
-                except (KeyError, TypeError):
+                except:
                     has_water = False
                 info_dict["has water_loss"] = has_water
 
@@ -557,16 +558,25 @@ class MetadataHandler:
                     total_water = fileinfo['summary']['combined summary']['total z=2 water_loss_spectra']
                     ratio = round(fileinfo['summary']['combined summary']['z=2 phospho_spectra to z=2 water_loss_spectra'], 2)
                 except:
-                    total_phospho = total_water = ratio = "not availible"
+                    total_phospho = total_water = ratio = "N/A"
                 info_dict["total z=2 phospho_spectra"] = total_phospho
                 info_dict["total z=2 water_loss_spectra"] = total_water
                 info_dict["z=2 phospho_spectra to z=2 water_loss_spectra"] = ratio
+
+                #Info about phospho shifts
+                for keys in fileinfo['summary']:
+                    if "HR" in keys or "LR" in keys:
+                        try:
+                            info_dict[keys + " absolute difference between delta m/z for z=2"] = round(fileinfo['summary'][keys]['absolute difference between delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'], 5)
+                        except:
+                            info_dict[keys + " absolute difference between delta m/z for z=2"] =  "N/A"
+
 
                 # Save
                 info.append(info_dict)
 
             except:
-                info.append({"file": file, "labeling": "No summary/info"})
+                info.append({"file": file, "labeling": "N/A"})
 
         #### Write file summary table
         self.write_summary_table(info)
@@ -596,7 +606,7 @@ class MetadataHandler:
                 self.metadata['search_criteria']['tolerance']['lower_m/z'] =three_sigma_lower
                 self.metadata['search_criteria']['tolerance']['upper_m/z'] = three_sigma_upper
         else:
-            criteria['tolerance'] = "No sigma values recorded"
+            criteria['tolerance'] = "N/A"
 
     ###################################################################################################
     #### Generates a table of every file and their fit ions with upper and lower three_sigma values
@@ -627,11 +637,15 @@ class MetadataHandler:
         headers = ["file", "labeling", "file_instrument", "acquisition type",
                     "High accuracy precursor", "fragmentation type", 
                     "fragment tolerance lower_three_sigma", "fragment tolerance upper_three_sigma",
-                    "dynamic exclusion time peak",
+                    "dynamic exclusion time (s)",
                     "precursor tolerance three_sigma_lower (ppm)", "precursor tolerance three_sigma_higher (ppm)",
                     "isolation window", "has water_loss", "has phospho_spectra",
                     "total z=2 phospho_spectra", "total z=2 water_loss_spectra",
                     "z=2 phospho_spectra to z=2 water_loss_spectra"]
+        for row in info:
+            for key in row:
+                if key not in headers:
+                    headers.append(key)
 
         with open("summary_file_type.tsv", "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=headers, delimiter="\t", extrasaction='ignore')
