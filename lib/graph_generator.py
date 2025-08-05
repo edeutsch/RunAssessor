@@ -4,6 +4,7 @@ import numpy as np
 from scipy.stats import norm
 from math import sqrt, pi
 from matplotlib.backends.backend_pdf import PdfPages
+from pypdf import PdfReader, PdfWriter
 import sys
 import os
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
@@ -37,9 +38,12 @@ class GraphGenerator:
 
         self.files = self.data.get("files", {})
 
+        coverpage = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Delta_graphs_documentation.pdf")
+
         #### Output PDF file
         output_pdf_path = self.metadata_file.replace(".json", ".histograms_with_chi2.pdf")
         with PdfPages(output_pdf_path) as pdf:
+
             for filename, file_data in self.files.items():
                 precursor_stats = file_data.get("summary", {}).get('precursor stats', {})
                 dynamic_exclusion_window = precursor_stats.get('dynamic exclusion window', {})
@@ -67,7 +71,7 @@ class GraphGenerator:
                     continue
 
                 if not hist_time or not hist_ppm:
-                    print(f"Skipping {filename} due to missing histogram data")
+                    eprint(f"Skipping {filename} due to missing histogram data")
                     continue
 
                 time_bin_centers = np.array(hist_time.get("bin_centers", []))
@@ -81,7 +85,7 @@ class GraphGenerator:
                     continue
 
                 fig, axs = plt.subplots(2, 2, figsize=(12, 8), gridspec_kw={'height_ratios': [4, 1]})
-                fig.suptitle(f"File: {filename}", fontsize=14)
+                fig.suptitle(filename, fontsize=14)
 
                 #### Time histogram
                 ax_time = axs[0, 0]
@@ -105,7 +109,7 @@ class GraphGenerator:
                 except:
                     pass
 
-                ax_time.set_title("Time Histogram")
+                ax_time.set_title("Time Between Precursors")
                 ax_time.set_xlabel("Time (seconds)")
                 ax_time.set_ylabel("Counts")
                 ax_time.legend()
@@ -123,8 +127,8 @@ class GraphGenerator:
                 except:
                     pass
 
-                ax_ppm.set_title("PPM Histogram")
-                ax_ppm.set_xlabel("PPM Error")
+                ax_ppm.set_title("Precursor ppm Variance")
+                ax_ppm.set_xlabel("PPM Varience")
                 ax_ppm.set_ylabel("Counts")
                 ax_ppm.legend()
 
@@ -159,7 +163,7 @@ class GraphGenerator:
                 ppm_table_data = [
                     ["Chi² PPM", fmt(chi_squared_ppm)],
                     ["Amplitude", fmt(amplitude_ppm)],
-                    ["Mu (Peak)", fmt(mu_ppm)],
+                    ["Mu (Peak Center)", fmt(mu_ppm)],
                     ["Sigma", fmt(sigma_ppm)],
                     ["Y Offset", fmt(y_offset_ppm)],
                 ]
@@ -178,9 +182,25 @@ class GraphGenerator:
         
                 pdf.savefig(fig)
                 plt.close(fig)
-                
+
             if self.verbose >= 1:
                 print(f"Saved plot for {filename}")
+
+        #Add explanitory Cover Page
+        writer = PdfWriter()
+        cover_reader = PdfReader(coverpage)
+        for page in cover_reader.pages:
+            writer.add_page(page)
+
+        # Add your generated PDF pages
+        output_reader = PdfReader(output_pdf_path)
+        for page in output_reader.pages:
+            writer.add_page(page)
+
+        # Write the final combined PDF
+        with open(output_pdf_path, "wb") as f:
+            writer.write(f)
+
         if self.verbose >= 1:
             eprint("Saving PDF to:", os.path.abspath(output_pdf_path))
         return self.metadata_file
@@ -261,7 +281,8 @@ class GraphGenerator:
                         scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset/ np.max(gaussian)
                         plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
                     else:
-                        eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
+                        if self.verbose >= 1:
+                            eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
                         little_lable = " (no fit found)"
                 except:
                     pass
