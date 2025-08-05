@@ -254,10 +254,10 @@ class GraphGenerator:
                 correct_bar_water = 'limegreen' if summary.get('has water_loss') else 'orange'
                 correct_bar_phospho = 'limegreen' if summary.get('has phospho_spectra') else 'orange'
 
-                #ratio = summary.get('z=2 phospho_spectra to z=2 water_loss_spectra', 'N/A')
-                num_water = summary.get('number of z=2 water_loss spectra', 'N/A')
-                num_phospho = summary.get('number of z=2 phospho_spectra', 'N/A')
-                abs_diff_delta_mz = summary.get('absolute difference between delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss', 'N/A')
+                ratio = summary.get('z=2 phosphoric_acid to z=2 water_loss intensity ratio', 'N/A')
+                num_water = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['mode_bin']['n_spectra']
+                num_phospho = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra']
+                abs_diff_delta_mz = summary.get('absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss', 'N/A')
 
                 # Plot water z=2
                 if water_z2_extent_bins * 2 < 30:
@@ -282,21 +282,18 @@ class GraphGenerator:
                         scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset/ np.max(gaussian)
 
                         plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
-
-                        amplitude = np.max(scaled_gaussian)
-                        floor = np.min(scaled_gaussian)
-                        peak_height_water_z2 = amplitude - floor
                     else:
                         eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
                         little_label = " (no fit found)"
-
-                        peak_height_water_z2 = 1e-7
                 except:
                     pass
 
                 plt.xlabel("m/z loss (water z=2)" + little_label + "\nMode of water z=2 spectra: " + str(num_water))
                 plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz:.2f}", fontsize=8.5)
+                try:
+                    plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz:.4f}", fontsize=8.5)
+                except:
+                    plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz}", fontsize=8.5)
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()
@@ -323,23 +320,18 @@ class GraphGenerator:
                         scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset
 
                         plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
-
-                        amplitude = np.max(scaled_gaussian)
-                        floor = np.min(scaled_gaussian)
-                        peak_height_phosphoric_acid_z2 = amplitude - floor
                     else:
                         eprint(f"No phosphoric acid z =2 peak found in {assessor.mzml_file}")
                         little_label = " (no fit found)"
-
-                        peak_height_phosphoric_acid_z2 = 1e-7
                 except:
                     pass
 
-                ratio = peak_height_phosphoric_acid_z2 / peak_height_water_z2
-
                 plt.xlabel("m/z loss (phosphoric acid z=2)" + little_label + "\nMode of phosphoric acid z=2 spectra: " + str(num_phospho))
                 plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz:.2f}\nPhospho_spectra to water_loss: {ratio:.2f}", fontsize=8.5)
+                try:
+                    plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz:.4f}\nPhosphoric acid to water intensity ratio: {ratio:.2f}", fontsize=8.5)
+                except: 
+                    plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz}\nPhosphoric acid to water intensity ratio: {ratio:.2f}", fontsize=8.5)
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()

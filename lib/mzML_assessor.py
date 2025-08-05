@@ -1445,30 +1445,65 @@ class MzMLAssessor:
             if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] >= 50:
                 if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['sigma_mz'] < 0.1:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = True
+                
+                if ('LR' in fragmentations or 'HR_IT_ETD' in fragmentations) and abs(self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['delta_mz']) > 0.4:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = False
+                elif 'HR' in fragmentations and abs(self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['delta_mz']) > 0.008:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = False
             else:
                 self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = False
+            
+
+            epsilon = 1e-10
+            if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['assessment']['is_found'] == True and self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['assessment']['is_found'] == True:
+                try:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['fit']['intensity'] - self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['fit']['y_offset']
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['intensity'] - self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['y_offset']
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] / self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss']
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = abs( self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['fit']['delta_mz'] - self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['delta_mz'] )
+                except:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
+            elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['assessment']['is_found'] == True and self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['assessment']['is_found'] == False:
+                try:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = epsilon
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['intensity'] - self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['y_offset']
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] / self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss']
+                except:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = 'n/a'
+            elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['assessment']['is_found'] == False and self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['assessment']['is_found'] == True:
+                try:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['fit']['intensity'] - self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['fit']['y_offset']
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = epsilon
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] / self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss']
+                except:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = 'n/a'
+            else:
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = 'n/a'
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = 'n/a'
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = 'n/a'
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
 
             #### Detect Phospho or not
-            if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] > self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']:
+            if self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] > 1:
                 if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phospho_z2']['peak']['mode_bin']['n_spectra'] >= 50:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = True
                 elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 50:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = True
+
+                if ('LR' in fragmentations or 'HR_IT_ETD' in fragmentations) and self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] > 0.3:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = False
+                elif 'HR' in fragmentations and self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] > 0.006:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = False
             else:
                 self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = False
-            
 
-            epsilon = 1e-10
-            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['number of z=2 phospho_spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra']
-            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['number of z=2 water_loss spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']
-            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phospho_spectra to z=2 water_loss_spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra']/(self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] + epsilon)
-            if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['assessment']['is_found'] == True and self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['assessment']['is_found']:
-                try:
-                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference between delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = abs( self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['fit']['delta_mz'] - self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['delta_mz'] )
-                except:
-                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference between delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
-            else:
-                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference between delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
 
             #### Make the call for TMT or iTRAQ
             
@@ -1507,7 +1542,7 @@ class MzMLAssessor:
 
         self.metadata['files'][self.mzml_file]['summary']['precursor stats'] = self.precursor_stats
         
-        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None, "has water_loss":None, "has phospho_spectra": None, "total z=2 phospho_spectra": 0, "total z=2 water_loss_spectra":0, "z=2 phospho_spectra to z=2 water_loss_spectra":0}
+        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None, "has water_loss":None, "has phospho_spectra": None}
         self.metadata['files'][self.mzml_file]['summary']['combined summary'] = full_results
         file_summary = self.metadata['files'][self.mzml_file]['summary']
         for keys in file_summary:
@@ -1564,20 +1599,7 @@ class MzMLAssessor:
                         full_results['has phospho_spectra'] = False 
                 except:
                     pass
-                
-            try:
 
-                full_results['total z=2 phospho_spectra'] += self.metadata['files'][self.mzml_file]['summary'][keys]['number of z=2 phospho_spectra']
-                full_results['total z=2 water_loss_spectra'] += self.metadata['files'][self.mzml_file]['summary'][keys]['number of z=2 water_loss spectra']
-
-            except:
-                pass
-
-        try:
-            full_results['z=2 phospho_spectra to z=2 water_loss_spectra'] = full_results['total z=2 phospho_spectra']/(full_results['total z=2 water_loss_spectra']+epsilon)
-        except:
-            pass
-            
         
 
     ####################################################################################################
