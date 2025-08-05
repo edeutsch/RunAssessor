@@ -254,9 +254,10 @@ class GraphGenerator:
                 correct_bar_water = 'limegreen' if summary.get('has water_loss') else 'orange'
                 correct_bar_phospho = 'limegreen' if summary.get('has phospho_spectra') else 'orange'
 
-                ratio = summary.get('z=2 phospho_spectra to z=2 water_loss_spectra', 'N/A')
+                #ratio = summary.get('z=2 phospho_spectra to z=2 water_loss_spectra', 'N/A')
                 num_water = summary.get('number of z=2 water_loss spectra', 'N/A')
                 num_phospho = summary.get('number of z=2 phospho_spectra', 'N/A')
+                abs_diff_delta_mz = summary.get('absolute difference between delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss', 'N/A')
 
                 # Plot water z=2
                 if water_z2_extent_bins * 2 < 30:
@@ -267,7 +268,7 @@ class GraphGenerator:
                 plt.plot(mz[water_z2_range], intensities[water_z2_range])
                 
                 ## Plot possible fit
-                little_lable = ''
+                little_label = ''
                 try:
                     if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['assessment']['is_found']:
                         fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['fit']
@@ -279,18 +280,23 @@ class GraphGenerator:
 
                         gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
                         scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset/ np.max(gaussian)
+
                         plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
+
+                        amplitude = np.max(scaled_gaussian)
+                        floor = np.min(scaled_gaussian)
+                        peak_height_water_z2 = amplitude - floor
                     else:
-                        if self.verbose >= 1:
-                            eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
-                        little_lable = " (no fit found)"
+                        eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
+                        little_label = " (no fit found)"
+
+                        peak_height_water_z2 = 1e-7
                 except:
                     pass
 
-
-                plt.xlabel("m/z loss (water z=2)" + little_lable + "\nNumber of water z=2 spectra: " + str(num_water))
+                plt.xlabel("m/z loss (water z=2)" + little_label + "\nMode of water z=2 spectra: " + str(num_water))
                 plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination}) \nPhospho_spectra to water_loss: {ratio:.2f}", fontsize=12)
+                plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz:.2f}", fontsize=8.5)
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()
@@ -303,7 +309,7 @@ class GraphGenerator:
                 phosphoric_acid_z2_range = (mz >= phosphoric_acid_z2_axis_min) & (mz <= phosphoric_acid_z2_axis_max)
                 plt.plot(mz[phosphoric_acid_z2_range], intensities[phosphoric_acid_z2_range])
                 plt.xlabel("m/z loss (phosphoric acid z=2)")
-                little_lable = ""
+                little_label = ""
                 try:
                     if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['assessment']['is_found']:
                         fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['fit']
@@ -317,16 +323,23 @@ class GraphGenerator:
                         scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset
 
                         plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
+
+                        amplitude = np.max(scaled_gaussian)
+                        floor = np.min(scaled_gaussian)
+                        peak_height_phosphoric_acid_z2 = amplitude - floor
                     else:
                         eprint(f"No phosphoric acid z =2 peak found in {assessor.mzml_file}")
-                        little_lable = " (no fit found)"
+                        little_label = " (no fit found)"
 
+                        peak_height_phosphoric_acid_z2 = 1e-7
                 except:
                     pass
 
-                plt.xlabel("m/z loss (phosphoric acid z=2)" + little_lable + "\nNumber of phosphoric acid z=2 spectra: " + str(num_phospho))
+                ratio = peak_height_phosphoric_acid_z2 / peak_height_water_z2
+
+                plt.xlabel("m/z loss (phosphoric acid z=2)" + little_label + "\nMode of phosphoric acid z=2 spectra: " + str(num_phospho))
                 plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination}) \nPhospho_spectra to water_loss: {ratio:.2f}", fontsize=12)
+                plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz:.2f}\nPhospho_spectra to water_loss: {ratio:.2f}", fontsize=8.5)
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()
@@ -335,7 +348,7 @@ class GraphGenerator:
                 plt.plot(mz, intensities)
                 plt.xlabel("m/z loss")
                 plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination}) - Full Neutral Loss Spectrum", fontsize=10)
+                plt.title(f"{file_name_root} ({destination})\nFull Neutral Loss Spectrum", fontsize=8.5)
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()

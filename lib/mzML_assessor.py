@@ -1462,6 +1462,13 @@ class MzMLAssessor:
             self.metadata['files'][self.mzml_file]['summary'][fragmentations]['number of z=2 phospho_spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra']
             self.metadata['files'][self.mzml_file]['summary'][fragmentations]['number of z=2 water_loss spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']
             self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phospho_spectra to z=2 water_loss_spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra']/(self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] + epsilon)
+            if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['assessment']['is_found'] == True and self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['assessment']['is_found']:
+                try:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference between delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = abs( self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['fit']['delta_mz'] - self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['delta_mz'] )
+                except:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference between delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
+            else:
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference between delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
 
             #### Make the call for TMT or iTRAQ
             
