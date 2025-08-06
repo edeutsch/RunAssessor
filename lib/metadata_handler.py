@@ -528,8 +528,11 @@ class MetadataHandler:
                 # Isolation window
                 try:
                     isolation_window = fileinfo['spectra_stats']['isolation_window_full_widths']
+                    
                     if isinstance(isolation_window, dict):
-                        if len(isolation_window) > 3:
+                        if len(isolation_window) <= 0:
+                            iso_str = "N/A"
+                        elif len(isolation_window) > 3:
                             first_three = list(isolation_window.items())[:3]
                             iso_str = ', '.join(f"{{{k}: {v}}}" for k, v in first_three) + " ..."
                         else:
@@ -554,23 +557,27 @@ class MetadataHandler:
                 info_dict["has phospho_spectra"] = has_phospho
 
                 try:
-                    total_phospho = fileinfo['summary']['combined summary']['total z=2 phospho_spectra']
-                    total_water = fileinfo['summary']['combined summary']['total z=2 water_loss_spectra']
-                    ratio = round(fileinfo['summary']['combined summary']['z=2 phospho_spectra to z=2 water_loss_spectra'], 2)
+                    total_phospho = fileinfo['summary']['combined summary']['total intensity of z=2 phosphoric_acid']
+                    total_water = fileinfo['summary']['combined summary']['total intensity of z=2 water_loss']
+                    ratio = round(fileinfo['summary']['combined summary']['total z=2 phosphoric_acid to z=2 water_loss intensity ratio'], 2)
                 except:
                     total_phospho = total_water = ratio = "N/A"
-                info_dict["total z=2 phospho_spectra"] = total_phospho
-                info_dict["total z=2 water_loss_spectra"] = total_water
-                info_dict["z=2 phospho_spectra to z=2 water_loss_spectra"] = ratio
+                info_dict["total intensity of z=2 phospho_spectra"] = total_phospho
+                info_dict["total intensity of z=2 water_loss_spectra"] = total_water
+                info_dict["total z=2 phosphoric_acid to z=2 water_loss intensity ratio"] = ratio
 
                 #Info about phospho shifts
                 for keys in fileinfo['summary']:
-                    if "HR" in keys or "LR" in keys:
+                    if "HR" in keys:
                         try:
-                            info_dict[keys + " absolute difference between delta m/z for z=2"] = round(fileinfo['summary'][keys]['absolute difference between delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'], 5)
+                            info_dict[keys + " absolute difference between delta m/z for z=2"] = round(fileinfo['summary'][keys]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'], 5)
                         except:
                             info_dict[keys + " absolute difference between delta m/z for z=2"] =  "N/A"
-
+                    elif "LR" in keys:
+                        try:
+                            info_dict[keys + " absolute difference between delta m/z for z=2"] = round(fileinfo['summary'][keys]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'], 2)
+                        except:
+                            info_dict[keys + " absolute difference between delta m/z for z=2"] =  "N/A"
 
                 # Save
                 info.append(info_dict)
@@ -640,8 +647,8 @@ class MetadataHandler:
                     "dynamic exclusion time (s)",
                     "precursor tolerance three_sigma_lower (ppm)", "precursor tolerance three_sigma_higher (ppm)",
                     "isolation window", "has water_loss", "has phospho_spectra",
-                    "total z=2 phospho_spectra", "total z=2 water_loss_spectra",
-                    "z=2 phospho_spectra to z=2 water_loss_spectra"]
+                    "total intensity of z=2 phospho_spectra", "total intensity of z=2 water_loss_spectra",
+                    "total z=2 phosphoric_acid to z=2 water_loss intensity ratio"]
         for row in info:
             for key in row:
                 if key not in headers:
