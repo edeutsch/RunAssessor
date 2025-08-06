@@ -204,7 +204,7 @@ class GraphGenerator:
             if self.verbose >= 1:
                 print(f"Saved plot for {filename}")
 
-        #Add explanitory Cover Page
+        #Add explanatory Cover Page
         writer = PdfWriter()
         cover_reader = PdfReader(coverpage)
         for page in cover_reader.pages:
@@ -368,6 +368,6 @@ class GraphGenerator:
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()
-        nl_pdf= self.metadata_file.replace(".json", ".NLplots.pdf")
+        nl_pdf = self.metadata_file.replace(".json", ".NLplots.pdf")
         if self.verbose >= 1:
             eprint(f"All {assessor.mzml_file} neutral loss spectra saved to: {nl_pdf}")

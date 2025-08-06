@@ -9,6 +9,7 @@ from datetime import datetime
 import timeit
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 from matplotlib.backends.backend_pdf import PdfPages
+from pypdf import PdfReader, PdfWriter
 sys.path.append(os.path.dirname(os.path.realpath(__file__))+"/../lib")
 from mzML_assessor import MzMLAssessor
 from metadata_handler import MetadataHandler
@@ -167,11 +168,23 @@ def main():
         grapher = GraphGenerator(params.metadata_filepath, verbose=params.verbose)
         metadata_name = grapher.buildGraphs()
         eprint("INFO: Delta Graphs generated and stored")
-        nl_pdf = metadata_name.replace(".json", ".NLplots.pdf")
 
+        nl_pdf = metadata_name.replace(".json", ".NLplots.pdf")
+        # Write cover page documentation to pdf
+        nl_coverpage = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib\\neutral_loss_windows_documentation.pdf")
+        writer = PdfWriter()
+        cover_reader = PdfReader(nl_coverpage)
+        for page in cover_reader.pages:
+            writer.add_page(page)
+        # Generate neutral loss windows and add to the pdf
         with PdfPages(nl_pdf) as pdf:
             for assessor in results:
                 grapher.plot_precursor_loss_composite_spectra(assessor=assessor, pdf=pdf)
+        output_reader = PdfReader(nl_pdf)
+        for page in output_reader.pages:
+            writer.add_page(page)
+        with open(nl_pdf, "wb") as f:
+            writer.write(f)
         eprint("INFO: Neutral Loss Graphs generated and stored")
 
 
