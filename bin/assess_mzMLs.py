@@ -48,7 +48,7 @@ def main():
     argparser.add_argument('--verbose', action='count', help='If set, print more information about ongoing processing' )
     argparser.add_argument('--version', action='version', version='%(prog)s 0.8')
     argparser.add_argument('--write_sdrf_file', action='count', help='If set, then write an SDRF file based on the metadata file')
-    argparser.add_argument('--write_pdfs', action='count', help='If set, then generate a pdf of delta time and ppm graphs from precursor stats')
+    argparser.add_argument('--write_pdfs', action='count', help='If set, then generate a pdf of delta time and ppm graphs from precursor stats, and a pdf of neutral loss windows from composite intensities')
     argparser.add_argument('files', type=str, nargs='+', help='Filenames of one or more mzML files to read')
     params = argparser.parse_args()
 
