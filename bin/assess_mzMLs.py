@@ -171,7 +171,7 @@ def main():
 
         nl_pdf = metadata_name.replace(".json", ".NLplots.pdf")
         # Write cover page documentation to pdf
-        nl_coverpage = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib\\neutral_loss_windows_documentation.pdf")
+        nl_coverpage = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib", "neutral_loss_windows_documentation.pdf")
         writer = PdfWriter()
         cover_reader = PdfReader(nl_coverpage)
         for page in cover_reader.pages:

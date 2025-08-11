@@ -428,14 +428,16 @@ class MetadataHandler:
             #### Colect sigma values
             try:
                 if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
-                    all_3sigma_values_away['Lowest'].append(fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower'])
-                    all_3sigma_values_away['Highest'].append(fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper'])
-                    all_3sigma_values_away['Status'] = True
+                    if 'warning' not in fileinfo['summary']['tolerance']:
+                        all_3sigma_values_away['Lowest'].append(fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower'])
+                        all_3sigma_values_away['Highest'].append(fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper'])
+                        all_3sigma_values_away['Status'] = True
 
                 elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
-                    all_3sigma_values_away['Lowest'].append(fileinfo['summary']['tolerance']['lower_m/z'])
-                    all_3sigma_values_away['Highest'].append(fileinfo['summary']['tolerance']['upper_m/z'])
-                    all_3sigma_values_away['Status'] = True
+                    if 'warning' not in fileinfo['summary']['tolerance']:
+                        all_3sigma_values_away['Lowest'].append(fileinfo['summary']['tolerance']['lower_m/z'])
+                        all_3sigma_values_away['Highest'].append(fileinfo['summary']['tolerance']['upper_m/z'])
+                        all_3sigma_values_away['Status'] = True
                 
             except:
                 pass
@@ -494,14 +496,15 @@ class MetadataHandler:
 
                 # Fragmentation tolerances
                 try:
-                    frag_type_value = self.metadata['files'][file]['spectra_stats']['fragmentation_type']
-                    if frag_type_value.startswith('HR'):
-                        low_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'], 2)} ppm"
-                        high_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'], 2)} ppm"
-                    
-                    elif frag_type_value.startswith('LR'):
-                        low_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'], 2)} m/z"
-                        high_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'], 2)} m/z"
+                    if 'warning' not in fileinfo['summary']['combined summary']['fragmentation tolerance']:
+                        frag_type_value = self.metadata['files'][file]['spectra_stats']['fragmentation_type']
+                        if frag_type_value.startswith('HR'):
+                            low_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'], 2)} ppm"
+                            high_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'], 2)} ppm"
+                        
+                        elif frag_type_value.startswith('LR'):
+                            low_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'], 2)} m/z"
+                            high_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'], 2)} m/z"
                     else:
                         low_tol = high_tol = "N/A"
                 except (KeyError, TypeError):
