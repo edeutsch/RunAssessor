@@ -4,6 +4,7 @@ import numpy as np
 from scipy.stats import norm
 from math import sqrt, pi
 from matplotlib.backends.backend_pdf import PdfPages
+from pypdf import PdfReader, PdfWriter
 import sys
 import os
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
@@ -26,100 +27,151 @@ class GraphGenerator:
             eprint("INFO: Unable to read JSON file")
             return
         
+        if verbose != None and verbose != 0:
+            self.verbose = 1
+        else:
+            self.verbose = 0
+        
         self.files = {}
+
+    def fmt(self, v):
+        return f"{v:.3f}" if isinstance(v, (int, float)) else str(v)
 
     def buildGraphs(self):
 
         self.files = self.data.get("files", {})
 
+        coverpage = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Delta_graphs_documentation.pdf")
+
         #### Output PDF file
         output_pdf_path = self.metadata_file.replace(".json", ".histograms_with_chi2.pdf")
         with PdfPages(output_pdf_path) as pdf:
+
             for filename, file_data in self.files.items():
+                if file_data.get("spectra_stats", {}).get("acquisition_type", 'none') == "DIA":
+                    continue
+                pre_tol = {}
+                hist_ppm = {}
+                amplitude_ppm = None
+                mu_ppm = None
+                sigma_ppm = None
+                y_offset_ppm = None
+                chi_squared_ppm = None
+
+                hist_time = {}
+                time_initial_level = None
+                pulse_start = None
+                peak_level = None
+                decay_constant = None
+                final_level = None
+                pulse_duration = None
+                chi_squared_time = None
+
+                time_bin_centers = None
+                time_counts = None
+                ppm_bin_centers = None
+                ppm_counts = None
                 precursor_stats = file_data.get("summary", {}).get('precursor stats', {})
                 dynamic_exclusion_window = precursor_stats.get('dynamic exclusion window', {})
 
                 try:
                     pre_tol = precursor_stats.get('precursor tolerance', {})
-                    hist_time = dynamic_exclusion_window.get("histogram_time", {})
                     hist_ppm = pre_tol.get("histogram_ppm", {})
-
                     amplitude_ppm = pre_tol.get('fit_ppm', {}).get("intensity", [])
                     mu_ppm = pre_tol.get('fit_ppm', {}).get("delta_ppm peak", [])
                     sigma_ppm = pre_tol.get('fit_ppm', {}).get("sigma (ppm)", [])
                     y_offset_ppm = pre_tol.get('fit_ppm', {}).get("y_offset", [])
-
-                    time_initial_level = dynamic_exclusion_window.get("fit_pulse_time", {}).get("inital level", [])
-                    pulse_start = dynamic_exclusion_window.get("fit_pulse_time", {}).get("pulse start", [])
-                    pulse_duration = dynamic_exclusion_window.get("fit_pulse_time", {}).get("dynamic exclusion time offset", [])
-                    peak_level = dynamic_exclusion_window.get("fit_pulse_time", {}).get("peak level", [])
-                    decay_constant = dynamic_exclusion_window.get("fit_pulse_time", {}).get("decay constant", [])
-                    final_level = dynamic_exclusion_window.get("fit_pulse_time", {}).get("final level", [])
-
-                    chi_squared_time = hist_time.get("chi_squared", "N/A")
-                    chi_squared_ppm = hist_ppm.get("chi_squared", "N/A")
-                except:
-                    continue
-
-                if not hist_time or not hist_ppm:
-                    print(f"Skipping {filename} due to missing histogram data")
-                    continue
-
-                time_bin_centers = np.array(hist_time.get("bin_centers", []))
-                time_counts = np.array(hist_time.get("counts", []))
-
-                ppm_bin_centers = np.array(hist_ppm.get("bin_centers", []))
-                ppm_counts = np.array(hist_ppm.get("counts", []))
-
-                if time_bin_centers.size == 0 or time_counts.size == 0 or ppm_bin_centers.size == 0 or ppm_counts.size == 0:
-                    print(f"Incomplete histogram data in {filename}, skipping...")
-                    continue
-
-                fig, axs = plt.subplots(2, 2, figsize=(12, 8), gridspec_kw={'height_ratios': [4, 1]})
-                fig.suptitle(f"File: {filename}", fontsize=14)
-
-                #### Time histogram
-                ax_time = axs[0, 0]
-                width_time = (time_bin_centers[1] - time_bin_centers[0]) if len(time_bin_centers) > 1 else 1
-                ax_time.bar(time_bin_centers, time_counts, width=width_time, color='skyblue', edgecolor='black', label='Time Data')
-
-                try:
-                    t_fine = np.linspace(min(time_bin_centers), max(time_bin_centers), 500)
-                    y = np.full_like(t_fine, time_initial_level, dtype=float)
-
-                    pulse_end = pulse_start + pulse_duration
-                    pulse_mask = (t_fine >= pulse_start) & (t_fine < pulse_end)
-                    y[pulse_mask] = peak_level
-                    decay_mask = t_fine >= pulse_end
-                    safe_tau = max(decay_constant, 1e-8)
-                    exponent = -(t_fine[decay_mask] - pulse_end) / safe_tau
-                    exponent = np.clip(exponent, -700, 700)
-                    y[decay_mask] = final_level + (peak_level - final_level) * np.exp(exponent)
-
-                    ax_time.plot(t_fine, y, color='blue', linewidth=2, label='Time Decay Fit')
+                    
+                    chi_squared_ppm = pre_tol.get("fit_ppm", {}).get("chi_squared", "N/A")
                 except:
                     pass
 
-                ax_time.set_title("Time Histogram")
+                try:
+                    hist_time = dynamic_exclusion_window.get("histogram_time", {})
+                    time_initial_level = dynamic_exclusion_window.get("fit_pulse_time", {}).get("inital level", [])
+                    pulse_start = dynamic_exclusion_window.get("fit_pulse_time", {}).get("pulse start", [])
+                    peak_level = dynamic_exclusion_window.get("fit_pulse_time", {}).get("peak level", [])
+                    decay_constant = dynamic_exclusion_window.get("fit_pulse_time", {}).get("decay constant", [])
+                    final_level = dynamic_exclusion_window.get("fit_pulse_time", {}).get("final level", [])
+                    pulse_duration = dynamic_exclusion_window.get("fit_pulse_time", {}).get("pulse duration", [])
+                    chi_squared_time = dynamic_exclusion_window.get("fit_pulse_time", {}).get("chi_squared", "N/A")
+                except:
+                    pass
+
+                
+
+                try:
+                    time_bin_centers = np.array(hist_time.get("bin_centers", []))
+                    time_counts = np.array(hist_time.get("counts", []))
+                except:
+                    pass
+                
+                try:
+                    ppm_bin_centers = np.array(hist_ppm.get("bin_centers", []))
+                    ppm_counts = np.array(hist_ppm.get("counts", []))
+                except:
+                    pass
+
+
+                fig, axs = plt.subplots(2, 2, figsize=(12, 8), gridspec_kw={'height_ratios': [4, 1]})
+                fig.suptitle(filename, fontsize=14)
+
+                #### Time histogram
+                ax_time = axs[0, 0]
+                try:
+                    width_time = (time_bin_centers[1] - time_bin_centers[0]) if len(time_bin_centers) > 1 else 1
+                    ax_time.bar(time_bin_centers, time_counts, width=width_time, color='skyblue', edgecolor='black', label='Time Data')
+                
+                    try:
+                        if peak_level <= 0:
+                            pass
+                        else:
+                            t_fine = np.linspace(min(time_bin_centers), max(time_bin_centers), 500)
+                            y = np.full_like(t_fine, time_initial_level, dtype=float)
+
+                            pulse_end = pulse_start + pulse_duration
+                            pulse_mask = (t_fine >= pulse_start) & (t_fine < pulse_end)
+                            y[pulse_mask] = peak_level
+                            decay_mask = t_fine >= pulse_end
+                            safe_tau = max(decay_constant, 1e-8)
+                            exponent = -(t_fine[decay_mask] - pulse_end) / safe_tau
+                            exponent = np.clip(exponent, -700, 700)
+                            y[decay_mask] = final_level + (peak_level - final_level) * np.exp(exponent)
+
+                            ax_time.plot(t_fine, y, color='blue', linewidth=2, label='Time Decay Fit')
+                    except:
+                        pass
+                except:
+                    ax_time.bar([], [])
+
+                ax_time.set_title("Time Between Precursors")
                 ax_time.set_xlabel("Time (seconds)")
                 ax_time.set_ylabel("Counts")
                 ax_time.legend()
 
-                #### PPM histogram 
+                #### PPM histogram
                 ax_ppm = axs[0, 1]
-                width_ppm = (ppm_bin_centers[1] - ppm_bin_centers[0]) if len(ppm_bin_centers) > 1 else 1
-                ax_ppm.bar(ppm_bin_centers, ppm_counts, width=width_ppm, color='salmon', edgecolor='black', label='PPM Data')
+                try: 
+                    width_ppm = (ppm_bin_centers[1] - ppm_bin_centers[0]) if len(ppm_bin_centers) > 1 else 1
+                    ax_ppm.bar(ppm_bin_centers, ppm_counts, width=width_ppm, color='salmon', edgecolor='black', label='PPM Data')
 
-                try:
-                    x_ppm = np.linspace(min(ppm_bin_centers), max(ppm_bin_centers), 500)
-                    scale = amplitude_ppm * sigma_ppm * sqrt(2 * pi)
-                    y_ppm = scale * norm.pdf(x_ppm, mu_ppm, sigma_ppm) + y_offset_ppm
-                    ax_ppm.plot(x_ppm, y_ppm, color='darkred', linewidth=2, label='PPM Gaussian Fit')
+                
+                    try:
+                        
+                        if amplitude_ppm <= 0:
+                            pass
+                        else:
+                            x_ppm = np.linspace(min(ppm_bin_centers), max(ppm_bin_centers), 500)
+                            scale = amplitude_ppm * sigma_ppm * sqrt(2 * pi)
+                            y_ppm = scale * norm.pdf(x_ppm, mu_ppm, sigma_ppm) + y_offset_ppm
+                            ax_ppm.plot(x_ppm, y_ppm, color='darkred', linewidth=2, label='PPM Gaussian Fit')
+                    except:
+                        pass
                 except:
-                    pass
-
-                ax_ppm.set_title("PPM Histogram")
-                ax_ppm.set_xlabel("PPM Error")
+                    ax_ppm.bar([], [])
+                    
+                ax_ppm.set_title("Precursor m/z Variance in PPM")
+                ax_ppm.set_xlabel("PPM Varience")
                 ax_ppm.set_ylabel("Counts")
                 ax_ppm.legend()
 
@@ -127,37 +179,49 @@ class GraphGenerator:
                 axs[1, 0].axis('off')
                 axs[1, 1].axis('off')
 
-                def fmt(v):
-                    return f"{v:.3f}" if isinstance(v, (int, float)) else str(v)
 
                 ## Table under Time histogram
-                time_table_data = [
-                    ["Chi² Time", fmt(chi_squared_time)],
-                    ["Initial Level", fmt(time_initial_level)],
-                    ["Pulse Start", fmt(pulse_start)],
-                    ["Pulse Duration", fmt(pulse_duration)],
-                    ["Peak Level", fmt(peak_level)],
-                    ["Decay Constant", fmt(decay_constant)],
-                    ["Final Level", fmt(final_level)],
-                ]
+                try:
+                    if peak_level == None or peak_level == 0:
+                        time_table_data = [["No fit found", ""]]
+                    else:
+                        time_table_data = [
+                            ["Chi² Time", self.fmt(chi_squared_time)],
+                            ["Initial Level", self.fmt(time_initial_level)],
+                            ["Pulse Start", self.fmt(pulse_start)],
+                            ['Pulse Duration', self.fmt(pulse_duration)],
+                            ["Peak Level",self.fmt(peak_level)],
+                            ["Decay Constant",self.fmt(decay_constant)],
+                            ["Final Level", self.fmt(final_level)],
+                        ]
+                except:
+                    time_table_data = [["No fit found", ""]]
+                    
                 table_time = axs[1, 0].table(
-                    cellText=time_table_data,
-                    colLabels=["Time Fit", "Value"],
-                    loc='center',
-                    cellLoc='left',
-                    colWidths=[0.35, 0.3],
-                    bbox=[0, -0.25, 1, 1] 
-                )
+                        cellText=time_table_data,
+                        colLabels=["Time Fit", "Value"],
+                        loc='center',
+                        cellLoc='left',
+                        colWidths=[0.35, 0.3],
+                        bbox=[0, -0.25, 1, 1] 
+                    )
                 table_time.scale(1.2, 3)
 
                 ## Table under PPM histogram
-                ppm_table_data = [
-                    ["Chi² PPM", fmt(chi_squared_ppm)],
-                    ["Amplitude", fmt(amplitude_ppm)],
-                    ["Mu (Peak)", fmt(mu_ppm)],
-                    ["Sigma", fmt(sigma_ppm)],
-                    ["Y Offset", fmt(y_offset_ppm)],
-                ]
+                try:
+                    if amplitude_ppm == None or amplitude_ppm  == 0:
+                        ppm_table_data = [["No fit found", ""]]
+                    else:
+                        ppm_table_data = [
+                            ["Chi² PPM", self.fmt(chi_squared_ppm)],
+                            ["Amplitude", self.fmt(amplitude_ppm)],
+                            ["Mu (Peak Center)", self.fmt(mu_ppm)],
+                            ["Sigma", self.fmt(sigma_ppm)],
+                            ["Y Offset", self.fmt(y_offset_ppm)],
+                        ]
+                except:
+                    ppm_table_data = [["No fit found", ""]]
+
                 table_ppm = axs[1, 1].table(
                     cellText=ppm_table_data,
                     colLabels=["PPM Fit", "Value"],
@@ -167,16 +231,36 @@ class GraphGenerator:
                     bbox=[0, -0.25, 1, 1]  
                 )
                 table_ppm.scale(1.2, 1.6)
-
+               
+                    
 
 
         
                 pdf.savefig(fig)
                 plt.close(fig)
 
+            if self.verbose >= 1:
                 print(f"Saved plot for {filename}")
 
-        print("Saving PDF to:", os.path.abspath(output_pdf_path))
+        #Add explanatory Cover Page
+        writer = PdfWriter()
+        cover_reader = PdfReader(coverpage)
+        for page in cover_reader.pages:
+            writer.add_page(page)
+
+        try:
+            output_reader = PdfReader(output_pdf_path)
+            for page in output_reader.pages:
+                writer.add_page(page)
+
+            # Write the final combined PDF
+            with open(output_pdf_path, "wb") as f:
+                writer.write(f)
+        except:
+            eprint("WARNING: No doumentation page added to chi_sqared graphs")
+
+        if self.verbose >= 1:
+            eprint("Saving PDF to:", os.path.abspath(output_pdf_path))
         return self.metadata_file
 
 
@@ -195,9 +279,14 @@ class GraphGenerator:
 
                 water_z2 = 9.00528235
                 phosphoric_acid_z2 = 48.98844785
-
-                water_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['extended']['extent']
-                phosphoric_acid_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['extended']['extent']
+                try:
+                    water_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['extended']['extent']
+                except:
+                    water_z2_extent_bins = 0
+                try:
+                    phosphoric_acid_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['extended']['extent']
+                except:
+                    phosphoric_acid_z2_extent_bins = 0
 
                 water_z2_axis_min = water_z2 - 30 * binsize
                 water_z2_axis_max = water_z2 + 30 * binsize
@@ -223,9 +312,10 @@ class GraphGenerator:
                 correct_bar_water = 'limegreen' if summary.get('has water_loss') else 'orange'
                 correct_bar_phospho = 'limegreen' if summary.get('has phospho_spectra') else 'orange'
 
-                ratio = summary.get('z=2 phospho_spectra to z=2 water_loss_spectra', 'N/A')
-                num_water = summary.get('number of z=2 water_loss spectra', 'N/A')
-                num_phospho = summary.get('number of z=2 phospho_spectra', 'N/A')
+                ratio = summary.get('z=2 phosphoric_acid to z=2 water_loss intensity ratio', 'N/A')
+                num_water = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['mode_bin']['n_spectra']
+                num_phospho = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra']
+                abs_diff_delta_mz = summary.get('absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss', 'N/A')
 
                 # Plot water z=2
                 if water_z2_extent_bins * 2 < 30:
@@ -236,7 +326,7 @@ class GraphGenerator:
                 plt.plot(mz[water_z2_range], intensities[water_z2_range])
                 
                 ## Plot possible fit
-                little_lable = ''
+                little_label = ''
                 try:
                     if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['assessment']['is_found']:
                         fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['fit']
@@ -248,17 +338,20 @@ class GraphGenerator:
 
                         gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
                         scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset/ np.max(gaussian)
+
                         plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
                     else:
-                        eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
-                        little_lable = " (no fit found)"
+                        if self.verbose >= 1:
+                            eprint(f"No water loss z =2 peak found in {assessor.mzml_file}")
+                        little_label = " (no fit found)"
                 except:
                     pass
-
-
-                plt.xlabel("m/z loss (water z=2)" + little_lable + "\nNumber of water z=2 spectra: " + str(num_water))
+                plt.xlabel("m/z loss (water z=2)" + little_label + "\nMode of water z=2 spectra: " + str(num_water))
                 plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination}) \nPhospho_spectra to water_loss: {ratio:.2f}", fontsize=12)
+                try:
+                    plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz:.4f}", fontsize=8.5)
+                except:
+                    plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz}", fontsize=8.5)
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()
@@ -271,7 +364,7 @@ class GraphGenerator:
                 phosphoric_acid_z2_range = (mz >= phosphoric_acid_z2_axis_min) & (mz <= phosphoric_acid_z2_axis_max)
                 plt.plot(mz[phosphoric_acid_z2_range], intensities[phosphoric_acid_z2_range])
                 plt.xlabel("m/z loss (phosphoric acid z=2)")
-                little_lable = ""
+                little_label = ""
                 try:
                     if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['assessment']['is_found']:
                         fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['phosphoric_acid_z2']['peak']['fit']
@@ -286,15 +379,21 @@ class GraphGenerator:
 
                         plt.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
                     else:
-                        eprint(f"No phosphoric acid z =2 peak found in {assessor.mzml_file}")
-                        little_lable = " (no fit found)"
-
+                        if self.verbose >= 1:
+                            eprint(f"No phosphoric acid z =2 peak found in {assessor.mzml_file}")
+                        little_label = " (no fit found)"
                 except:
                     pass
 
-                plt.xlabel("m/z loss (phosphoric acid z=2)" + little_lable + "\nNumber of phosphoric acid z=2 spectra: " + str(num_phospho))
+                plt.xlabel("m/z loss (phosphoric acid z=2)" + little_label + "\nMode of phosphoric acid z=2 spectra: " + str(num_phospho))
                 plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination}) \nPhospho_spectra to water_loss: {ratio:.2f}", fontsize=12)
+                try:
+                    plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz:.4f}\nPhosphoric acid to water intensity ratio: {ratio:.2f}", fontsize=8.5)
+                except:
+                    try:
+                        plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz}\nPhosphoric acid to water intensity ratio: {ratio:.2f}", fontsize=8.5)
+                    except:
+                        plt.title(f"{file_name_root} ({destination})\nAbsolute difference between delta m/z phosphoric acid and water: {abs_diff_delta_mz}\nPhosphoric acid to water intensity ratio: {ratio}", fontsize=8.5)
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()
@@ -303,9 +402,10 @@ class GraphGenerator:
                 plt.plot(mz, intensities)
                 plt.xlabel("m/z loss")
                 plt.ylabel("Intensity")
-                plt.title(f"{file_name_root} ({destination}) - Full Neutral Loss Spectrum", fontsize=10)
+                plt.title(f"{file_name_root} ({destination})\nFull Neutral Loss Spectrum", fontsize=8.5)
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()
-        nl_pdf= self.metadata_file.replace(".json", ".NLplots.pdf")
-        print(f"All neutral loss spectra saved to: {nl_pdf}")
+        nl_pdf = self.metadata_file.replace(".json", ".NLplots.pdf")
+        if self.verbose >= 1:
+            eprint(f"All {assessor.mzml_file} neutral loss spectra saved to: {nl_pdf}")

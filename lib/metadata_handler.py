@@ -8,6 +8,7 @@ import json
 import shutil
 import pandas as pd
 import numpy
+import csv
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 
@@ -427,14 +428,16 @@ class MetadataHandler:
             #### Colect sigma values
             try:
                 if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
-                    all_3sigma_values_away['Lowest'].append(fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower'])
-                    all_3sigma_values_away['Highest'].append(fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper'])
-                    all_3sigma_values_away['Status'] = True
+                    if 'warning' not in fileinfo['summary']['tolerance']:
+                        all_3sigma_values_away['Lowest'].append(fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower'])
+                        all_3sigma_values_away['Highest'].append(fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper'])
+                        all_3sigma_values_away['Status'] = True
 
                 elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
-                    all_3sigma_values_away['Lowest'].append(fileinfo['summary']['tolerance']['lower_m/z'])
-                    all_3sigma_values_away['Highest'].append(fileinfo['summary']['tolerance']['upper_m/z'])
-                    all_3sigma_values_away['Status'] = True
+                    if 'warning' not in fileinfo['summary']['tolerance']:
+                        all_3sigma_values_away['Lowest'].append(fileinfo['summary']['tolerance']['lower_m/z'])
+                        all_3sigma_values_away['Highest'].append(fileinfo['summary']['tolerance']['upper_m/z'])
+                        all_3sigma_values_away['Status'] = True
                 
             except:
                 pass
@@ -475,100 +478,118 @@ class MetadataHandler:
                 ion_three_sigma_table[file].append("No peaks")
             #### Gather info for summary table 
             try:
-                info_row = [file]
+                
+                info_dict = {
+                    "file": file,
+                    "labeling": labeling,
+                    "file_instrument": file_instrument,
+                    "acquisition type": fileinfo['spectra_stats'].get('acquisition_type', ''),
+                    "High accuracy precursor": high_accuracy_precursors,
+                }
 
-                # Labeling, Instrument, Acquisition Type, High Accuracy info
-                info_row.append(labeling)
-                info_row.append(file_instrument)
-                info_row.append(fileinfo['spectra_stats'].get('acquisition_type', ''))
-                info_row.append(high_accuracy_precursors)
-
-                # Fragmentation type info
+                # Fragmentation type
                 try:
                     frag_type = fileinfo['summary']['combined summary']['fragmentation type']
                 except (KeyError, TypeError):
-                    frag_type = "no fragmentation type found"
-                info_row.append(frag_type)
+                    frag_type = "N/A"
+                info_dict["fragmentation type"] = frag_type
 
-                # Fragmentation tolerances info
+                # Fragmentation tolerances
                 try:
-                    if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
-                        low_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'], 2)
-                        high_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'], 2)
-                    elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
-                        low_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'], 2)
-                        high_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'], 2)
+                    if 'warning' not in fileinfo['summary']['combined summary']['fragmentation tolerance']:
+                        frag_type_value = self.metadata['files'][file]['spectra_stats']['fragmentation_type']
+                        if frag_type_value.startswith('HR'):
+                            low_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'], 2)} ppm"
+                            high_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'], 2)} ppm"
+                        
+                        elif frag_type_value.startswith('LR'):
+                            low_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'], 2)} m/z"
+                            high_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'], 2)} m/z"
                     else:
-                        low_tol = high_tol = "no values recorded"
+                        low_tol = high_tol = "N/A"
                 except (KeyError, TypeError):
-                    low_tol = high_tol = "no values recorded"
-                info_row.extend([low_tol, high_tol])
+                    low_tol = high_tol = "N/A"
+                info_dict["fragment tolerance lower_three_sigma"] = low_tol
+                info_dict["fragment tolerance upper_three_sigma"] = high_tol
 
-
+                # Dynamic exclusion time
                 try:
                     dynamic_exclusion_time = round(fileinfo['summary']['precursor stats']['dynamic exclusion window']['fit_pulse_time']['pulse start'], 2)
                 except (KeyError, TypeError):
-                    dynamic_exclusion_time = "No exclusion time found"
-                info_row.append(dynamic_exclusion_time)
+                    dynamic_exclusion_time = "N/A"
+                info_dict["dynamic exclusion time (s)"] = dynamic_exclusion_time
 
-                # Precursor tolerances info
+                # Precursor tolerances
                 try:
                     precursor_low = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['lower_three_sigma (ppm)'], 2)
                     precursor_high = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['upper_three_sigma (ppm)'], 2)
                 except (KeyError, TypeError):
-                    precursor_low = precursor_high = "not found"
-                info_row.extend([precursor_low, precursor_high])
+                    precursor_low = precursor_high = "N/A"
+                info_dict["precursor tolerance three_sigma_lower (ppm)"] = precursor_low
+                info_dict["precursor tolerance three_sigma_higher (ppm)"] = precursor_high
 
-                # Isolation window info
+                # Isolation window
                 try:
                     isolation_window = fileinfo['spectra_stats']['isolation_window_full_widths']
+                    
                     if isinstance(isolation_window, dict):
-                        if len(isolation_window) > 3:
+                        if len(isolation_window) <= 0:
+                            iso_str = "N/A"
+                        elif len(isolation_window) > 3:
                             first_three = list(isolation_window.items())[:3]
-                            isolation_window_str = ', '.join(f"{{{k}: {v}}}" for k, v in first_three) + " ..."
+                            iso_str = ', '.join(f"{{{k}: {v}}}" for k, v in first_three) + " ..."
                         else:
-                            isolation_window_str = ', '.join(f"{{{k}: {v}}}" for k, v in isolation_window.items())
+                            iso_str = ', '.join(f"{{{k}: {v}}}" for k, v in isolation_window.items())
                     else:
-                        isolation_window_str = "no isolation window widths found"
+                        iso_str = "N/A"
                 except (KeyError, TypeError):
-                    isolation_window_str = "no isolation window widths found"
-                info_row.append(isolation_window_str)
+                    iso_str = "N/A"
+                info_dict["isolation window"] = iso_str
 
-                # Water and phospho info
+                # Water/phospho info
                 try:
                     has_water = fileinfo['summary']['combined summary']['has water_loss']
-                except (KeyError, TypeError):
+                except:
                     has_water = False
-                info_row.append(has_water)
+                info_dict["has water_loss"] = has_water
 
                 try:
                     has_phospho = fileinfo['summary']['combined summary']['has phospho_spectra']
                 except (KeyError, TypeError):
                     has_phospho = False
-                info_row.append(has_phospho)
+                info_dict["has phospho_spectra"] = has_phospho
+
                 try:
-                    total_phospho = fileinfo['summary']['combined summary']['total z=2 phospho_spectra']
-                    total_water = fileinfo['summary']['combined summary']['total z=2 water_loss_spectra']
-                    ratio_phospho_water = round(fileinfo['summary']['combined summary']['z=2 phospho_spectra to z=2 water_loss_spectra'],2)
+                    total_phospho = fileinfo['summary']['combined summary']['total intensity of z=2 phosphoric_acid']
+                    total_water = fileinfo['summary']['combined summary']['total intensity of z=2 water_loss']
+                    ratio = round(fileinfo['summary']['combined summary']['total z=2 phosphoric_acid to z=2 water_loss intensity ratio'], 2)
                 except:
-                    total_phospho = "not availble"
-                    total_water = "not availible"
-                    ratio_phospho_water = "not availible"
-                info_row.extend([total_phospho, total_water, ratio_phospho_water])
-                # Append the full row
-                info.append(info_row)
+                    total_phospho = total_water = ratio = "N/A"
+                info_dict["total intensity of z=2 phospho_spectra"] = total_phospho
+                info_dict["total intensity of z=2 water_loss_spectra"] = total_water
+                info_dict["total z=2 phosphoric_acid to z=2 water_loss intensity ratio"] = ratio
+
+                #Info about phospho shifts
+                for keys in fileinfo['summary']:
+                    if "HR" in keys:
+                        try:
+                            info_dict[keys + " absolute difference between delta m/z for z=2"] = round(fileinfo['summary'][keys]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'], 5)
+                        except:
+                            info_dict[keys + " absolute difference between delta m/z for z=2"] =  "N/A"
+                    elif "LR" in keys:
+                        try:
+                            info_dict[keys + " absolute difference between delta m/z for z=2"] = round(fileinfo['summary'][keys]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'], 2)
+                        except:
+                            info_dict[keys + " absolute difference between delta m/z for z=2"] =  "N/A"
+
+                # Save
+                info.append(info_dict)
 
             except:
-                info.append([file, "No summary/info"])
+                info.append({"file": file, "labeling": "N/A"})
 
-
-        ### Write info summary table
-        headers = ["file", "labeling", "file_instrument", 'acquisition type', "High accuracy precursor", "fragmentation type", "isolation window", "fragment tolerance lower_three_sigma", "fragment tolerance upper_three_sigma", "dynamic exclusion time peak", "precursor tolerance three_sigma_lower (ppm)", "precursor tolerance three_sigma_higher (ppm)","has water_loss", "has phospho_spectra", "total z=2 phospho_spectra", "total z=2 water_loss_spectra", 'z=2 phospho_spectra to z=2 water_loss_spectra']
-
-        info_array = numpy.array(info, dtype=object)
-        with open("summary_file_type.tsv", "w") as f:
-            f.write("\t".join(headers) + "\n")  
-            numpy.savetxt(f, info_array, delimiter="\t", fmt="%s") 
+        #### Write file summary table
+        self.write_summary_table(info)
 
         #### Set the the main tolerance based on three_sigma values from all files
         self.set_main_tolerance(all_3sigma_values_away)
@@ -595,7 +616,7 @@ class MetadataHandler:
                 self.metadata['search_criteria']['tolerance']['lower_m/z'] =three_sigma_lower
                 self.metadata['search_criteria']['tolerance']['upper_m/z'] = three_sigma_upper
         else:
-            criteria['tolerance'] = "No sigma values recorded"
+            criteria['tolerance'] = "N/A"
 
     ###################################################################################################
     #### Generates a table of every file and their fit ions with upper and lower three_sigma values
@@ -618,7 +639,30 @@ class MetadataHandler:
 
         df = pd.DataFrame(rows)
         df.to_csv("ion_three_sigma_table.tsv", sep="\t", index=False)
-            
+
+
+    ####################################################################################################
+    #### Generates a table summarizing all the info in 
+    def write_summary_table(self, info):
+        headers = ["file", "labeling", "file_instrument", "acquisition type",
+                    "High accuracy precursor", "fragmentation type", 
+                    "fragment tolerance lower_three_sigma", "fragment tolerance upper_three_sigma",
+                    "dynamic exclusion time (s)",
+                    "precursor tolerance three_sigma_lower (ppm)", "precursor tolerance three_sigma_higher (ppm)",
+                    "isolation window", "has water_loss", "has phospho_spectra",
+                    "total intensity of z=2 phospho_spectra", "total intensity of z=2 water_loss_spectra",
+                    "total z=2 phosphoric_acid to z=2 water_loss intensity ratio"]
+        for row in info:
+            for key in row:
+                if key not in headers:
+                    headers.append(key)
+
+        with open("summary_file_type.tsv", "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=headers, delimiter="\t", extrasaction='ignore')
+            writer.writeheader()
+            writer.writerows(info)
+
+
     ####################################################################################################
     #### Generate SDRF table data
     def generate_sdrf_table(self):

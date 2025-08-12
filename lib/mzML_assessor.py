@@ -365,17 +365,18 @@ class MzMLAssessor:
             else:
                 pass
         
-        data = numpy.column_stack((delta_ppm_list, delta_time_list))
-        numpy.savetxt("new_output.tsv", data, delimiter='\t', fmt='%.6f', header="delta_ppm\tdelta_time", comments='')
-                
 
         try:
             #Fit delta_time_list with histogram
             counts_ppm, bins_ppm = numpy.histogram(delta_ppm_list, bins=60)
             bin_centers_ppm = 0.5 * (bins_ppm[1:] + bins_ppm[:-1])
+        except:
+            pass
+
+        try:
             soft_raised_fixed_beta_ppm = partial(self.precursor_raised_gaussian, beta=1.5)
             p0_ppm = [max(counts_ppm), numpy.mean(delta_ppm_list), numpy.std(delta_ppm_list), 0.1]
-            fit_ppm, _ = curve_fit(soft_raised_fixed_beta_ppm, bin_centers_ppm, counts_ppm, p0=p0_ppm, bounds=([0, -numpy.inf, 1e-6, 0], [numpy.inf, numpy.inf, numpy.inf, numpy.inf]))
+            fit_ppm, _ = curve_fit(soft_raised_fixed_beta_ppm, bin_centers_ppm, counts_ppm, p0=p0_ppm)
         
             #Find chi^2 value for a goodness of fit
             expected_counts = soft_raised_fixed_beta_ppm(bin_centers_ppm, *fit_ppm)
@@ -393,21 +394,32 @@ class MzMLAssessor:
             #Fit delta_time_list with histogram
             counts_time, bins_time = numpy.histogram(delta_time_list, bins=100)
             bin_centers_time = 0.5 * (bins_time[1:] + bins_time[:-1])
+        except:
+            pass
+
+        try:
             max_peak_index = numpy.argmax(counts_time)
             main_peak = bin_centers_time[max_peak_index]
 
             counts_after_peak = counts_time[max_peak_index + 2:]
-
             counts_before_peak = counts_time[:max_peak_index - 2]
 
+            mean_counts_before_peaks = numpy.mean(counts_before_peak)
+            mean_counts_after_peaks = numpy.mean(counts_after_peak)
+            if numpy.isnan(mean_counts_before_peaks):
+                mean_counts_before_peaks = 0.0
 
-            p0 = [main_peak, 0.5, numpy.mean(counts_before_peak), max(counts_time), numpy.mean(counts_after_peak), 1]
+            if numpy.isnan(mean_counts_after_peaks):
+                mean_counts_after_peaks = 0.0
 
+            
+
+            p0 = [main_peak, 0.5, mean_counts_before_peaks, max(counts_time), mean_counts_after_peaks, 1.0]
+            eprint(p0)
             fit_time, cov = curve_fit(self.time_exp_decay, bin_centers_time, counts_time, p0=p0)
             expected_counts = self.time_exp_decay(bin_centers_time, *fit_time)
 
-
-            #Compute 5 secounds before and 5 secounds after for sharpness
+            #Compute 5 bins before and 5 bins after for sharpness
             t_before = fit_time[0] - 5
             t_after = fit_time[0] + 5
 
@@ -416,7 +428,6 @@ class MzMLAssessor:
 
             bound_y_before = max(y_before, 1e-8)
             bound_y_after = max(y_after, 1e-8)
-
 
             # Compute chi-squared
             window_mask = (bin_centers_time >= t_before) & (bin_centers_time <= t_after)
@@ -428,9 +439,6 @@ class MzMLAssessor:
             chi_squared = numpy.sum(((counts_time - expected_counts) ** 2) / (counts_time+epsilon))
             dof = len(counts_time) - len(fit_time)
             chi_squared_red_time = chi_squared / dof
-
-
-
         except:
             pass
 
@@ -447,35 +455,43 @@ class MzMLAssessor:
                 
             if chi_squared_red_time < 10:
                 time_fit_call = "good fit, dynamic exclusion window found"
-            elif chi_squared_red_time > 10 and chi_squared_red_time < 20:
-                time_fit_call = "uncertain fit, manually check time graph and decide for yourself"
+            elif chi_squared_red_time > 10 and chi_squared_red_time < 100:
+                time_fit_call = "uncertain about fit, manually check time graph and decide for yourself"
             else:
-                time_fit_call = "not a good fit, no dynamic exculsion window found"
+                time_fit_call = "probably not a good fit, no tolerance suggested, check time graph"
         except:
             pass
 
 
 
         try:
- 
             self.precursor_stats["precursor tolerance"] = {
                             "good ppm_fit?": ppm_fit_call,
-                            "fit_ppm":{"lower_three_sigma (ppm)":-fit_ppm[2]*3, "upper_three_sigma (ppm)":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma (ppm)": fit_ppm[2], "y_offset": fit_ppm[3]},
-                            "histogram_ppm":{"counts": counts_ppm.tolist(), "bin_edges": bins_ppm.tolist(), "bin_centers": bin_centers_ppm.tolist(), "chi_squared":chi_squared_red_ppm}}
+                            "histogram_ppm":{"counts": counts_ppm.tolist(), "bin_edges": bins_ppm.tolist(), "bin_centers": bin_centers_ppm.tolist()}}
 
         except:
-            self.precursor_stats["precursor tolerance"] = 'no delta_ppm peak fit'
+           self.precursor_stats['precursor tolerance']["good ppm_fit?"] = ppm_fit_call
+           self.precursor_stats['precursor tolerance']["histogram_ppm"] = "no delta_ppm values recorded"
 
         try:
-            
+            self.precursor_stats['precursor tolerance']['fit_ppm'] = {"lower_three_sigma (ppm)":-fit_ppm[2]*3, "upper_three_sigma (ppm)":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma (ppm)": fit_ppm[2], "y_offset": fit_ppm[3], "chi_squared":chi_squared_red_ppm}
+        
+        except:
+            self.precursor_stats['precursor tolerance']['fit_ppm'] = "no guassian ppm curve fit"
 
+        try:
             self.precursor_stats["dynamic exclusion window"]= {
-                                "dynamic exclusion time?": time_fit_call,
-                                "fit_pulse_time": {"pulse start": fit_time[0], "dynamic exclusion time offset":fit_time[1], "inital level":fit_time[2], "peak level":fit_time[3], "final level":fit_time[4], "decay constant":fit_time[5], "peak to preceding level ratio": fit_time[3]/bound_y_before, "peak to following level ratio": fit_time[3]/bound_y_after},
-                                "histogram_time": {"counts": counts_time.tolist(),"bin_edges": bins_time.tolist(),"bin_centers": bin_centers_time.tolist(),"chi_squared": chi_squared_red_time }}
+                                "good dynamic exclusion time fit?": time_fit_call,
+                                "histogram_time": {"counts": counts_time.tolist(),"bin_edges": bins_time.tolist(),"bin_centers": bin_centers_time.tolist()}}
+        except:
+            self.precursor_stats["dynamic exclusion window"]["good dynamic exclusion time fit?"] = ppm_fit_call
+            self.precursor_stats["dynamic exclusion window"]["histogram_time"] = "no delta_time values recorded"
+
+        try:
+            self.precursor_stats['dynamic exclusion window']["fit_pulse_time"] = {"pulse start": fit_time[0], "inital level":fit_time[2], "pulse duration": fit_time[1],"peak level":fit_time[3], "final level":fit_time[4], "decay constant":fit_time[5], "peak to preceding level ratio": fit_time[3]/bound_y_before, "peak to following level ratio": fit_time[3]/bound_y_after, "chi_squared": chi_squared_red_time}
             
         except:
-            self.precursor_stats["dynamic exclusion window"] = 'no dynamic exclusion window found'
+            self.precursor_stats["dynamic exclusion window"]["fit_pulse_time"] = 'no dynamic exclusion window fit'
 
 
     ####################################################################################################
@@ -489,7 +505,7 @@ class MzMLAssessor:
         used_index = set()
 
         if (len(times) != len(ions)) or not len(ions):
-            print('Unable to find tolerance for MS1 scan')
+            eprint('WARNING: Unable to find tolerance for MS1 scan')
 
         while p_c < len(ions) and p_b < len(ions): #Figure out what end condition is
             delta_time = (times[p_b] - times[p_a]) * 60
@@ -504,7 +520,7 @@ class MzMLAssessor:
 
             else:
                 p_b += 1
-                if p_b >= len(ions) or delta_time > 65:
+                if p_b >= len(ions) or delta_time > 80:
                     used_index.add(p_c)
                     while p_c in used_index:
                          p_c += 1
@@ -536,7 +552,7 @@ class MzMLAssessor:
     ####################################################################################################
     #### Pulse exp decay function with peak_level param
     def time_exp_decay(self, t, pulse_start, pulse_duration, initial_level, peak_level, new_level, tau):
-        
+
         exponent_rise = numpy.clip(-(t - pulse_start) * 50, -700, 700)
         exponent_fall = numpy.clip(-(t - (pulse_start + pulse_duration)) * 50, -700, 700)
 
@@ -1389,19 +1405,44 @@ class MzMLAssessor:
                     if fragmentations.startswith('HR'):
                         lower = self.all_3sigma_values_away['lower_ppm']
                         upper = self.all_3sigma_values_away['upper_ppm']
+                        
                         three_sigma_upper = numpy.percentile(upper, percentile)
                         three_sigma_lower = numpy.percentile(lower, 100-percentile)
 
+
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_lower'] = three_sigma_lower
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_upper'] = three_sigma_upper
-                    
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with fragment_tolerance'] = len(upper)
+                        
+                        warnings = []
+                        if len(upper) < 5:
+                            warnings.append("too few peaks found, overall fragment tolerance cannot be accurately computed")
+        
+                        if abs(three_sigma_lower) > 20 or abs(three_sigma_upper) > 20:
+                            warnings.append("overall fragment tolerance levels are too high, peak fitting may not be accurate")
+                        if warnings:
+                            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = warnings
+
                     elif fragmentations.startswith('LR'):
                         lower = self.all_3sigma_values_away['lower_mz']
                         upper = self.all_3sigma_values_away['upper_mz']
+
                         three_sigma_upper = numpy.percentile(upper, percentile)
                         three_sigma_lower = numpy.percentile(lower, 100-percentile)
+
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['lower_m/z'] = three_sigma_lower
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['upper_m/z'] = three_sigma_upper
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with sigma_m/z'] = len(upper)
+                        
+                        warnings = []
+                        if len(upper) < 5:
+                            warnings.append("too few peaks found, overall fragment tolerance cannot be accurately computed")
+        
+                        if abs(three_sigma_lower) > 1 or abs(three_sigma_upper) > 1:
+                            warnings.append("overall fragment tolerance levels are too high, peak fitting may not be accurate")
+                        if warnings:
+                            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = warnings
+
 
                 except:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance'] = 'no tolerance values recorded'
@@ -1414,7 +1455,7 @@ class MzMLAssessor:
 
             #### If no ROIs were computed, cannot continue
             if 'lowend_peaks' not in self.metadata['files'][self.mzml_file] or 'neutral_loss_peaks' not in self.metadata['files'][self.mzml_file]:
-                full_results = {"fragmentation type": fragmentations, "call": "unavailable", "fragmentation tolerance": 'unavailable', "water_loss":'unavailable', "phospho_spectra": 'unavailable'}
+                full_results = {"fragmentation type": fragmentations, "call": "unavailable", "fragmentation tolerance": 'unavailable', "has water_loss":'unavailable', "has phospho_spectra": 'unavailable'}
                 self.metadata['files'][self.mzml_file]['summary']['combined summary'] = full_results
                 return
 
@@ -1434,26 +1475,85 @@ class MzMLAssessor:
             
             #### Detect water loss z=2 or not
             loss_type = 'precursor_loss_' + fragmentations
-
             if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] >= 50:
-                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['water_loss'] = True
+                if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['sigma_mz'] < 0.1:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = True
+                else:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = False
+                if ('LR' in fragmentations or 'HR_IT_ETD' in fragmentations) and abs(self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['delta_mz']) > 0.4:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = False
+                elif 'HR' in fragmentations and abs(self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['delta_mz']) > 0.008:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = False
+                    
             else:
                 self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has water_loss'] = False
-
-            #### Detect Phospho or not
-            if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] > self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']:
-                if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['Phospho_z2']['peak']['mode_bin']['n_spectra'] >= 50:
-                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = True
-                elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 50:
-                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = True
-            else:
-                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = False
             
 
             epsilon = 1e-10
-            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['number of z=2 phospho_spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra']
-            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['number of z=2 water_loss spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra']
-            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phospho_spectra to z=2 water_loss_spectra'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra']/(self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['mode_bin']['n_spectra'] + epsilon)
+            if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['assessment']['is_found'] == True and self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['assessment']['is_found'] == True:
+                
+                try:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['fit']['intensity'] - self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['fit']['y_offset']
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['intensity'] - self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['y_offset']
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] / self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss']
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = abs( self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['fit']['delta_mz'] - self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['delta_mz'] )
+                except:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
+            
+            elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['assessment']['is_found'] == True and self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['assessment']['is_found'] == False:
+                
+                try:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = epsilon
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['intensity'] - self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['fit']['y_offset']
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] / self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss']
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
+                except:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
+            
+            elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['water_z2']['peak']['assessment']['is_found'] == False and self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['assessment']['is_found'] == True:
+                
+                try:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['fit']['intensity'] - self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['fit']['y_offset']
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = epsilon
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] / self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss']
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
+                except:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = 'n/a'
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
+            else:
+                
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 phosphoric_acid'] = 'n/a'
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['intensity of z=2 water_loss'] = 'n/a'
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = 'n/a'
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] = 'n/a'
+
+            
+            #### Detect Phospho or not
+            try:
+                if self.metadata['files'][self.mzml_file]['summary'][fragmentations]['z=2 phosphoric_acid to z=2 water_loss intensity ratio'] > 1:
+                    if self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phospho_z2']['peak']['mode_bin']['n_spectra'] >= 50:
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = True
+                    elif self.metadata['files'][self.mzml_file]['neutral_loss_peaks'][loss_type]['phosphoric_acid_z2']['peak']['mode_bin']['n_spectra'] >= 50:
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = True
+
+                    if ('LR' in fragmentations or 'HR_IT_ETD' in fragmentations) and self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] > 0.3:
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = False
+                    elif 'HR' in fragmentations and self.metadata['files'][self.mzml_file]['summary'][fragmentations]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'] > 0.006:
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = False
+                else:
+                    self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = False
+            except:
+                self.metadata['files'][self.mzml_file]['summary'][fragmentations]['has phospho_spectra'] = False
+
 
             #### Make the call for TMT or iTRAQ
             
@@ -1490,9 +1590,11 @@ class MzMLAssessor:
                 else:
                     results['labeling']['call'] = 'ambiguous'
 
+            
+
         self.metadata['files'][self.mzml_file]['summary']['precursor stats'] = self.precursor_stats
         
-        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None, "has water_loss":None, "has phospho_spectra": None, "total z=2 phospho_spectra": 0, "total z=2 water_loss_spectra":0, "z=2 phospho_spectra to z=2 water_loss_spectra":0}
+        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None, "has water_loss":None, "has phospho_spectra": None, "total intensity of z=2 water_loss": 0, "total intensity of z=2 phosphoric_acid": 0, "total z=2 phosphoric_acid to z=2 water_loss intensity ratio":0}
         self.metadata['files'][self.mzml_file]['summary']['combined summary'] = full_results
         file_summary = self.metadata['files'][self.mzml_file]['summary']
         for keys in file_summary:
@@ -1549,20 +1651,18 @@ class MzMLAssessor:
                         full_results['has phospho_spectra'] = False 
                 except:
                     pass
-                
-            try:
+                    
+                try:
+                    
+                    full_results['total intensity of z=2 phosphoric_acid'] += file_summary[keys]['intensity of z=2 phosphoric_acid']
+                    
+                    full_results['total intensity of z=2 water_loss'] += file_summary[keys]['intensity of z=2 water_loss']
+                except:
+                    pass
+        
+        full_results['total z=2 phosphoric_acid to z=2 water_loss intensity ratio'] = full_results['total intensity of z=2 phosphoric_acid'] / (full_results['total intensity of z=2 water_loss'] + epsilon)
+        
 
-                full_results['total z=2 phospho_spectra'] += self.metadata['files'][self.mzml_file]['summary'][keys]['number of z=2 phospho_spectra']
-                full_results['total z=2 water_loss_spectra'] += self.metadata['files'][self.mzml_file]['summary'][keys]['number of z=2 water_loss spectra']
-
-            except:
-                pass
-
-        try:
-            full_results['z=2 phospho_spectra to z=2 water_loss_spectra'] = full_results['total z=2 phospho_spectra']/(full_results['total z=2 water_loss_spectra']+epsilon)
-        except:
-            pass
-            
         
 
     ####################################################################################################
