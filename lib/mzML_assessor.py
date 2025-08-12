@@ -415,7 +415,6 @@ class MzMLAssessor:
             
 
             p0 = [main_peak, 0.5, mean_counts_before_peaks, max(counts_time), mean_counts_after_peaks, 1.0]
-            eprint(p0)
             fit_time, cov = curve_fit(self.time_exp_decay, bin_centers_time, counts_time, p0=p0)
             expected_counts = self.time_exp_decay(bin_centers_time, *fit_time)
 
