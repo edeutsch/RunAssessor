@@ -36,6 +36,8 @@ python bin/assess_mzMLs.py ~/file_path/*.mzML # can add .gz to end
 | `--write_fragmentation_type_files` | If set, writes a fragmentation type file for each mzML input. | Not set | `--write_fragmentation_type_files` |
 | `--verbose` | If set, prints more detailed processing information. Use multiple times to increase verbosity. | Not set | `--verbose` |
 | `--version` | Prints the version of the script/tool. | 0.8 | `--version` |
+| `--write_sdrf_file` | If set, writes an SDRF file based on the metadata text file. | Not set | `--write_sdrf_file` |
+| `--write_pdfs` | If set, generates a PDF of delta time and ppm graphs from precursor stats, and a PDF of neutral loss windows from composite intensities. | Not set | `--write_pdfs` |
 
 
 ## assess_metadata.py
