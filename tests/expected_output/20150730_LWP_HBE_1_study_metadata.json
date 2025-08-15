@@ -1,27 +1,33 @@
 {
   "files": {
-    "chlo_6_tiny.mzML.gz": {
+    "20150730_LWP_HBE_1.mzML.gz": {
       "instrument_model": {
-        "accession": "MS:1001911",
-        "category": "pureHCD",
-        "name": "Q Exactive",
+        "accession": "MS:1000121",
+        "category": "QTOF",
+        "name": "AB SCIEX instrument model",
         "rank": "1"
       },
       "lowend_peaks": {
-        "lowend_HR_HCD": {
+        "lowend_HR_QTOF": {
           "IE": {
             "initial_window": 0.01,
             "mz": 102.05495,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 6,
+                "intensity": 413460.1897583008,
+                "n_spectra": 1809
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 2055,
+                "intensity": 124756.6015625,
+                "mz": 102.05500000000981,
+                "n_spectra": 342
               }
             },
             "type": "fragment_ion"
@@ -31,14 +37,30 @@
             "mz": 120.08078,
             "peak": {
               "assessment": {
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -0.4654874824104404,
+                "comment": "Peak found and fit",
+                "fraction": 0.4212387946862512,
+                "is_found": true
+              },
+              "extended": {
+                "extent": 7,
+                "intensity": 4934550.261230469,
+                "n_spectra": 15601
+              },
+              "fit": {
+                "delta_mz": -0.0011788107566701456,
+                "delta_ppm": -9.816814619876265,
+                "intensity": 850752.4201823608,
+                "mz": 120.07960118924333,
+                "sigma_mz": 0.0025324220332755094,
+                "sigma_ppm": 21.089320316502853,
+                "y_offset": -16044.296514904976
               },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 20081,
+                "intensity": 1043864.875,
+                "mz": 120.08100000009588,
+                "n_spectra": 1908
               }
             },
             "type": "fragment_ion"
@@ -48,14 +70,20 @@
             "mz": 121.08413,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 8,
+                "intensity": 76714.6058959961,
+                "n_spectra": 417
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 21084,
+                "intensity": 24117.173828125,
+                "mz": 121.08400000010067,
+                "n_spectra": 61
               }
             },
             "type": "fragment_ion"
@@ -65,14 +93,20 @@
             "mz": 110.07127,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 6,
+                "intensity": 641271.827911377,
+                "n_spectra": 3020
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 10070,
+                "intensity": 159666.140625,
+                "mz": 110.07000000004808,
+                "n_spectra": 535
               }
             },
             "type": "fragment_ion"
@@ -82,14 +116,20 @@
             "mz": 101.10732,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 5,
+                "intensity": 34006.22717285156,
+                "n_spectra": 144
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 1108,
+                "intensity": 9075.5908203125,
+                "mz": 101.10800000000529,
+                "n_spectra": 32
               }
             },
             "type": "fragment_ion"
@@ -99,14 +139,20 @@
             "mz": 104.05285,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 7,
+                "intensity": 781722.0111083984,
+                "n_spectra": 2435
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 4050,
+                "intensity": 225364.65625,
+                "mz": 104.05000000001934,
+                "n_spectra": 425
               }
             },
             "type": "fragment_ion"
@@ -116,14 +162,20 @@
             "mz": 101.07094,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 6,
+                "intensity": 445227.481338501,
+                "n_spectra": 1342
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 1071,
+                "intensity": 151258.328125,
+                "mz": 101.07100000000511,
+                "n_spectra": 208
               }
             },
             "type": "fragment_ion"
@@ -133,14 +185,20 @@
             "mz": 112.08692,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 7,
+                "intensity": 73346.9016418457,
+                "n_spectra": 464
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 12086,
+                "intensity": 15603.0341796875,
+                "mz": 112.08600000005771,
+                "n_spectra": 66
               }
             },
             "type": "fragment_ion"
@@ -150,14 +208,20 @@
             "mz": 159.09167,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 16,
+                "intensity": 356485.65155029297,
+                "n_spectra": 2010
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 59091,
+                "intensity": 47371.6640625,
+                "mz": 159.09100000028215,
+                "n_spectra": 156
               }
             },
             "type": "fragment_ion"
@@ -167,14 +231,20 @@
             "mz": 130.06513,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 16,
+                "intensity": 166055.1258544922,
+                "n_spectra": 902
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 30061,
+                "intensity": 7067.54443359375,
+                "mz": 130.06100000014354,
+                "n_spectra": 47
               }
             },
             "type": "fragment_ion"
@@ -184,14 +254,30 @@
             "mz": 136.07569,
             "peak": {
               "assessment": {
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -0.5073919289480361,
+                "comment": "Peak found and fit",
+                "fraction": 0.26695647478129386,
+                "is_found": true
+              },
+              "extended": {
+                "extent": 7,
+                "intensity": 2555223.2158203125,
+                "n_spectra": 9887
+              },
+              "fit": {
+                "delta_mz": -0.0008934211473956566,
+                "delta_ppm": -6.5656190859341335,
+                "intensity": 553054.8738872233,
+                "mz": 136.0747965788526,
+                "sigma_mz": 0.001760810719334787,
+                "sigma_ppm": 12.939935996905744,
+                "y_offset": 4589.788649306141
               },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 36075,
+                "intensity": 685437.1875,
+                "mz": 136.07500000017225,
+                "n_spectra": 1375
               }
             },
             "type": "fragment_ion"
@@ -201,14 +287,20 @@
             "mz": 127.131081,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 1,
+                "intensity": 110.85196685791016,
+                "n_spectra": 1
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 27127,
+                "intensity": 110.85196685791016,
+                "mz": 127.12700000012953,
+                "n_spectra": 1
               }
             },
             "type": "TMT10"
@@ -218,14 +310,20 @@
             "mz": 128.128116,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 1,
+                "intensity": 57.0,
+                "n_spectra": 1
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 28124,
+                "intensity": 57.0,
+                "mz": 128.1240000001343,
+                "n_spectra": 1
               }
             },
             "type": "TMT10"
@@ -235,14 +333,20 @@
             "mz": 129.13779,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 5,
+                "intensity": 1252.1841087341309,
+                "n_spectra": 15
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 29139,
+                "intensity": 816.7037353515625,
+                "mz": 129.13900000013913,
+                "n_spectra": 3
               }
             },
             "type": "TMT10"
@@ -252,14 +356,20 @@
             "mz": 130.134825,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 1,
+                "intensity": 63.0,
+                "n_spectra": 1
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 30133,
+                "intensity": 63.0,
+                "mz": 130.13300000014388,
+                "n_spectra": 1
               }
             },
             "type": "TMT10"
@@ -292,14 +402,14 @@
               },
               "extended": {
                 "extent": 1,
-                "intensity": 11599.30859375,
-                "n_spectra": 2
+                "intensity": 158.00048828125,
+                "n_spectra": 1
               },
               "mode_bin": {
-                "ibin": 130637,
-                "intensity": 11599.30859375,
-                "mz": 126.12740000086734,
-                "n_spectra": 2
+                "ibin": 26124,
+                "intensity": 158.00048828125,
+                "mz": 126.12400000012474,
+                "n_spectra": 1
               }
             },
             "type": "TMT"
@@ -314,15 +424,15 @@
                 "is_found": false
               },
               "extended": {
-                "extent": 1,
-                "intensity": 7954.0849609375,
-                "n_spectra": 1
+                "extent": 3,
+                "intensity": 1363.18359375,
+                "n_spectra": 6
               },
               "mode_bin": {
-                "ibin": 135623,
-                "intensity": 7954.0849609375,
-                "mz": 127.12460000090044,
-                "n_spectra": 1
+                "ibin": 27122,
+                "intensity": 867.0,
+                "mz": 127.1220000001295,
+                "n_spectra": 2
               }
             },
             "type": "TMT"
@@ -332,20 +442,14 @@
             "mz": 128.134433,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
-              "extended": {
-                "extent": 1,
-                "intensity": 6354.29541015625,
-                "n_spectra": 1
-              },
               "mode_bin": {
-                "ibin": 140672,
-                "intensity": 6354.29541015625,
-                "mz": 128.13440000093397,
-                "n_spectra": 1
+                "ibin": 0,
+                "intensity": 0,
+                "mz": 0,
+                "n_spectra": 0
               }
             },
             "type": "TMT"
@@ -360,15 +464,15 @@
                 "is_found": false
               },
               "extended": {
-                "extent": 1,
-                "intensity": 5468.62060546875,
-                "n_spectra": 1
+                "extent": 6,
+                "intensity": 1252.1841087341309,
+                "n_spectra": 15
               },
               "mode_bin": {
-                "ibin": 145656,
-                "intensity": 5468.62060546875,
-                "mz": 129.13120000096706,
-                "n_spectra": 1
+                "ibin": 29135,
+                "intensity": 148.0,
+                "mz": 129.13500000013912,
+                "n_spectra": 2
               }
             },
             "type": "TMT"
@@ -378,20 +482,14 @@
             "mz": 130.141141,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
-              "extended": {
-                "extent": 2,
-                "intensity": 6835.2783203125,
-                "n_spectra": 2
-              },
               "mode_bin": {
-                "ibin": 150706,
-                "intensity": 5451.45556640625,
-                "mz": 130.14120000100058,
-                "n_spectra": 1
+                "ibin": 0,
+                "intensity": 0,
+                "mz": 0,
+                "n_spectra": 0
               }
             },
             "type": "TMT"
@@ -406,14 +504,14 @@
                 "is_found": false
               },
               "extended": {
-                "extent": 2,
-                "intensity": 8927.236206054688,
-                "n_spectra": 2
+                "extent": 1,
+                "intensity": 169.0,
+                "n_spectra": 1
               },
               "mode_bin": {
-                "ibin": 155690,
-                "intensity": 7234.376953125,
-                "mz": 131.13800000103367,
+                "ibin": 31135,
+                "intensity": 169.0,
+                "mz": 131.13500000014866,
                 "n_spectra": 1
               }
             },
@@ -429,14 +527,14 @@
                 "is_found": false
               },
               "extended": {
-                "extent": 1,
-                "intensity": 5497.70263671875,
-                "n_spectra": 1
+                "extent": 7,
+                "intensity": 535.3879852294922,
+                "n_spectra": 7
               },
               "mode_bin": {
-                "ibin": 650852,
-                "intensity": 5497.70263671875,
-                "mz": 230.1704000043212,
+                "ibin": 130167,
+                "intensity": 84.0,
+                "mz": 230.16700000062153,
                 "n_spectra": 1
               }
             },
@@ -452,15 +550,15 @@
                 "is_found": false
               },
               "extended": {
-                "extent": 1,
-                "intensity": 17506.533203125,
-                "n_spectra": 2
+                "extent": 16,
+                "intensity": 66301.07697296143,
+                "n_spectra": 346
               },
               "mode_bin": {
-                "ibin": 740900,
-                "intensity": 17506.533203125,
-                "mz": 248.18000000491907,
-                "n_spectra": 2
+                "ibin": 148176,
+                "intensity": 1119.377685546875,
+                "mz": 248.17600000070752,
+                "n_spectra": 6
               }
             },
             "type": "TMT6"
@@ -470,14 +568,20 @@
             "mz": 305.2144,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 1,
+                "intensity": 150.0,
+                "n_spectra": 1
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 205213,
+                "intensity": 150.0,
+                "mz": 305.21300000097983,
+                "n_spectra": 1
               }
             },
             "type": "TMTpro"
@@ -487,14 +591,20 @@
             "mz": 323.22499,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 1,
+                "intensity": 53.29553985595703,
+                "n_spectra": 1
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 223221,
+                "intensity": 53.29553985595703,
+                "mz": 323.2210000010658,
+                "n_spectra": 1
               }
             },
             "type": "TMTpro"
@@ -504,14 +614,20 @@
             "mz": 115.08659,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 6,
+                "intensity": 89501.4723739624,
+                "n_spectra": 447
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 15087,
+                "intensity": 24201.201171875,
+                "mz": 115.08700000007204,
+                "n_spectra": 80
               }
             },
             "type": "fragment_ion"
@@ -521,14 +637,20 @@
             "mz": 158.0924,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 8,
+                "intensity": 222580.28436279297,
+                "n_spectra": 1085
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 58093,
+                "intensity": 33446.4921875,
+                "mz": 158.09300000027739,
+                "n_spectra": 147
               }
             },
             "type": "fragment_ion"
@@ -538,14 +660,20 @@
             "mz": 141.10224,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 6,
+                "intensity": 172513.4256286621,
+                "n_spectra": 702
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 41101,
+                "intensity": 33453.96875,
+                "mz": 141.10100000019625,
+                "n_spectra": 110
               }
             },
             "type": "fragment_ion"
@@ -555,14 +683,20 @@
             "mz": 143.11789,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 7,
+                "intensity": 1256084.4985694885,
+                "n_spectra": 2358
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 43114,
+                "intensity": 398765.9375,
+                "mz": 143.11400000020586,
+                "n_spectra": 401
               }
             },
             "type": "fragment_ion"
@@ -572,14 +706,30 @@
             "mz": 201.12337,
             "peak": {
               "assessment": {
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -0.6538910952349479,
+                "comment": "Peak found and fit",
+                "fraction": 0.19494545847283723,
+                "is_found": true
+              },
+              "extended": {
+                "extent": 10,
+                "intensity": 2099989.106201172,
+                "n_spectra": 7220
+              },
+              "fit": {
+                "delta_mz": -0.0014066745401919434,
+                "delta_ppm": -6.994087958012753,
+                "intensity": 389107.2624351494,
+                "mz": 201.1219633254598,
+                "sigma_mz": 0.0021512367280158706,
+                "sigma_ppm": 10.69610522146616,
+                "y_offset": 1934.6935701389457
               },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 101121,
+                "intensity": 448353.28125,
+                "mz": 201.12100000048284,
+                "n_spectra": 918
               }
             },
             "type": "fragment_ion"
@@ -589,14 +739,20 @@
             "mz": 185.09207,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 8,
+                "intensity": 235473.87564086914,
+                "n_spectra": 884
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 85089,
+                "intensity": 64665.6875,
+                "mz": 185.0890000004063,
+                "n_spectra": 130
               }
             },
             "type": "fragment_ion"
@@ -606,14 +762,30 @@
             "mz": 215.13902,
             "peak": {
               "assessment": {
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -0.6758333429855662,
+                "comment": "Peak found and fit",
+                "fraction": 0.17172480829463224,
+                "is_found": true
+              },
+              "extended": {
+                "extent": 9,
+                "intensity": 1892764.9411621094,
+                "n_spectra": 6360
+              },
+              "fit": {
+                "delta_mz": -0.0010452246357885997,
+                "delta_ppm": -4.858368490237614,
+                "intensity": 442215.1519393041,
+                "mz": 215.1379747753642,
+                "sigma_mz": 0.0015465715721737078,
+                "sigma_ppm": 7.188707897682661,
+                "y_offset": 6225.994114051383
               },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 115138,
+                "intensity": 466399.65625,
+                "mz": 215.13800000054977,
+                "n_spectra": 902
               }
             },
             "type": "fragment_ion"
@@ -623,14 +795,20 @@
             "mz": 127.08659,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 7,
+                "intensity": 626670.5432662964,
+                "n_spectra": 1152
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 27083,
+                "intensity": 314709.46875,
+                "mz": 127.08300000012932,
+                "n_spectra": 226
               }
             },
             "type": "fragment_ion"
@@ -640,14 +818,30 @@
             "mz": 199.18049,
             "peak": {
               "assessment": {
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -0.10696997280601211,
+                "comment": "Peak found and fit",
+                "fraction": 0.1711577924181877,
+                "is_found": true
+              },
+              "extended": {
+                "extent": 7,
+                "intensity": 6172132.617675781,
+                "n_spectra": 6339
+              },
+              "fit": {
+                "delta_mz": -7.965221249151e-05,
+                "delta_ppm": -0.3998996713559145,
+                "intensity": 2792387.792277384,
+                "mz": 199.1804103477875,
+                "sigma_mz": 0.0007446221626694968,
+                "sigma_ppm": 3.7384292139732,
+                "y_offset": 34946.00627439871
               },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 99180,
+                "intensity": 2458981.5,
+                "mz": 199.18000000047357,
+                "n_spectra": 1018
               }
             },
             "type": "fragment_ion"
@@ -657,14 +851,20 @@
             "mz": 183.14919,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 7,
+                "intensity": 264171.33291625977,
+                "n_spectra": 1021
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 83149,
+                "intensity": 58339.28125,
+                "mz": 183.14900000039702,
+                "n_spectra": 175
               }
             },
             "type": "fragment_ion"
@@ -674,14 +874,20 @@
             "mz": 173.12845,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 8,
+                "intensity": 1772668.3795166016,
+                "n_spectra": 2680
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 73129,
+                "intensity": 730921.1875,
+                "mz": 173.12900000034918,
+                "n_spectra": 375
               }
             },
             "type": "fragment_ion"
@@ -691,14 +897,20 @@
             "mz": 187.1441,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 8,
+                "intensity": 583960.1571044922,
+                "n_spectra": 1711
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 87143,
+                "intensity": 152266.5,
+                "mz": 187.1430000004161,
+                "n_spectra": 277
               }
             },
             "type": "fragment_ion"
@@ -708,14 +920,20 @@
             "mz": 185.16484,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 7,
+                "intensity": 805253.6180419922,
+                "n_spectra": 2615
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 85165,
+                "intensity": 167648.15625,
+                "mz": 185.16500000040665,
+                "n_spectra": 335
               }
             },
             "type": "fragment_ion"
@@ -725,14 +943,20 @@
             "mz": 169.13354,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 7,
+                "intensity": 271759.7803039551,
+                "n_spectra": 1008
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 69132,
+                "intensity": 68417.875,
+                "mz": 169.1320000003301,
+                "n_spectra": 157
               }
             },
             "type": "fragment_ion"
@@ -742,14 +966,20 @@
             "mz": 185.12845,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 8,
+                "intensity": 421872.6008682251,
+                "n_spectra": 1603
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 85125,
+                "intensity": 87227.7578125,
+                "mz": 185.12500000040646,
+                "n_spectra": 224
               }
             },
             "type": "fragment_ion"
@@ -759,14 +989,20 @@
             "mz": 169.09715,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 8,
+                "intensity": 275406.753742218,
+                "n_spectra": 964
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 69094,
+                "intensity": 73813.3671875,
+                "mz": 169.0940000003299,
+                "n_spectra": 131
               }
             },
             "type": "fragment_ion"
@@ -776,14 +1012,20 @@
             "mz": 171.1128,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 7,
+                "intensity": 849064.560546875,
+                "n_spectra": 2287
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 71110,
+                "intensity": 205306.90625,
+                "mz": 171.11000000033954,
+                "n_spectra": 357
               }
             },
             "type": "fragment_ion"
@@ -793,14 +1035,20 @@
             "mz": 155.0815,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 7,
+                "intensity": 737573.7507324219,
+                "n_spectra": 1815
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 55082,
+                "intensity": 316799.71875,
+                "mz": 155.082000000263,
+                "n_spectra": 301
               }
             },
             "type": "fragment_ion"
@@ -810,14 +1058,30 @@
             "mz": 129.10224,
             "peak": {
               "assessment": {
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -0.31034625801301,
+                "comment": "Peak found and fit",
+                "fraction": 0.3318932930122043,
+                "is_found": true
+              },
+              "extended": {
+                "extent": 7,
+                "intensity": 2684087.883544922,
+                "n_spectra": 12292
+              },
+              "fit": {
+                "delta_mz": -0.000543798359245784,
+                "delta_ppm": -4.212152780972538,
+                "intensity": 592155.2442334759,
+                "mz": 129.10169620164075,
+                "sigma_mz": 0.001752231081268547,
+                "sigma_ppm": 13.572429736839167,
+                "y_offset": 3461.271234905463
               },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 29103,
+                "intensity": 636132.125,
+                "mz": 129.10300000013896,
+                "n_spectra": 1672
               }
             },
             "type": "fragment_ion"
@@ -827,14 +1091,20 @@
             "mz": 197.12845,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 7,
+                "intensity": 1212031.1080322266,
+                "n_spectra": 3301
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 97127,
+                "intensity": 460876.78125,
+                "mz": 197.12700000046377,
+                "n_spectra": 513
               }
             },
             "type": "fragment_ion"
@@ -844,14 +1114,20 @@
             "mz": 129.06585,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 5,
+                "intensity": 164768.5944519043,
+                "n_spectra": 644
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 29065,
+                "intensity": 56246.19140625,
+                "mz": 129.06500000013878,
+                "n_spectra": 144
               }
             },
             "type": "fragment_ion"
@@ -861,14 +1137,20 @@
             "mz": 145.109,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 1,
+                "intensity": 77.0,
+                "n_spectra": 1
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 45107,
+                "intensity": 77.0,
+                "mz": 145.10700000021538,
+                "n_spectra": 1
               }
             },
             "type": "iTRAQ4"
@@ -878,14 +1160,20 @@
             "mz": 113.107325,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 5,
+                "intensity": 3348.1841430664062,
+                "n_spectra": 12
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 13107,
+                "intensity": 1807.3450927734375,
+                "mz": 113.10700000006258,
+                "n_spectra": 2
               }
             },
             "type": "iTRAQ8"
@@ -895,14 +1183,20 @@
             "mz": 118.111459,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 1,
+                "intensity": 89.65036010742188,
+                "n_spectra": 1
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 18106,
+                "intensity": 89.65036010742188,
+                "mz": 118.10600000008645,
+                "n_spectra": 1
               }
             },
             "type": "iTRAQ8"
@@ -946,14 +1240,20 @@
             "mz": 305.21263,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 1,
+                "intensity": 150.0,
+                "n_spectra": 1
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 205213,
+                "intensity": 150.0,
+                "mz": 305.21300000097983,
+                "n_spectra": 1
               }
             },
             "type": "iTRAQ8"
@@ -1014,14 +1314,20 @@
             "mz": 117.114424,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 11,
+                "intensity": 26075.969234466553,
+                "n_spectra": 106
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 17109,
+                "intensity": 33.07603073120117,
+                "mz": 117.10900000008169,
+                "n_spectra": 1
               }
             },
             "type": "iTRAQ"
@@ -1031,14 +1337,20 @@
             "mz": 187.10772,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 8,
+                "intensity": 660292.0567626953,
+                "n_spectra": 1231
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 87108,
+                "intensity": 336693.71875,
+                "mz": 187.10800000041593,
+                "n_spectra": 175
               }
             },
             "type": "fragment_ion"
@@ -1048,14 +1360,30 @@
             "mz": 147.1128,
             "peak": {
               "assessment": {
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -0.3692972517726409,
+                "comment": "Peak found and fit",
+                "fraction": 0.20126363538179068,
+                "is_found": true
+              },
+              "extended": {
+                "extent": 7,
+                "intensity": 1579330.4595947266,
+                "n_spectra": 7454
+              },
+              "fit": {
+                "delta_mz": -0.000675276144079362,
+                "delta_ppm": -4.590192995302666,
+                "intensity": 331417.57332927163,
+                "mz": 147.1121247238559,
+                "sigma_mz": 0.001828543648342929,
+                "sigma_ppm": 12.429534672325788,
+                "y_offset": 2460.7981464368495
               },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 47113,
+                "intensity": 347589.9375,
+                "mz": 147.11300000022496,
+                "n_spectra": 1073
               }
             },
             "type": "fragment_ion"
@@ -1065,14 +1393,20 @@
             "mz": 130.08626,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 9,
+                "intensity": 631963.4206542969,
+                "n_spectra": 3486
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 30087,
+                "intensity": 141204.390625,
+                "mz": 130.08700000014366,
+                "n_spectra": 432
               }
             },
             "type": "fragment_ion"
@@ -1082,14 +1416,30 @@
             "mz": 175.11895,
             "peak": {
               "assessment": {
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -0.7526125599011173,
+                "comment": "Peak found and fit",
+                "fraction": 0.29449724592288584,
+                "is_found": true
+              },
+              "extended": {
+                "extent": 8,
+                "intensity": 2278922.6228027344,
+                "n_spectra": 10907
+              },
+              "fit": {
+                "delta_mz": -0.001711512183078412,
+                "delta_ppm": -9.773426479992095,
+                "intensity": 386345.31278840866,
+                "mz": 175.11723848781693,
+                "sigma_mz": 0.00227409463283908,
+                "sigma_ppm": 12.985999703853182,
+                "y_offset": 3555.1046768317874
               },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 75117,
+                "intensity": 378412.15625,
+                "mz": 175.11700000035867,
+                "n_spectra": 1573
               }
             },
             "type": "fragment_ion"
@@ -1097,20 +1447,26 @@
         }
       },
       "neutral_loss_peaks": {
-        "precursor_loss_HR_HCD": {
+        "precursor_loss_HR_QTOF": {
           "phospho_z1": {
             "initial_window": 0.01,
             "mz": 79.966331,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 15,
+                "intensity": 9780.753828048706,
+                "n_spectra": 67
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 79963,
+                "intensity": 650.3932495117188,
+                "mz": 79.96300000000001,
+                "n_spectra": 4
               }
             },
             "type": "phospho"
@@ -1120,14 +1476,20 @@
             "mz": 39.9831655,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 16,
+                "intensity": 144278.13470458984,
+                "n_spectra": 396
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 39980,
+                "intensity": 9716.6181640625,
+                "mz": 39.980000000000004,
+                "n_spectra": 9
               }
             },
             "type": "phospho"
@@ -1137,14 +1499,20 @@
             "mz": 26.655443666666667,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 11,
+                "intensity": 19152.532196044922,
+                "n_spectra": 93
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 26654,
+                "intensity": 3763.51904296875,
+                "mz": 26.654,
+                "n_spectra": 6
               }
             },
             "type": "phospho"
@@ -1154,14 +1522,20 @@
             "mz": 97.9768957,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 16,
+                "intensity": 9915.496118545532,
+                "n_spectra": 57
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 97975,
+                "intensity": 392.12591552734375,
+                "mz": 97.97500000000001,
+                "n_spectra": 3
               }
             },
             "type": "phosphoric_acid_loss"
@@ -1171,14 +1545,20 @@
             "mz": 48.98844785,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 16,
+                "intensity": 49876.22219848633,
+                "n_spectra": 247
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 48984,
+                "intensity": 8507.9716796875,
+                "mz": 48.984,
+                "n_spectra": 5
               }
             },
             "type": "phosphoric_acid_loss"
@@ -1188,14 +1568,20 @@
             "mz": 32.65896523333333,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 16,
+                "intensity": 29103.702644348145,
+                "n_spectra": 157
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 32660,
+                "intensity": 3209.10986328125,
+                "mz": 32.660000000000004,
+                "n_spectra": 9
               }
             },
             "type": "phosphoric_acid_loss"
@@ -1205,14 +1591,20 @@
             "mz": 18.0105647,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 16,
+                "intensity": 470668.6560058594,
+                "n_spectra": 2229
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 18008,
+                "intensity": 36091.3359375,
+                "mz": 18.008,
+                "n_spectra": 91
               }
             },
             "type": "water_loss"
@@ -1222,14 +1614,27 @@
             "mz": 9.00528235,
             "peak": {
               "assessment": {
+                "comment": "Peak found and fit",
                 "fraction": 0.0,
-                "is_found": false
+                "is_found": true
+              },
+              "extended": {
+                "extent": 16,
+                "intensity": 4010077.2900390625,
+                "n_spectra": 7249
+              },
+              "fit": {
+                "delta_mz": 0.004020418957773941,
+                "intensity": 210989.73459869143,
+                "mz": 9.009302768957774,
+                "sigma_mz": 0.008447460235198717,
+                "y_offset": 1038.7956775552345
               },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 9003,
+                "intensity": 283802.5625,
+                "mz": 9.003,
+                "n_spectra": 355
               }
             },
             "type": "water_loss"
@@ -1239,14 +1644,20 @@
             "mz": 6.003521566666667,
             "peak": {
               "assessment": {
+                "comment": "Too few peaks found in ROI",
                 "fraction": 0.0,
                 "is_found": false
               },
+              "extended": {
+                "extent": 16,
+                "intensity": 824901.3601074219,
+                "n_spectra": 2092
+              },
               "mode_bin": {
-                "ibin": 0,
-                "intensity": 0,
-                "mz": 0,
-                "n_spectra": 0
+                "ibin": 6000,
+                "intensity": 80664.4140625,
+                "mz": 6.0,
+                "n_spectra": 122
               }
             },
             "type": "water_loss"
@@ -1255,42 +1666,47 @@
       },
       "spectra_stats": {
         "acquisition_type": "DDA",
-        "fragmentation_tag": "??",
-        "fragmentation_type": "HR_HCD",
+        "fragmentation_tag": "HR QTOF",
+        "fragmentation_type": "HR_QTOF",
         "high_accuracy_precursors": "true",
-        "isolation_window_full_widths": {
-          "2.0": 8
-        },
+        "isolation_window_full_widths": {},
         "n_HR_ETciD_spectra": 0,
         "n_HR_EThcD_spectra": 0,
-        "n_HR_HCD_spectra": 8,
+        "n_HR_HCD_spectra": 0,
         "n_HR_IT_CID_spectra": 0,
         "n_HR_IT_ETD_spectra": 0,
-        "n_HR_QTOF_spectra": 0,
+        "n_HR_QTOF_spectra": 37036,
         "n_LR_ETciD_spectra": 0,
         "n_LR_EThcD_spectra": 0,
         "n_LR_HCD_spectra": 0,
         "n_LR_IT_CID_spectra": 0,
         "n_LR_IT_ETD_spectra": 0,
-        "n_charge_2_precursors": 8,
-        "n_length_lt10_spectra": 0,
+        "n_charge_2_precursors": 18786,
+        "n_charge_3_precursors": 12476,
+        "n_charge_4_precursors": 2513,
+        "n_charge_5_precursors": 159,
+        "n_charge_6_precursors": 84,
+        "n_charge_7_precursors": 12,
+        "n_charge_8_precursors": 2,
+        "n_charge_unknown_precursors": 3004,
+        "n_length_lt10_spectra": 5,
         "n_length_zero_spectra": 0,
         "n_ms0_spectra": 0,
-        "n_ms1_spectra": 92,
-        "n_ms2_spectra": 8,
+        "n_ms1_spectra": 4333,
+        "n_ms2_spectra": 37036,
         "n_ms3_spectra": 0,
-        "n_spectra": 100,
-        "n_spectra_examined": 8,
+        "n_spectra": 41369,
+        "n_spectra_examined": 37036,
         "n_unknown_fragmentation_type_spectra": 0
       },
       "summary": {
-        "HR_HCD": {
+        "HR_QTOF": {
           "absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss": "n/a",
-          "fragmentation_type": "HR_HCD",
+          "fragmentation_type": "HR_QTOF",
           "has phospho_spectra": false,
-          "has water_loss": false,
-          "intensity of z=2 phosphoric_acid": "n/a",
-          "intensity of z=2 water_loss": "n/a",
+          "has water_loss": true,
+          "intensity of z=2 phosphoric_acid": 1e-10,
+          "intensity of z=2 water_loss": 209950.9389211362,
           "labeling": {
             "call": "none",
             "scores": {
@@ -1304,17 +1720,17 @@
             }
           },
           "tolerance": "no tolerance values recorded",
-          "z=2 phosphoric_acid to z=2 water_loss intensity ratio": "n/a"
+          "z=2 phosphoric_acid to z=2 water_loss intensity ratio": 4.763017517990856e-16
         },
         "combined summary": {
           "call": "none",
           "fragmentation tolerance": "no tolerance values recorded",
-          "fragmentation type": "HR_HCD",
+          "fragmentation type": "HR_QTOF",
           "has phospho_spectra": false,
-          "has water_loss": false,
-          "total intensity of z=2 phosphoric_acid": 0,
-          "total intensity of z=2 water_loss": 0,
-          "total z=2 phosphoric_acid to z=2 water_loss intensity ratio": 0.0
+          "has water_loss": true,
+          "total intensity of z=2 phosphoric_acid": 1e-10,
+          "total intensity of z=2 water_loss": 209950.9389211362,
+          "total z=2 phosphoric_acid to z=2 water_loss intensity ratio": 4.763017517990854e-16
         },
         "precursor stats": {
           "dynamic exclusion window": {
@@ -1838,9 +2254,9 @@
     }
   },
   "knowledge": {
-    "instrument_model": "Q Exactive",
+    "instrument_model": "AB SCIEX instrument model",
     "instrument_models": {
-      "Q Exactive": 1
+      "AB SCIEX instrument model": 1
     }
   },
   "problems": {
@@ -1857,9 +2273,9 @@
   },
   "search_criteria": {
     "acquisition_type": "DDA",
-    "fragmentation_type": "HR_HCD",
+    "fragmentation_type": "HR_QTOF",
     "fragmentation_types": {
-      "HR_HCD": 1
+      "HR_QTOF": 1
     },
     "high_accuracy_precursors": "true",
     "labeling": "none",
@@ -1868,24 +2284,31 @@
   "spectra_stats": {
     "n_HR_ETciD_spectra": 0,
     "n_HR_EThcD_spectra": 0,
-    "n_HR_HCD_spectra": 8,
+    "n_HR_HCD_spectra": 0,
     "n_HR_IT_CID_spectra": 0,
     "n_HR_IT_ETD_spectra": 0,
-    "n_HR_QTOF_spectra": 0,
+    "n_HR_QTOF_spectra": 37036,
     "n_LR_ETciD_spectra": 0,
     "n_LR_EThcD_spectra": 0,
     "n_LR_HCD_spectra": 0,
     "n_LR_IT_CID_spectra": 0,
     "n_LR_IT_ETD_spectra": 0,
-    "n_charge_2_precursors": 8,
-    "n_length_lt10_spectra": 0,
+    "n_charge_2_precursors": 18786,
+    "n_charge_3_precursors": 12476,
+    "n_charge_4_precursors": 2513,
+    "n_charge_5_precursors": 159,
+    "n_charge_6_precursors": 84,
+    "n_charge_7_precursors": 12,
+    "n_charge_8_precursors": 2,
+    "n_charge_unknown_precursors": 3004,
+    "n_length_lt10_spectra": 5,
     "n_length_zero_spectra": 0,
     "n_ms0_spectra": 0,
-    "n_ms1_spectra": 92,
-    "n_ms2_spectra": 8,
+    "n_ms1_spectra": 4333,
+    "n_ms2_spectra": 37036,
     "n_ms3_spectra": 0,
-    "n_spectra": 100,
-    "n_spectra_examined": 8,
+    "n_spectra": 41369,
+    "n_spectra_examined": 37036,
     "n_unknown_fragmentation_type_spectra": 0
   },
   "state": {
