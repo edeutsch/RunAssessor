@@ -448,16 +448,16 @@ class MzMLAssessor:
             if chi_squared_red_ppm < 1.5:
                 ppm_fit_call = "good fit found, okay to use"
             elif chi_squared_red_ppm > 1.5 and chi_squared_red_ppm < 10:
-                ppm_fit_call = "uncertain about fit, manually check ppm graph and decide for yourself"
+                ppm_fit_call = "uncertain about fit, manually check ppm graph"
             else:
-                ppm_fit_call = "probably not a good fit, no tolerance suggested, check ppm graph"
+                ppm_fit_call = "probably not a good fit, suggested tolerance may not be accurate, check ppm graph"
                 
             if chi_squared_red_time < 10:
                 time_fit_call = "good fit, dynamic exclusion window found"
             elif chi_squared_red_time > 10 and chi_squared_red_time < 100:
-                time_fit_call = "uncertain about fit, manually check time graph and decide for yourself"
+                time_fit_call = "uncertain about fit, manually check time graph"
             else:
-                time_fit_call = "probably not a good fit, no tolerance suggested, check time graph"
+                time_fit_call = "probably not a good fit, suggested tolerance may not be accurate, check time graph"
         except:
             pass
 
@@ -465,7 +465,7 @@ class MzMLAssessor:
 
         try:
             self.precursor_stats["precursor tolerance"] = {
-                            "good ppm_fit?": ppm_fit_call,
+                            "ppm_fit call": ppm_fit_call,
                             "histogram_ppm":{"counts": counts_ppm.tolist(), "bin_edges": bins_ppm.tolist(), "bin_centers": bin_centers_ppm.tolist()}}
 
         except:
@@ -480,7 +480,7 @@ class MzMLAssessor:
 
         try:
             self.precursor_stats["dynamic exclusion window"]= {
-                                "good dynamic exclusion time fit?": time_fit_call,
+                                "dynamic_exclusion_time_fit_call": time_fit_call,
                                 "histogram_time": {"counts": counts_time.tolist(),"bin_edges": bins_time.tolist(),"bin_centers": bin_centers_time.tolist()}}
         except:
             self.precursor_stats["dynamic exclusion window"]["good dynamic exclusion time fit?"] = ppm_fit_call
@@ -589,8 +589,7 @@ class MzMLAssessor:
             isolation_window_upper_offset = spectrum['precursorList']['precursor'][0]['isolationWindow']['isolation window upper offset']
    
             precursor_ion = spectrum['precursorList']['precursor'][0]['selectedIonList']['selectedIon'][0]['selected ion m/z']
-            start_scan_time = spectrum['scanList']['scan'][0]['scan start time']
-
+            start_scan_time = spectrum['scanList']['scan'][0]['scan start time'] #Scan_start_time is assumed to be in minutes as pyteomic's documantation is in minuets
             mz_int = int(precursor_ion)
 
             if mz_int not in ms_one_tolerance_dict:
@@ -1413,15 +1412,13 @@ class MzMLAssessor:
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_upper'] = three_sigma_upper
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with fragment_tolerance'] = len(upper)
                         
-                        warnings = []
-                        if len(upper) < 5:
-                            warnings.append("too few peaks found, overall fragment tolerance cannot be accurately computed")
-        
-                        if abs(three_sigma_lower) > 20 or abs(three_sigma_upper) > 20:
-                            warnings.append("overall fragment tolerance levels are too high, peak fitting may not be accurate")
-                        if warnings:
-                            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = warnings
 
+                        if len(upper) < 5:
+                            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = "too few peaks found, overall fragment tolerance cannot be accurately computed"
+        
+                        elif abs(three_sigma_lower) > 20 or abs(three_sigma_upper) > 20:
+                            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = "overall fragment tolerance levels are too high, peak fitting may not be accurate"
+                        
                     elif fragmentations.startswith('LR'):
                         lower = self.all_3sigma_values_away['lower_mz']
                         upper = self.all_3sigma_values_away['upper_mz']
@@ -1433,14 +1430,13 @@ class MzMLAssessor:
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['upper_m/z'] = three_sigma_upper
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with sigma_m/z'] = len(upper)
                         
-                        warnings = []
+
                         if len(upper) < 5:
-                            warnings.append("too few peaks found, overall fragment tolerance cannot be accurately computed")
+                            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = "too few peaks found, overall fragment tolerance cannot be accurately computed"
         
-                        if abs(three_sigma_lower) > 1 or abs(three_sigma_upper) > 1:
-                            warnings.append("overall fragment tolerance levels are too high, peak fitting may not be accurate")
-                        if warnings:
-                            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = warnings
+                        elif abs(three_sigma_lower) > 1 or abs(three_sigma_upper) > 1:
+                            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = "overall fragment tolerance levels are too high, peak fitting may not be accurate"
+                        
 
 
                 except:
