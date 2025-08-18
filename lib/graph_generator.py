@@ -144,8 +144,8 @@ class GraphGenerator:
                 except:
                     ax_time.bar([], [])
 
-                ax_time.set_title("Time Between Precursors")
-                ax_time.set_xlabel("Time (seconds)")
+                ax_time.set_title("ΔTime Between Precursors")
+                ax_time.set_xlabel("ΔTime (seconds)")
                 ax_time.set_ylabel("Counts")
                 ax_time.legend()
 
@@ -171,7 +171,7 @@ class GraphGenerator:
                     ax_ppm.bar([], [])
                     
                 ax_ppm.set_title("Precursor m/z Variance in PPM")
-                ax_ppm.set_xlabel("PPM Varience")
+                ax_ppm.set_xlabel("PPM Variance")
                 ax_ppm.set_ylabel("Counts")
                 ax_ppm.legend()
 
