@@ -595,7 +595,7 @@ class MetadataHandler:
         self.set_main_tolerance(all_3sigma_values_away)
 
         #### write ion data into a table
-        self.write_ion_table(ion_three_sigma_table)
+        #self.write_ion_table(ion_three_sigma_table)
 
     ####################################################################################################
     #### If standard deviations have been found, set them in the file
