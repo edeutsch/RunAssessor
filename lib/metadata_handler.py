@@ -9,6 +9,7 @@ import shutil
 import pandas as pd
 import numpy
 import csv
+import math
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 
@@ -478,7 +479,7 @@ class MetadataHandler:
                 ion_three_sigma_table[file].append("No peaks")
             #### Gather info for summary table 
             try:
-                
+                    
                 info_dict = {
                     "file": file,
                     "labeling": labeling,
@@ -490,7 +491,7 @@ class MetadataHandler:
                 # Fragmentation type
                 try:
                     frag_type = fileinfo['summary']['combined summary']['fragmentation type']
-                except (KeyError, TypeError):
+                except:
                     frag_type = "N/A"
                 info_dict["fragmentation type"] = frag_type
 
@@ -499,23 +500,33 @@ class MetadataHandler:
                     if 'warning' not in fileinfo['summary']['combined summary']['fragmentation tolerance']:
                         frag_type_value = self.metadata['files'][file]['spectra_stats']['fragmentation_type']
                         if frag_type_value.startswith('HR'):
-                            low_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'], 2)} ppm"
-                            high_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'], 2)} ppm"
+                            low_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'], 2)
+                            high_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'], 2)
+                            rec_tol = f"{math.ceil(max(abs(low_tol), abs(high_tol)))} ppm"
+
+                            low_tol = f"{low_tol} ppm"
+                            high_tol = f"{high_tol} ppm"
+
                         
                         elif frag_type_value.startswith('LR'):
-                            low_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'], 2)} m/z"
-                            high_tol = f"{round(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'], 2)} m/z"
+                            low_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'], 2)
+                            high_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'], 2)
+                            rec_tol = f"{math.ceil(max(abs(low_tol), abs(high_tol)))} m/z"
+
+                            low_tol = f"{low_tol} m/z"
+                            high_tol = f"{high_tol} m/z"
                     else:
-                        low_tol = high_tol = "N/A"
+                        low_tol = high_tol = rec_tol = "N/A"
                 except (KeyError, TypeError):
-                    low_tol = high_tol = "N/A"
+                    low_tol = high_tol = rec_tol = "N/A"
                 info_dict["fragment tolerance lower_three_sigma"] = low_tol
                 info_dict["fragment tolerance upper_three_sigma"] = high_tol
+                info_dict['reccomended fragment tolerance'] = rec_tol
 
                 # Dynamic exclusion time
                 try:
                     dynamic_exclusion_time = round(fileinfo['summary']['precursor stats']['dynamic exclusion window']['fit_pulse_time']['pulse start'], 2)
-                except (KeyError, TypeError):
+                except:
                     dynamic_exclusion_time = "N/A"
                 info_dict["dynamic exclusion time (s)"] = dynamic_exclusion_time
 
@@ -523,10 +534,15 @@ class MetadataHandler:
                 try:
                     precursor_low = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['lower_three_sigma (ppm)'], 2)
                     precursor_high = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['upper_three_sigma (ppm)'], 2)
-                except (KeyError, TypeError):
-                    precursor_low = precursor_high = "N/A"
+                    reccomended_precursor = math.ceil(max(abs(precursor_high), abs(precursor_low)))
+                    if reccomended_precursor == 0:
+                        reccomended_precursor = "N/A"
+
+                except:
+                    precursor_low = precursor_high = reccomended_precursor =  "N/A"
                 info_dict["precursor tolerance three_sigma_lower (ppm)"] = precursor_low
                 info_dict["precursor tolerance three_sigma_higher (ppm)"] = precursor_high
+                info_dict['reccomended precursor tolerance (ppm)'] = reccomended_precursor
 
                 # Isolation window
                 try:
@@ -542,7 +558,7 @@ class MetadataHandler:
                             iso_str = ', '.join(f"{{{k}: {v}}}" for k, v in isolation_window.items())
                     else:
                         iso_str = "N/A"
-                except (KeyError, TypeError):
+                except:
                     iso_str = "N/A"
                 info_dict["isolation window"] = iso_str
 
@@ -555,7 +571,7 @@ class MetadataHandler:
 
                 try:
                     has_phospho = fileinfo['summary']['combined summary']['has phospho_spectra']
-                except (KeyError, TypeError):
+                except:
                     has_phospho = False
                 info_dict["has phospho_spectra"] = has_phospho
 
@@ -586,7 +602,7 @@ class MetadataHandler:
                 info.append(info_dict)
 
             except:
-                info.append({"file": file, "labeling": "N/A"})
+               info.append({"file": file, "labeling": "N/A"})
 
         #### Write file summary table
         self.write_summary_table(info)
@@ -646,9 +662,9 @@ class MetadataHandler:
     def write_summary_table(self, info):
         headers = ["file", "labeling", "file_instrument", "acquisition type",
                     "High accuracy precursor", "fragmentation type", 
-                    "fragment tolerance lower_three_sigma", "fragment tolerance upper_three_sigma",
+                    "fragment tolerance lower_three_sigma", "fragment tolerance upper_three_sigma", "reccomended fragment tolerance",
                     "dynamic exclusion time (s)",
-                    "precursor tolerance three_sigma_lower (ppm)", "precursor tolerance three_sigma_higher (ppm)",
+                    "precursor tolerance three_sigma_lower (ppm)", "precursor tolerance three_sigma_higher (ppm)", "reccomended precursor tolerance (ppm)",
                     "isolation window", "has water_loss", "has phospho_spectra",
                     "total intensity of z=2 phospho_spectra", "total intensity of z=2 water_loss_spectra",
                     "total z=2 phosphoric_acid to z=2 water_loss intensity ratio"]
