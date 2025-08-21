@@ -76,7 +76,7 @@ def test_assess_mzMLs():
     eprint(stderr_lines)
 
     assert len(stdout_lines) == 0
-    assert len(stderr_lines) >= 12      # 24 with all the warnings included, 12 with only the INFO lines
+    assert len(stderr_lines) >= 12      # 12 "INFO" lines
 
     # Make sure the current generated 'study_metadata.json' file exactly matches the expected output 'chlo_6_tiny_study_metadata.json'
     with open(current_study_metadata, 'r') as study_metadata, open(expected_study_metadata, 'r') as chlo_6_tiny_study_metadata:
