@@ -11,6 +11,7 @@ import gzip
 from lxml import etree
 from multiprocessing.pool import ThreadPool
 from functools import partial
+import math
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 #### Import technical modules and pyteomics
@@ -473,7 +474,8 @@ class MzMLAssessor:
            self.precursor_stats['precursor tolerance']["histogram_ppm"] = "no delta_ppm values recorded"
 
         try:
-            self.precursor_stats['precursor tolerance']['fit_ppm'] = {"lower_three_sigma (ppm)":-fit_ppm[2]*3, "upper_three_sigma (ppm)":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma (ppm)": fit_ppm[2], "y_offset": fit_ppm[3], "chi_squared":chi_squared_red_ppm}
+            
+            self.precursor_stats['precursor tolerance']['fit_ppm'] = {"lower_three_sigma (ppm)":-fit_ppm[2]*3, "upper_three_sigma (ppm)":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma (ppm)": fit_ppm[2], "y_offset": fit_ppm[3], "chi_squared":chi_squared_red_ppm, "recommended precursor tolerance (ppm)": f"{math.ceil(fit_ppm[2]*3)} ppm"}
         
         except:
             self.precursor_stats['precursor tolerance']['fit_ppm'] = "no guassian ppm curve fit"
@@ -1411,7 +1413,9 @@ class MzMLAssessor:
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_lower'] = three_sigma_lower
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_upper'] = three_sigma_upper
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with fragment_tolerance'] = len(upper)
-                        
+                        recommended_precursor = math.ceil(max(abs(three_sigma_lower), abs(three_sigma_upper)))
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance (ppm)'] = f"{recommended_precursor} ppm"
+
 
                         if len(upper) < 5:
                             self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = "too few peaks found, overall fragment tolerance cannot be accurately computed"
@@ -1429,7 +1433,8 @@ class MzMLAssessor:
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['lower_m/z'] = three_sigma_lower
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['upper_m/z'] = three_sigma_upper
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with sigma_m/z'] = len(upper)
-                        
+                        recommended_precursor = math.ceil(max(abs(three_sigma_lower), abs(three_sigma_upper)))
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance (m/z)'] = f"{recommended_precursor} m/z"
 
                         if len(upper) < 5:
                             self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = "too few peaks found, overall fragment tolerance cannot be accurately computed"
