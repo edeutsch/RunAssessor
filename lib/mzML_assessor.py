@@ -1132,14 +1132,21 @@ class MzMLAssessor:
                             pass
                         elif float(parts[4]) > 200:
                             ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 1.0}
-                
-            thresholds = {
-                'min_spectra': 100,
-                'min_percentage': 0.1
-            }
 
 
             for ROI in ROIs:
+
+                #### Set thresholds for peak finding
+                if ROI.startswith("TMT") or ROI.startswith("iTRAQ"):
+                    thresholds = {
+                        'min_spectra': 100,
+                        'min_percentage': 0.1
+                    }
+                else:
+                    thresholds = {
+                        'min_spectra': 100,
+                        'min_percentage': 0.01
+                    }
 
                 #### Look for the largest peak
                 peak = self.find_peak(spec,ROIs,ROI,composite_type,thresholds)
@@ -1188,9 +1195,6 @@ class MzMLAssessor:
         #    spec = pickle.load(infile)
         spec = self.composite
 
-
-  
-
         supported_composite_type_list = [f"precursor_loss_{composite}" for composite in self.supported_composite_type_list]
 
         self.metadata['files'][self.mzml_file].setdefault('neutral_loss_peaks', {})
@@ -1237,6 +1241,7 @@ class MzMLAssessor:
 
                         ROIs[ROI_name] = {'type': type, 'mz': mz, 'initial_window': 1.0}
 
+            #### Set thresholds for peak finding
             thresholds = {
                 'min_spectra': 100,
                 'min_percentage': 0.1
