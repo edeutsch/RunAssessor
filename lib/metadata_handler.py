@@ -19,7 +19,7 @@ class MetadataHandler:
 
     ####################################################################################################
     #### Constructor
-    def __init__(self, metadata_filepath=None, verbose=None):
+    def __init__(self, metadata_filepath=None, verbose=None, write_ions=None):
 
         default_metadata_filepath = 'study_metadata.json'
 
@@ -50,6 +50,10 @@ class MetadataHandler:
             verbose = 0
         self.verbose = verbose
 
+        if write_ions != None:
+            self.write_ions = True
+        else:
+            self.write_ions = False
 
 
     ####################################################################################################
@@ -595,7 +599,9 @@ class MetadataHandler:
         self.set_main_tolerance(all_3sigma_values_away)
 
         #### write ion data into a table
-        #self.write_ion_table(ion_three_sigma_table)
+        if self.write_ions == True:
+            self.write_ion_table(ion_three_sigma_table)
+            eprint("INFO: Ion Three-Sigma Table generated and stored")
 
     ####################################################################################################
     #### If standard deviations have been found, set them in the file
