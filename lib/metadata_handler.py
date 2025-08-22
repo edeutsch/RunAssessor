@@ -521,7 +521,7 @@ class MetadataHandler:
                     low_tol = high_tol = rec_tol = "N/A"
                 info_dict["fragment tolerance lower_three_sigma"] = low_tol
                 info_dict["fragment tolerance upper_three_sigma"] = high_tol
-                info_dict['reccomended fragment tolerance'] = rec_tol
+                info_dict['recommended fragment tolerance'] = rec_tol
 
                 # Dynamic exclusion time
                 try:
@@ -534,15 +534,15 @@ class MetadataHandler:
                 try:
                     precursor_low = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['lower_three_sigma (ppm)'], 2)
                     precursor_high = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['upper_three_sigma (ppm)'], 2)
-                    reccomended_precursor = math.ceil(max(abs(precursor_high), abs(precursor_low)))
-                    if reccomended_precursor == 0:
-                        reccomended_precursor = "N/A"
+                    recommended_precursor = math.ceil(max(abs(precursor_high), abs(precursor_low)))
+                    if recommended_precursor == 0:
+                        recommended_precursor = "N/A"
 
                 except:
-                    precursor_low = precursor_high = reccomended_precursor =  "N/A"
+                    precursor_low = precursor_high = recommended_precursor =  "N/A"
                 info_dict["precursor tolerance three_sigma_lower (ppm)"] = precursor_low
                 info_dict["precursor tolerance three_sigma_higher (ppm)"] = precursor_high
-                info_dict['reccomended precursor tolerance (ppm)'] = reccomended_precursor
+                info_dict['recommended precursor tolerance (ppm)'] = recommended_precursor
 
                 # Isolation window
                 try:
@@ -662,9 +662,9 @@ class MetadataHandler:
     def write_summary_table(self, info):
         headers = ["file", "labeling", "file_instrument", "acquisition type",
                     "High accuracy precursor", "fragmentation type", 
-                    "fragment tolerance lower_three_sigma", "fragment tolerance upper_three_sigma", "reccomended fragment tolerance",
+                    "fragment tolerance lower_three_sigma", "fragment tolerance upper_three_sigma", "recommended fragment tolerance",
                     "dynamic exclusion time (s)",
-                    "precursor tolerance three_sigma_lower (ppm)", "precursor tolerance three_sigma_higher (ppm)", "reccomended precursor tolerance (ppm)",
+                    "precursor tolerance three_sigma_lower (ppm)", "precursor tolerance three_sigma_higher (ppm)", "recommended precursor tolerance (ppm)",
                     "isolation window", "has water_loss", "has phospho_spectra",
                     "total intensity of z=2 phospho_spectra", "total intensity of z=2 water_loss_spectra",
                     "total z=2 phosphoric_acid to z=2 water_loss intensity ratio"]
