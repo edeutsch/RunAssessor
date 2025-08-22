@@ -1729,7 +1729,8 @@
           "tolerance": {
             "fragment_tolerance_ppm_lower": -5.137583320138051,
             "fragment_tolerance_ppm_upper": 3.7733526018595756,
-            "number of peaks with fragment_tolerance": 18
+            "number of peaks with fragment_tolerance": 18,
+            "recommended fragment tolerance (ppm)": "6 ppm"
           },
           "z=2 phosphoric_acid to z=2 water_loss intensity ratio": -3.21588953972692
         },
@@ -1738,7 +1739,8 @@
           "fragmentation tolerance": {
             "fragment_tolerance_ppm_lower": -5.137583320138051,
             "fragment_tolerance_ppm_upper": 3.7733526018595756,
-            "number of peaks with fragment_tolerance": 18
+            "number of peaks with fragment_tolerance": 18,
+            "recommended fragment tolerance (ppm)": "6 ppm"
           },
           "fragmentation type": "HR_HCD",
           "has phospho_spectra": false,
@@ -1749,8 +1751,8 @@
         },
         "precursor stats": {
           "dynamic exclusion window": {
+            "dynamic_exclusion_time_fit_call": "no fit",
             "fit_pulse_time": "no dynamic exclusion window fit",
-            "good dynamic exclusion time fit?": "no fit",
             "histogram_time": {
               "bin_centers": [
                 0.2296942100002645,
@@ -2067,11 +2069,11 @@
               "delta_ppm peak": -0.5039321975502951,
               "intensity": 109122.41117864904,
               "lower_three_sigma (ppm)": -0.23566654483724217,
+              "recommended precursor tolerance (ppm)": "1 ppm",
               "sigma (ppm)": 0.07855551494574739,
               "upper_three_sigma (ppm)": 0.23566654483724217,
               "y_offset": 18.661017074327578
             },
-            "good ppm_fit?": "probably not a good fit, no tolerance suggested, check ppm graph",
             "histogram_ppm": {
               "bin_centers": [
                 -29.483928344624985,
@@ -2260,7 +2262,8 @@
                 0,
                 231
               ]
-            }
+            },
+            "ppm_fit call": "probably not a good fit, suggested tolerance may not be accurate, check ppm graph"
           }
         }
       }

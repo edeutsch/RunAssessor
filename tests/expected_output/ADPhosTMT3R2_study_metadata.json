@@ -1878,7 +1878,8 @@
           "tolerance": {
             "fragment_tolerance_ppm_lower": -6.209997898155525,
             "fragment_tolerance_ppm_upper": 1.594052874902563,
-            "number of peaks with fragment_tolerance": 13
+            "number of peaks with fragment_tolerance": 13,
+            "recommended fragment tolerance (ppm)": "7 ppm"
           },
           "z=2 phosphoric_acid to z=2 water_loss intensity ratio": 38.64225777290457
         },
@@ -1887,7 +1888,8 @@
           "fragmentation tolerance": {
             "fragment_tolerance_ppm_lower": -6.209997898155525,
             "fragment_tolerance_ppm_upper": 1.594052874902563,
-            "number of peaks with fragment_tolerance": 13
+            "number of peaks with fragment_tolerance": 13,
+            "recommended fragment tolerance (ppm)": "7 ppm"
           },
           "fragmentation type": "HR_HCD",
           "has phospho_spectra": true,
@@ -1898,6 +1900,7 @@
         },
         "precursor stats": {
           "dynamic exclusion window": {
+            "dynamic_exclusion_time_fit_call": "uncertain about fit, manually check time graph",
             "fit_pulse_time": {
               "chi_squared": 17.22579356859539,
               "decay constant": 1.8910746841888368,
@@ -1909,7 +1912,6 @@
               "pulse duration": 0.22233789551592506,
               "pulse start": 30.76365741346253
             },
-            "good dynamic exclusion time fit?": "uncertain about fit, manually check time graph and decide for yourself",
             "histogram_time": {
               "bin_centers": [
                 0.5019112876802619,
@@ -2226,11 +2228,11 @@
               "delta_ppm peak": 0.029405643890860277,
               "intensity": 2826.4130754284147,
               "lower_three_sigma (ppm)": -2.058990959726515,
+              "recommended precursor tolerance (ppm)": "3 ppm",
               "sigma (ppm)": 0.6863303199088383,
               "upper_three_sigma (ppm)": 2.058990959726515,
               "y_offset": 26.829322292093163
             },
-            "good ppm_fit?": "probably not a good fit, no tolerance suggested, check ppm graph",
             "histogram_ppm": {
               "bin_centers": [
                 -29.448286550913544,
@@ -2419,7 +2421,8 @@
                 22,
                 29
               ]
-            }
+            },
+            "ppm_fit call": "probably not a good fit, suggested tolerance may not be accurate, check ppm graph"
           }
         }
       }

@@ -2068,7 +2068,8 @@
           "tolerance": {
             "fragment_tolerance_ppm_lower": -7.368869159222015,
             "fragment_tolerance_ppm_upper": 1.407665629000417,
-            "number of peaks with fragment_tolerance": 27
+            "number of peaks with fragment_tolerance": 27,
+            "recommended fragment tolerance (ppm)": "8 ppm"
           },
           "z=2 phosphoric_acid to z=2 water_loss intensity ratio": 119.17730905914522
         },
@@ -2077,7 +2078,8 @@
           "fragmentation tolerance": {
             "fragment_tolerance_ppm_lower": -7.368869159222015,
             "fragment_tolerance_ppm_upper": 1.407665629000417,
-            "number of peaks with fragment_tolerance": 27
+            "number of peaks with fragment_tolerance": 27,
+            "recommended fragment tolerance (ppm)": "8 ppm"
           },
           "fragmentation type": "HR_HCD",
           "has phospho_spectra": true,
@@ -2088,6 +2090,7 @@
         },
         "precursor stats": {
           "dynamic exclusion window": {
+            "dynamic_exclusion_time_fit_call": "good fit, dynamic exclusion window found",
             "fit_pulse_time": {
               "chi_squared": 2.3460751726890776,
               "decay constant": 1.7602646601986096,
@@ -2099,7 +2102,6 @@
               "pulse duration": -1.0454854514655787,
               "pulse start": 30.771549158973166
             },
-            "good dynamic exclusion time fit?": "good fit, dynamic exclusion window found",
             "histogram_time": {
               "bin_centers": [
                 0.43502294999999075,
@@ -2416,11 +2418,11 @@
               "delta_ppm peak": 0.07281191100676676,
               "intensity": 178.4471508376382,
               "lower_three_sigma (ppm)": -3.1259283625194216,
+              "recommended precursor tolerance (ppm)": "4 ppm",
               "sigma (ppm)": 1.0419761208398073,
               "upper_three_sigma (ppm)": 3.1259283625194216,
               "y_offset": 46.39219864956805
             },
-            "good ppm_fit?": "good fit found, okay to use",
             "histogram_ppm": {
               "bin_centers": [
                 -29.486870091839094,
@@ -2609,7 +2611,8 @@
                 59,
                 56
               ]
-            }
+            },
+            "ppm_fit call": "good fit found, okay to use"
           }
         }
       }

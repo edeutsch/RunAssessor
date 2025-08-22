@@ -646,6 +646,7 @@
           "tolerance": {
             "lower_m/z": -0.3017985507602789,
             "number of peaks with sigma_m/z": 8,
+            "recommended fragment tolerance (m/z)": "1 m/z",
             "upper_m/z": 0.2021945577680044
           },
           "z=2 phosphoric_acid to z=2 water_loss intensity ratio": 0.27483289201937544
@@ -655,6 +656,7 @@
           "fragmentation tolerance": {
             "lower_m/z": -0.3017985507602789,
             "number of peaks with sigma_m/z": 8,
+            "recommended fragment tolerance (m/z)": "1 m/z",
             "upper_m/z": 0.2021945577680044
           },
           "fragmentation type": "LR_IT_CID",
@@ -666,6 +668,7 @@
         },
         "precursor stats": {
           "dynamic exclusion window": {
+            "dynamic_exclusion_time_fit_call": "good fit, dynamic exclusion window found",
             "fit_pulse_time": {
               "chi_squared": 2.635070914042326,
               "decay constant": 8.542006734045426,
@@ -677,7 +680,6 @@
               "pulse duration": -0.2743762351802771,
               "pulse start": 2.232900231569179
             },
-            "good dynamic exclusion time fit?": "good fit, dynamic exclusion window found",
             "histogram_time": {
               "bin_centers": [
                 0.6614261696779706,
@@ -994,11 +996,11 @@
               "delta_ppm peak": -0.12023719889143036,
               "intensity": 2290.449854345022,
               "lower_three_sigma (ppm)": -1.2623390475351077,
+              "recommended precursor tolerance (ppm)": "2 ppm",
               "sigma (ppm)": 0.4207796825117026,
               "upper_three_sigma (ppm)": 1.2623390475351077,
               "y_offset": 42.1132129349698
             },
-            "good ppm_fit?": "uncertain about fit, manually check ppm graph and decide for yourself",
             "histogram_ppm": {
               "bin_centers": [
                 -29.44257917590363,
@@ -1187,7 +1189,8 @@
                 54,
                 57
               ]
-            }
+            },
+            "ppm_fit call": "uncertain about fit, manually check ppm graph"
           }
         }
       }
