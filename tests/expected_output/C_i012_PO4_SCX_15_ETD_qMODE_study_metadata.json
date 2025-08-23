@@ -1305,6 +1305,7 @@
         },
         "precursor stats": {
           "dynamic exclusion window": {
+            "dynamic_exclusion_time_fit_call": "probably not a good fit, suggested tolerance may not be accurate, check time graph",
             "fit_pulse_time": {
               "chi_squared": 24864443.26344381,
               "decay constant": 9.922502672150019,
@@ -1316,7 +1317,6 @@
               "pulse duration": -1.8380605323608552,
               "pulse start": 62.878400218518685
             },
-            "good dynamic exclusion time fit?": "probably not a good fit, no tolerance suggested, check time graph",
             "histogram_time": {
               "bin_centers": [
                 1.1557999999997008,
@@ -1633,11 +1633,11 @@
               "delta_ppm peak": 0.055275034001729985,
               "intensity": 153.09385782344825,
               "lower_three_sigma (ppm)": -0.717997814710292,
+              "recommended precursor tolerance (ppm)": "1 ppm",
               "sigma (ppm)": 0.23933260490343067,
               "upper_three_sigma (ppm)": 0.717997814710292,
               "y_offset": 1.9405906684961527
             },
-            "good ppm_fit?": "uncertain about fit, manually check ppm graph and decide for yourself",
             "histogram_ppm": {
               "bin_centers": [
                 -27.169748554595586,
@@ -1826,7 +1826,8 @@
                 0,
                 1
               ]
-            }
+            },
+            "ppm_fit call": "uncertain about fit, manually check ppm graph"
           }
         }
       }

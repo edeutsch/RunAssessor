@@ -1318,6 +1318,7 @@
         },
         "precursor stats": {
           "dynamic exclusion window": {
+            "dynamic_exclusion_time_fit_call": "no fit",
             "fit_pulse_time": {
               "chi_squared": 0.0,
               "decay constant": 1.0,
@@ -1329,7 +1330,6 @@
               "pulse duration": 0.5,
               "pulse start": 0.005
             },
-            "good dynamic exclusion time fit?": "no fit",
             "histogram_time": {
               "bin_centers": [
                 0.005,
@@ -1642,7 +1642,6 @@
           },
           "precursor tolerance": {
             "fit_ppm": "no guassian ppm curve fit",
-            "good ppm_fit?": "no fit",
             "histogram_ppm": {
               "bin_centers": [
                 0.008333333333333333,
@@ -1831,7 +1830,8 @@
                 0,
                 0
               ]
-            }
+            },
+            "ppm_fit call": "no fit"
           }
         }
       }

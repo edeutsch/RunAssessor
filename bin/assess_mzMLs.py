@@ -48,7 +48,8 @@ def main():
     argparser.add_argument('--verbose', action='count', help='If set, print more information about ongoing processing' )
     argparser.add_argument('--version', action='version', version='%(prog)s 0.8')
     argparser.add_argument('--write_sdrf_file', action='count', help='If set, then write an SDRF file based on the metadata file')
-    argparser.add_argument('--write_pdfs', action='count', help='If set, then generate a pdf of delta time and ppm graphs from precursor stats')
+    argparser.add_argument('--write_pdfs', action='count', help='If set, then generate a PDF of delta time and ppm graphs from precursor stats')
+    argparser.add_argument('--write_ions', action='count', help='If set, then write a TSV file of fragment ion peaks found')
     argparser.add_argument('files', type=str, nargs='+', help='Filenames of one or more mzML files to read')
     params = argparser.parse_args()
 
@@ -74,7 +75,7 @@ def main():
         eprint(f"INFO: Found {n_files} input files to process")
 
     #### Initialize the metadata handler
-    study = MetadataHandler(params.metadata_filepath, verbose=params.verbose)
+    study = MetadataHandler(params.metadata_filepath, verbose=params.verbose, write_ions=params.write_ions)
 
     #### If the user wants to read and preserve an existing file, then read or create it
     if params.preserve_existing_metadata > 0:

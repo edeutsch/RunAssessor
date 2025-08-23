@@ -658,6 +658,7 @@
           "tolerance": {
             "lower_m/z": -0.3632890542896869,
             "number of peaks with sigma_m/z": 9,
+            "recommended fragment tolerance (m/z)": "1 m/z",
             "upper_m/z": 0.27203658312171664
           },
           "z=2 phosphoric_acid to z=2 water_loss intensity ratio": 0.02956388458718592
@@ -667,6 +668,7 @@
           "fragmentation tolerance": {
             "lower_m/z": -0.3632890542896869,
             "number of peaks with sigma_m/z": 9,
+            "recommended fragment tolerance (m/z)": "1 m/z",
             "upper_m/z": 0.27203658312171664
           },
           "fragmentation type": "LR_IT_CID",
@@ -678,8 +680,8 @@
         },
         "precursor stats": {
           "dynamic exclusion window": {
+            "dynamic_exclusion_time_fit_call": "no fit",
             "fit_pulse_time": "no dynamic exclusion window fit",
-            "good dynamic exclusion time fit?": "no fit",
             "histogram_time": {
               "bin_centers": [
                 1.1342630000195548,
@@ -996,11 +998,11 @@
               "delta_ppm peak": 0.04779816699961338,
               "intensity": 286.0785705291111,
               "lower_three_sigma (ppm)": -4.048274910639467,
+              "recommended precursor tolerance (ppm)": "5 ppm",
               "sigma (ppm)": 1.3494249702131558,
               "upper_three_sigma (ppm)": 4.048274910639467,
               "y_offset": 2.2770224149880542
             },
-            "good ppm_fit?": "uncertain about fit, manually check ppm graph and decide for yourself",
             "histogram_ppm": {
               "bin_centers": [
                 -29.304139640102136,
@@ -1189,7 +1191,8 @@
                 1,
                 3
               ]
-            }
+            },
+            "ppm_fit call": "uncertain about fit, manually check ppm graph"
           }
         }
       }

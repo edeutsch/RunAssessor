@@ -1770,7 +1770,8 @@
           "tolerance": {
             "fragment_tolerance_ppm_lower": -4.115386469705517,
             "fragment_tolerance_ppm_upper": 4.952923466436365,
-            "number of peaks with fragment_tolerance": 6
+            "number of peaks with fragment_tolerance": 6,
+            "recommended fragment tolerance (ppm)": "5 ppm"
           },
           "z=2 phosphoric_acid to z=2 water_loss intensity ratio": 2.1236521076492788e-17
         },
@@ -1779,7 +1780,8 @@
           "fragmentation tolerance": {
             "fragment_tolerance_ppm_lower": -4.115386469705517,
             "fragment_tolerance_ppm_upper": 4.952923466436365,
-            "number of peaks with fragment_tolerance": 6
+            "number of peaks with fragment_tolerance": 6,
+            "recommended fragment tolerance (ppm)": "5 ppm"
           },
           "fragmentation type": "HR_HCD",
           "has phospho_spectra": false,
@@ -1790,6 +1792,7 @@
         },
         "precursor stats": {
           "dynamic exclusion window": {
+            "dynamic_exclusion_time_fit_call": "good fit, dynamic exclusion window found",
             "fit_pulse_time": {
               "chi_squared": 4.975141500020937,
               "decay constant": 0.969391452027809,
@@ -1801,7 +1804,6 @@
               "pulse duration": 0.6907703230933043,
               "pulse start": 24.42345370247886
             },
-            "good dynamic exclusion time fit?": "good fit, dynamic exclusion window found",
             "histogram_time": {
               "bin_centers": [
                 0.4901159999997688,
@@ -2118,11 +2120,11 @@
               "delta_ppm peak": 0.04554922212526421,
               "intensity": 2738.311094710626,
               "lower_three_sigma (ppm)": -2.917994467596863,
+              "recommended precursor tolerance (ppm)": "3 ppm",
               "sigma (ppm)": 0.9726648225322877,
               "upper_three_sigma (ppm)": 2.917994467596863,
               "y_offset": 81.59549219160989
             },
-            "good ppm_fit?": "uncertain about fit, manually check ppm graph and decide for yourself",
             "histogram_ppm": {
               "bin_centers": [
                 -29.494806354415353,
@@ -2311,7 +2313,8 @@
                 78,
                 102
               ]
-            }
+            },
+            "ppm_fit call": "uncertain about fit, manually check ppm graph"
           }
         }
       }
