@@ -38,7 +38,7 @@ python bin/assess_mzMLs.py ~/file_path/*.mzML # can add .gz to end
 | `--version` | Prints the version of the script/tool. | 0.8 | `--version` |
 | `--write_sdrf_file` | If set, writes an SDRF file based on the metadata text file. | Not set | `--write_sdrf_file` |
 | `--write_pdfs` | If set, generates a PDF of delta time and ppm graphs from precursor stats, and a PDF of neutral loss windows from composite intensities. | Not set | `--write_pdfs` |
-
+| `--write_ions` | If set, writes a TSV file of the ion three-sigma table which lists all fragment ions found. | Not set | `--write_ions` |
 
 ## assess_metadata.py
 
