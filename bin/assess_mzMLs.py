@@ -188,5 +188,9 @@ def main():
             writer.write(f)
         eprint("INFO: Neutral Loss Graphs generated and stored")
 
+        for assessor in results:
+            grapher.plot_NL_LE_figures(assessor=assessor)
+        eprint("INFO: RunAssessor manuscript figure generator done")
+
 
 if __name__ == "__main__": main()
