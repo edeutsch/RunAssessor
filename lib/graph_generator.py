@@ -7,6 +7,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from pypdf import PdfReader, PdfWriter
 import sys
 import os
+import string
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
 class GraphGenerator:
@@ -409,3 +410,111 @@ class GraphGenerator:
         nl_pdf = self.metadata_file.replace(".json", ".NLplots.pdf")
         if self.verbose >= 1:
             eprint(f"All {assessor.mzml_file} neutral loss spectra saved to: {nl_pdf}")
+
+
+    def plot_all_water_loss_composite_spectra(self, assessors, pdf):
+        """
+        Make one multipanel figure with all water z=2 neutral loss spectra
+        across multiple assessors (files).
+        """
+
+        # Collect all (assessor, destination) pairs
+        all_targets = []
+        for assessor in assessors:
+            for destination in assessor.composite.keys():
+                if destination.startswith("precursor_loss_"):
+                    all_targets.append((assessor, destination))
+
+        n_plots = len(all_targets)
+        ncols = 2
+        nrows = 1
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(9, 4.5), squeeze=False)
+
+        for idx, (assessor, destination) in enumerate(all_targets):
+            ax = axes[idx // ncols, idx % ncols]
+
+            intensities = assessor.composite[destination]['intensities']
+            maximum = assessor.composite[destination]['maximum']
+            minimum = assessor.composite[destination]['minimum']
+            binsize = assessor.composite[destination]['binsize']
+            mz = np.arange((maximum - minimum) / binsize + 1) * binsize + minimum
+
+            water_z2 = 9.00528235
+            try:
+                water_z2_extent_bins = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['extended']['extent']
+            except:
+                water_z2_extent_bins = 0
+
+            water_z2_axis_min = water_z2 - 30 * binsize
+            water_z2_axis_max = water_z2 + 30 * binsize
+            water_z2_extent_min = water_z2 - water_z2_extent_bins * binsize
+            water_z2_extent_max = water_z2 + water_z2_extent_bins * binsize
+            water_z2_fitting_min = water_z2 - 2 * water_z2_extent_bins * binsize
+            water_z2_fitting_max = water_z2 + 2 * water_z2_extent_bins * binsize
+
+            sum_type = destination.replace("precursor_loss_", "")
+            summary = self.files[assessor.mzml_file]['summary'][sum_type]
+
+            water_color = 'palegreen' if summary.get('has water_loss') else 'navajowhite'
+            correct_bar_water = 'limegreen' if summary.get('has water_loss') else 'orange'
+            num_water = assessor.metadata['files'][assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['mode_bin']['n_spectra']
+            abs_diff_delta_mz = summary.get('absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss', 'N/A')
+
+            # Highlighted regions
+            if water_z2_extent_bins * 2 < 30:
+                ax.axvspan(xmin=water_z2_fitting_min, xmax=water_z2_fitting_max,
+                        color='lightsteelblue', alpha=0.25, lw=0)
+            ax.axvspan(xmin=water_z2_extent_min, xmax=water_z2_extent_max,
+                    color=water_color, alpha=0.75, lw=0)
+            ax.axvline(x=water_z2, color=correct_bar_water, alpha=0.75)
+
+            # Spectrum
+            water_z2_range = (mz >= water_z2_axis_min) & (mz <= water_z2_axis_max)
+            ax.plot(mz[water_z2_range], intensities[water_z2_range])
+
+            # Fit (if available)
+            little_label = ""
+            try:
+                if self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['assessment']['is_found']:
+                    fit_param = self.files[assessor.mzml_file]['neutral_loss_peaks'][destination]['water_z2']['peak']['fit']
+                    sigma_mz = fit_param['sigma_mz']
+                    mu_mz = fit_param['mz']
+                    y_offset = fit_param['y_offset']
+                    mz_subset = mz[water_z2_range]
+                    intensity_subset = intensities[water_z2_range]
+
+                    gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
+                    scaled_gaussian = gaussian * np.max(intensity_subset) / np.max(gaussian) + y_offset/np.max(gaussian)
+
+                    ax.plot(mz_subset, scaled_gaussian, color='darkred', linewidth=2)
+                else:
+                    little_label = " (no fit found)"
+            except:
+                pass
+
+            ax.set_xlabel(f"m/z loss (water z=2){little_label}\nMode spectra: {num_water}")
+            ax.set_ylabel("Intensity")
+            title_root = assessor.mzml_file.split('.')[0]
+            try:
+                ax.set_title(f"{title_root} ({destination})\nΔm/z phospho–water: {abs_diff_delta_mz:.4f}", fontsize=8)
+            except:
+                ax.set_title(f"{title_root} ({destination})\nΔm/z phospho–water: {abs_diff_delta_mz}", fontsize=8)
+
+        # Remove empty subplots
+        for j in range(idx+1, nrows*ncols):
+            fig.delaxes(axes[j//ncols, j % ncols])
+
+        letters = string.ascii_lowercase  # gives ['a','b','c',...]
+        for idx, (assessor, destination) in enumerate(all_targets):
+            ax = axes[idx // ncols, idx % ncols]
+
+            # ---- your plotting code here ----
+
+            # Add subplot label in the top-left corner of each subplot
+            label = f"{letters[idx]}"
+            ax.text(0.02, 0.97, label, transform=ax.transAxes,
+                    fontsize=10, fontweight="bold", va="top", ha="left")
+
+        fig.tight_layout()
+        pdf.savefig(fig)
+        plt.close(fig)

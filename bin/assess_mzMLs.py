@@ -187,5 +187,9 @@ def main():
             writer.write(f)
         eprint("INFO: Neutral Loss Graphs generated and stored")
 
+        with PdfPages("HR_LR_waterloss.pdf") as pdf:
+            grapher.plot_all_water_loss_composite_spectra(assessors=results, pdf=pdf)
+
+
 
 if __name__ == "__main__": main()
