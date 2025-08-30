@@ -416,7 +416,10 @@ class MzMLAssessor:
             
 
             p0 = [main_peak, 0.5, mean_counts_before_peaks, max(counts_time), mean_counts_after_peaks, 1.0]
-            fit_time, cov = curve_fit(self.time_exp_decay, bin_centers_time, counts_time, p0=p0)
+            lower_bounds = [-numpy.inf, 0, -numpy.inf, -numpy.inf, -numpy.inf, 0]   # pulse_duration >= 0, tau >= 0
+            upper_bounds = [numpy.inf, numpy.inf,numpy.inf, numpy.inf, numpy.inf, numpy.inf]
+
+            fit_time, cov = curve_fit(self.time_exp_decay, bin_centers_time, counts_time, p0=p0, bounds=(lower_bounds, upper_bounds))
             expected_counts = self.time_exp_decay(bin_centers_time, *fit_time)
 
             #Compute 5 bins before and 5 bins after for sharpness
@@ -553,7 +556,6 @@ class MzMLAssessor:
     ####################################################################################################
     #### Pulse exp decay function with peak_level param
     def time_exp_decay(self, t, pulse_start, pulse_duration, initial_level, peak_level, new_level, tau):
-
         exponent_rise = numpy.clip(-(t - pulse_start) * 50, -700, 700)
         exponent_fall = numpy.clip(-(t - (pulse_start + pulse_duration)) * 50, -700, 700)
 
