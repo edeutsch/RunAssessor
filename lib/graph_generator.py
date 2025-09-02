@@ -64,7 +64,7 @@ class GraphGenerator:
                 peak_level = None
                 decay_constant = None
                 final_level = None
-                pulse_duration = None
+                #pulse_duration = None
                 chi_squared_time = None
 
                 time_bin_centers = None
@@ -93,7 +93,7 @@ class GraphGenerator:
                     peak_level = dynamic_exclusion_window.get("fit_pulse_time", {}).get("peak level", [])
                     decay_constant = dynamic_exclusion_window.get("fit_pulse_time", {}).get("decay constant", [])
                     final_level = dynamic_exclusion_window.get("fit_pulse_time", {}).get("final level", [])
-                    pulse_duration = dynamic_exclusion_window.get("fit_pulse_time", {}).get("pulse duration", [])
+                    #duration = dynamic_exclusion_window.get("fit_pulse_time", {}).get("pulse duration", [])
                     chi_squared_time = dynamic_exclusion_window.get("fit_pulse_time", {}).get("chi_squared", "N/A")
                 except:
                     pass
@@ -129,7 +129,7 @@ class GraphGenerator:
                             t_fine = np.linspace(min(time_bin_centers), max(time_bin_centers), 500)
                             y = np.full_like(t_fine, time_initial_level, dtype=float)
 
-                            pulse_end = pulse_start + pulse_duration
+                            pulse_end = pulse_start
                             pulse_mask = (t_fine >= pulse_start) & (t_fine < pulse_end)
                             y[pulse_mask] = peak_level
                             decay_mask = t_fine >= pulse_end
@@ -189,7 +189,6 @@ class GraphGenerator:
                             ["Chi² Time", self.fmt(chi_squared_time)],
                             ["Initial Level", self.fmt(time_initial_level)],
                             ["Pulse Start", self.fmt(pulse_start)],
-                            ['Pulse Duration', self.fmt(pulse_duration)],
                             ["Peak Level",self.fmt(peak_level)],
                             ["Decay Constant",self.fmt(decay_constant)],
                             ["Final Level", self.fmt(final_level)],
