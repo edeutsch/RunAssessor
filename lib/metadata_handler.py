@@ -55,6 +55,10 @@ class MetadataHandler:
             self.write_ions = True
         else:
             self.write_ions = False
+        
+        #### Values used to calculate tolerance reccomendations
+        self.ppm_error = 5
+        self.mz_error = 0.3
 
 
     ####################################################################################################
@@ -506,7 +510,7 @@ class MetadataHandler:
                         if frag_type_value.startswith('HR'):
                             low_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'], 2)
                             high_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'], 2)
-                            rec_tol = f"{math.ceil(math.sqrt(5**2 + (max(abs(low_tol), abs(high_tol)))**2))} ppm"
+                            rec_tol = f"{math.ceil(math.sqrt(self.ppm_error**2 + (max(abs(low_tol), abs(high_tol)))**2))} ppm"
 
                             low_tol = f"{low_tol} ppm"
                             high_tol = f"{high_tol} ppm"
@@ -515,7 +519,7 @@ class MetadataHandler:
                         elif frag_type_value.startswith('LR'):
                             low_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'], 2)
                             high_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'], 2)
-                            rec_tol = f"{round(math.sqrt(0.3**2 + (max(abs(low_tol), abs(high_tol)))**2), 2)} m/z"
+                            rec_tol = f"{round(math.sqrt(self.mz_error**2 + (max(abs(low_tol), abs(high_tol)))**2), 2)} m/z"
                             low_tol = f"{low_tol} m/z"
                             high_tol = f"{high_tol} m/z"
                     else: 
