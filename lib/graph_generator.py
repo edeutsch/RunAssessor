@@ -44,7 +44,7 @@ class GraphGenerator:
         coverpage = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Delta_graphs_documentation.pdf")
 
         #### Output PDF file
-        output_pdf_path = self.metadata_file.replace(".json", ".histograms_with_chi2.pdf")
+        output_pdf_path = self.metadata_file.replace(".json", ".precursor_histograms.pdf")
         with PdfPages(output_pdf_path) as pdf:
 
             for filename, file_data in self.files.items():
