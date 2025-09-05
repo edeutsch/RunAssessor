@@ -55,6 +55,10 @@ class MetadataHandler:
             self.write_ions = True
         else:
             self.write_ions = False
+        
+        #### Values used to calculate tolerance reccomendations
+        self.ppm_error = 5
+        self.mz_error = 0.3
 
 
     ####################################################################################################
@@ -506,7 +510,7 @@ class MetadataHandler:
                         if frag_type_value.startswith('HR'):
                             low_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'], 2)
                             high_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'], 2)
-                            rec_tol = f"{math.ceil(max(abs(low_tol), abs(high_tol)))} ppm"
+                            rec_tol = f"{math.ceil(math.sqrt(self.ppm_error**2 + (max(abs(low_tol), abs(high_tol)))**2))} ppm"
 
                             low_tol = f"{low_tol} ppm"
                             high_tol = f"{high_tol} ppm"
@@ -515,14 +519,15 @@ class MetadataHandler:
                         elif frag_type_value.startswith('LR'):
                             low_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'], 2)
                             high_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'], 2)
-                            rec_tol = f"{math.ceil(max(abs(low_tol), abs(high_tol)))} m/z"
-
+                            rec_tol = f"{round(math.sqrt(self.mz_error**2 + (max(abs(low_tol), abs(high_tol)))**2), 2)} m/z"
                             low_tol = f"{low_tol} m/z"
                             high_tol = f"{high_tol} m/z"
-                    else:
-                        low_tol = high_tol = rec_tol = "N/A"
+                    else: 
+                        low_tol = high_tol = "N/A"
+                        rec_tol = "0.6 m/z"
                 except (KeyError, TypeError):
-                    low_tol = high_tol = rec_tol = "N/A"
+                    low_tol = high_tol = "N/A"
+                    rec_tol = "0.6 m/z"
                 info_dict["fragment tolerance lower_three_sigma"] = low_tol
                 info_dict["fragment tolerance upper_three_sigma"] = high_tol
                 info_dict['recommended fragment tolerance'] = rec_tol
@@ -538,7 +543,7 @@ class MetadataHandler:
                 try:
                     precursor_low = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['lower_three_sigma (ppm)'], 2)
                     precursor_high = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['upper_three_sigma (ppm)'], 2)
-                    recommended_precursor = math.ceil(max(abs(precursor_high), abs(precursor_low)))
+                    recommended_precursor = fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['recommended precursor tolerance (ppm)']
                     if recommended_precursor == 0:
                         recommended_precursor = "N/A"
 
@@ -660,7 +665,8 @@ class MetadataHandler:
                         })
 
         df = pd.DataFrame(rows)
-        df.to_csv("ion_three_sigma_table.tsv", sep="\t", index=False)
+        ion_file = self.metadata_filepath.replace(".json", ".ion_summary.tsv")
+        df.to_csv(ion_file, sep="\t", index=False)
 
 
     ####################################################################################################
@@ -679,7 +685,8 @@ class MetadataHandler:
                 if key not in headers:
                     headers.append(key)
 
-        with open("summary_file_type.tsv", "w", newline="") as f:
+        summary_file = self.metadata_filepath.replace(".json", ".file_summary.tsv")
+        with open(summary_file, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=headers, delimiter="\t", extrasaction='ignore')
             writer.writeheader()
             writer.writerows(info)

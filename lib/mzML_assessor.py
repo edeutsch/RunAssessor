@@ -60,6 +60,9 @@ class MzMLAssessor:
         #### Creates a list of supported composite types that the code can handle
         self.supported_composite_type_list = ['HR_HCD', 'LR_IT_CID', 'HR_QTOF', 'HR_IT_ETD']
 
+        #### Values used to calculate tolerance reccomendations
+        self.ppm_error = 5
+        self.mz_error = 0.3
 
         self.composite_spectrum_attributes = {
                 'lowend': {
@@ -478,7 +481,7 @@ class MzMLAssessor:
 
         try:
             
-            self.precursor_stats['precursor tolerance']['fit_ppm'] = {"lower_three_sigma (ppm)":-fit_ppm[2]*3, "upper_three_sigma (ppm)":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma (ppm)": fit_ppm[2], "y_offset": fit_ppm[3], "chi_squared":chi_squared_red_ppm, "recommended precursor tolerance (ppm)": f"{math.ceil(fit_ppm[2]*3)} ppm"}
+            self.precursor_stats['precursor tolerance']['fit_ppm'] = {"lower_three_sigma (ppm)":-fit_ppm[2]*3, "upper_three_sigma (ppm)":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma (ppm)": fit_ppm[2], "y_offset": fit_ppm[3], "chi_squared":chi_squared_red_ppm, "recommended precursor tolerance (ppm)": f"{math.ceil(math.sqrt(self.ppm_error**2 + (fit_ppm[2]*3)**2))} ppm"}
         
         except:
             self.precursor_stats['precursor tolerance']['fit_ppm'] = "no guassian ppm curve fit"
@@ -1416,7 +1419,8 @@ class MzMLAssessor:
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_lower'] = three_sigma_lower
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_upper'] = three_sigma_upper
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with fragment_tolerance'] = len(upper)
-                        recommended_precursor = math.ceil(max(abs(three_sigma_lower), abs(three_sigma_upper)))
+
+                        recommended_precursor = math.ceil(math.sqrt(self.ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance (ppm)'] = f"{recommended_precursor} ppm"
 
 
@@ -1436,7 +1440,8 @@ class MzMLAssessor:
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['lower_m/z'] = three_sigma_lower
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['upper_m/z'] = three_sigma_upper
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with sigma_m/z'] = len(upper)
-                        recommended_precursor = math.ceil(max(abs(three_sigma_lower), abs(three_sigma_upper)))
+     
+                        recommended_precursor = round(math.sqrt(self.mz_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper)))**2), 3)
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance (m/z)'] = f"{recommended_precursor} m/z"
 
                         if len(upper) < 5:
