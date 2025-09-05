@@ -60,6 +60,9 @@ class MzMLAssessor:
         #### Creates a list of supported composite types that the code can handle
         self.supported_composite_type_list = ['HR_HCD', 'LR_IT_CID', 'HR_QTOF', 'HR_IT_ETD']
 
+        #### Values used to calculate tolerance reccomendations
+        self.ppm_error = 5
+        self.mz_error = 0.3
 
         self.composite_spectrum_attributes = {
                 'lowend': {
@@ -415,8 +418,11 @@ class MzMLAssessor:
 
             
 
-            p0 = [main_peak, 0.5, mean_counts_before_peaks, max(counts_time), mean_counts_after_peaks, 1.0]
-            fit_time, cov = curve_fit(self.time_exp_decay, bin_centers_time, counts_time, p0=p0)
+            p0 = [main_peak, mean_counts_before_peaks, max(counts_time), mean_counts_after_peaks, 1.0]
+            lower_bounds = [-numpy.inf, -numpy.inf, -numpy.inf, -numpy.inf, 0]   # pulse_duration >= 0, tau >= 0
+            upper_bounds = [numpy.inf,numpy.inf, numpy.inf, numpy.inf, numpy.inf]
+
+            fit_time, cov = curve_fit(self.time_exp_decay, bin_centers_time, counts_time, p0=p0, bounds=(lower_bounds, upper_bounds))
             expected_counts = self.time_exp_decay(bin_centers_time, *fit_time)
 
             #Compute 5 bins before and 5 bins after for sharpness
@@ -475,7 +481,7 @@ class MzMLAssessor:
 
         try:
             
-            self.precursor_stats['precursor tolerance']['fit_ppm'] = {"lower_three_sigma (ppm)":-fit_ppm[2]*3, "upper_three_sigma (ppm)":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma (ppm)": fit_ppm[2], "y_offset": fit_ppm[3], "chi_squared":chi_squared_red_ppm, "recommended precursor tolerance (ppm)": f"{math.ceil(fit_ppm[2]*3)} ppm"}
+            self.precursor_stats['precursor tolerance']['fit_ppm'] = {"lower_three_sigma (ppm)":-fit_ppm[2]*3, "upper_three_sigma (ppm)":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma (ppm)": fit_ppm[2], "y_offset": fit_ppm[3], "chi_squared":chi_squared_red_ppm, "recommended precursor tolerance (ppm)": f"{math.ceil(math.sqrt(self.ppm_error**2 + (fit_ppm[2]*3)**2))} ppm"}
         
         except:
             self.precursor_stats['precursor tolerance']['fit_ppm'] = "no guassian ppm curve fit"
@@ -489,7 +495,7 @@ class MzMLAssessor:
             self.precursor_stats["dynamic exclusion window"]["histogram_time"] = "no delta_time values recorded"
 
         try:
-            self.precursor_stats['dynamic exclusion window']["fit_pulse_time"] = {"pulse start": fit_time[0], "inital level":fit_time[2], "pulse duration": fit_time[1],"peak level":fit_time[3], "final level":fit_time[4], "decay constant":fit_time[5], "peak to preceding level ratio": fit_time[3]/bound_y_before, "peak to following level ratio": fit_time[3]/bound_y_after, "chi_squared": chi_squared_red_time}
+            self.precursor_stats['dynamic exclusion window']["fit_pulse_time"] = {"pulse start": fit_time[0], "inital level":fit_time[1], "peak level":fit_time[2], "final level":fit_time[3], "decay constant":fit_time[4], "peak to preceding level ratio": fit_time[2]/bound_y_before, "peak to following level ratio": fit_time[2]/bound_y_after, "chi_squared": chi_squared_red_time}
             
         except:
             self.precursor_stats["dynamic exclusion window"]["fit_pulse_time"] = 'no dynamic exclusion window fit'
@@ -552,26 +558,21 @@ class MzMLAssessor:
     
     ####################################################################################################
     #### Pulse exp decay function with peak_level param
-    def time_exp_decay(self, t, pulse_start, pulse_duration, initial_level, peak_level, new_level, tau):
-
+    def time_exp_decay(self, t, pulse_start, initial_level, peak_level, new_level, tau):
         exponent_rise = numpy.clip(-(t - pulse_start) * 50, -700, 700)
-        exponent_fall = numpy.clip(-(t - (pulse_start + pulse_duration)) * 50, -700, 700)
-
         rise = 1 / (1 + numpy.exp(exponent_rise))
-        fall = 1 / (1 + numpy.exp(exponent_fall))
-        plateau = rise * (1 - fall)
 
-    
-        y = initial_level + (peak_level - initial_level) * plateau
+        # peak at pulse_start, no explicit "plateau"
+        y = initial_level + (peak_level - initial_level) * rise
 
-    
-        decay_mask = t >= (pulse_start + pulse_duration)
         safe_tau = max(tau, 1e-8)
+        decay_mask = t >= pulse_start
         decay = numpy.zeros_like(t)
-        decay[decay_mask] = (peak_level - new_level) * numpy.exp(-(t[decay_mask] - (pulse_start + pulse_duration)) / safe_tau)
+        decay[decay_mask] = (peak_level - new_level) * numpy.exp(-(t[decay_mask] - pulse_start) / safe_tau)
         y[decay_mask] = new_level + decay[decay_mask]
 
         return y
+
 
 
         
@@ -1418,7 +1419,8 @@ class MzMLAssessor:
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_lower'] = three_sigma_lower
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_upper'] = three_sigma_upper
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with fragment_tolerance'] = len(upper)
-                        recommended_precursor = math.ceil(max(abs(three_sigma_lower), abs(three_sigma_upper)))
+
+                        recommended_precursor = math.ceil(math.sqrt(self.ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance (ppm)'] = f"{recommended_precursor} ppm"
 
 
@@ -1438,7 +1440,8 @@ class MzMLAssessor:
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['lower_m/z'] = three_sigma_lower
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['upper_m/z'] = three_sigma_upper
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with sigma_m/z'] = len(upper)
-                        recommended_precursor = math.ceil(max(abs(three_sigma_lower), abs(three_sigma_upper)))
+     
+                        recommended_precursor = round(math.sqrt(self.mz_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper)))**2), 3)
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance (m/z)'] = f"{recommended_precursor} m/z"
 
                         if len(upper) < 5:
