@@ -1318,7 +1318,7 @@
         },
         "precursor stats": {
           "dynamic exclusion window": {
-            "dynamic_exclusion_time_fit_call": "no fit",
+            "dynamic_exclusion_time_fit_call": "good fit, dynamic exclusion window found",
             "fit_pulse_time": {
               "chi_squared": 0.0,
               "decay constant": 1.0,
@@ -1327,7 +1327,6 @@
               "peak level": 0.0,
               "peak to following level ratio": 0.0,
               "peak to preceding level ratio": 0.0,
-              "pulse duration": 0.5,
               "pulse start": 0.005
             },
             "histogram_time": {
@@ -1831,7 +1830,7 @@
                 0
               ]
             },
-            "ppm_fit call": "no fit"
+            "ppm_fit call": "probably not a good fit, suggested tolerance may not be accurate, check ppm graph"
           }
         }
       }
