@@ -641,7 +641,7 @@ class GraphGenerator:
                         mu_mz = fit_param['mz']
                         y_offset = fit_param['y_offset']
                         mz_range = mz[TMT10_129_C_range]
-                        mz_subset = np.linspace(min(mz_range), max(mz_range), 500)
+                        mz_subset = np.linspace(min(mz_range), max(mz_range), 1000)
                         intensity_subset = intensities[TMT10_129_C_range]
 
                         gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
@@ -679,7 +679,7 @@ class GraphGenerator:
                         mu_mz = fit_param['mz']
                         y_offset = fit_param['y_offset']
                         mz_range = mz[TMT6plex_range]
-                        mz_subset = np.linspace(min(mz_range), max(mz_range), 500)
+                        mz_subset = np.linspace(min(mz_range), max(mz_range), 1000)
                         intensity_subset = intensities[TMT6plex_range]
 
                         gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
@@ -717,7 +717,7 @@ class GraphGenerator:
                         mu_mz = fit_param['mz']
                         y_offset = fit_param['y_offset']
                         mz_range = mz[IH_range]
-                        mz_subset = np.linspace(min(mz_range), max(mz_range), 500)
+                        mz_subset = np.linspace(min(mz_range), max(mz_range), 1000)
                         intensity_subset = intensities[IH_range]
 
                         gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
@@ -755,7 +755,7 @@ class GraphGenerator:
                         mu_mz = fit_param['mz']
                         y_offset = fit_param['y_offset']
                         mz_range = mz[y_K_range]
-                        mz_subset = np.linspace(min(mz_range), max(mz_range), 500)
+                        mz_subset = np.linspace(min(mz_range), max(mz_range), 1000)
                         intensity_subset = intensities[y_K_range]
 
                         gaussian = norm.pdf(mz_subset, mu_mz, sigma_mz)
