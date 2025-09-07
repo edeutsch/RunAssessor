@@ -490,14 +490,24 @@
             "mz": 141.10224,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": 0.3973743994034116,
+                "comment": "Peak found and fit",
+                "fraction": 0.08982826948480846,
+                "is_found": true
               },
               "extended": {
                 "extent": 16,
                 "intensity": 37554.577503204346,
                 "n_spectra": 136
+              },
+              "fit": {
+                "delta_mz": 0.03569382116586439,
+                "delta_ppm": 252.96424185657432,
+                "intensity": 754.3281211237534,
+                "mz": 141.13793382116586,
+                "sigma_mz": 0.08982415882717266,
+                "sigma_ppm": 636.5891769483792,
+                "y_offset": 928.2679878702958
               },
               "mode_bin": {
                 "ibin": 821,
@@ -780,14 +790,24 @@
             "mz": 129.10224,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.9390226315055816,
+                "comment": "Peak found and fit",
+                "fraction": 0.08784676354029063,
+                "is_found": true
               },
               "extended": {
                 "extent": 16,
                 "intensity": 45597.273918151855,
                 "n_spectra": 133
+              },
+              "fit": {
+                "delta_mz": -0.024679406559926065,
+                "delta_ppm": -191.16172236768367,
+                "intensity": -2156.231900384696,
+                "mz": 129.07756059344007,
+                "sigma_mz": 0.012727755807967743,
+                "sigma_ppm": 98.58663806273032,
+                "y_offset": 1509.6151234493873
               },
               "mode_bin": {
                 "ibin": 581,
@@ -1307,15 +1327,14 @@
           "dynamic exclusion window": {
             "dynamic_exclusion_time_fit_call": "probably not a good fit, suggested tolerance may not be accurate, check time graph",
             "fit_pulse_time": {
-              "chi_squared": 24864443.26344381,
-              "decay constant": 9.922502672150019,
-              "final level": 0.4962033940433576,
-              "inital level": 0.657894736842104,
-              "peak level": 21.4405470862308,
-              "peak to following level ratio": 1.9473080015061572,
-              "peak to preceding level ratio": 32.58963157107088,
-              "pulse duration": -1.8380605323608552,
-              "pulse start": 62.878400218518685
+              "chi_squared": 67502211.143656,
+              "decay constant": 4.811403999149117,
+              "final level": 5.013484211064168,
+              "inital level": 1.0897425777276049,
+              "peak level": 18.78926931778113,
+              "peak to following level ratio": 1.9004960447083417,
+              "peak to preceding level ratio": 17.24193373903185,
+              "pulse start": 62.91619907899896
             },
             "histogram_time": {
               "bin_centers": [
@@ -1629,14 +1648,14 @@
           },
           "precursor tolerance": {
             "fit_ppm": {
-              "chi_squared": 3.7532639952723,
-              "delta_ppm peak": 0.055275034001729985,
-              "intensity": 153.09385782344825,
-              "lower_three_sigma (ppm)": -0.717997814710292,
-              "recommended precursor tolerance (ppm)": "1 ppm",
-              "sigma (ppm)": 0.23933260490343067,
-              "upper_three_sigma (ppm)": 0.717997814710292,
-              "y_offset": 1.9405906684961527
+              "chi_squared": 3.7532640774052988,
+              "delta_ppm peak": 0.05527504402984923,
+              "intensity": 153.09385536369692,
+              "lower_three_sigma (ppm)": -0.717997843819468,
+              "recommended precursor tolerance (ppm)": "6 ppm",
+              "sigma (ppm)": 0.23933261460648933,
+              "upper_three_sigma (ppm)": 0.717997843819468,
+              "y_offset": 1.9405906198214553
             },
             "histogram_ppm": {
               "bin_centers": [

@@ -31,14 +31,26 @@
             "mz": 120.08078,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.3318975042690724,
+                "comment": "Peak found and fit",
+                "fraction": 0.11977203787112786,
+                "is_found": true
               },
               "extended": {
                 "extent": 4,
                 "intensity": 14647670.276855469,
-                "n_spectra": 2606
+                "n_spectra": 2606,
+                "three_sigma_ppm_lower": -4.5869602316465965,
+                "three_sigma_ppm_upper": 0.5747596566002842
+              },
+              "fit": {
+                "delta_mz": -0.00024089408728400485,
+                "delta_ppm": -2.006100287523156,
+                "intensity": 10784327.240189444,
+                "mz": 120.08053910591272,
+                "sigma_mz": 0.00010330389172036638,
+                "sigma_ppm": 0.8602866480411467,
+                "y_offset": 46240.805017683466
               },
               "mode_bin": {
                 "ibin": 100403,
@@ -77,14 +89,26 @@
             "mz": 110.07127,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.052847476922218,
+                "comment": "Peak found and fit",
+                "fraction": 0.1394889236143028,
+                "is_found": true
               },
               "extended": {
                 "extent": 4,
                 "intensity": 8440568.373962402,
-                "n_spectra": 3035
+                "n_spectra": 3035,
+                "three_sigma_ppm_lower": -6.42956813948734,
+                "three_sigma_ppm_upper": 3.0890256532946667
+              },
+              "fit": {
+                "delta_mz": -0.0001838488769720925,
+                "delta_ppm": -1.6702712430963367,
+                "intensity": 3840435.0399933537,
+                "mz": 110.07108615112303,
+                "sigma_mz": 0.00017462061789760537,
+                "sigma_ppm": 1.586432298797001,
+                "y_offset": 3058.7063170434913
               },
               "mode_bin": {
                 "ibin": 50356,
@@ -151,14 +175,26 @@
             "mz": 112.08692,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.3233371245407686,
+                "comment": "Peak found and fit",
+                "fraction": 0.13287066825995036,
+                "is_found": true
               },
               "extended": {
                 "extent": 4,
                 "intensity": 7903861.6875,
-                "n_spectra": 2891
+                "n_spectra": 2891,
+                "three_sigma_ppm_lower": -6.381849778007879,
+                "three_sigma_ppm_upper": 2.474988716194586
+              },
+              "fit": {
+                "delta_mz": -0.00021895401164329087,
+                "delta_ppm": -1.9534305309066469,
+                "intensity": 3737457.4860539082,
+                "mz": 112.08670104598836,
+                "sigma_mz": 0.00016545595795876535,
+                "sigma_ppm": 1.4761397490337442,
+                "y_offset": 9772.105925374732
               },
               "mode_bin": {
                 "ibin": 60434,
@@ -220,7 +256,7 @@
             "mz": 136.07569,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.5663297584914961,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.5663297623641788,
                 "comment": "Peak found and fit",
                 "fraction": 0.2363268682783344,
                 "is_found": true
@@ -229,17 +265,17 @@
                 "extent": 4,
                 "intensity": 39752786.614746094,
                 "n_spectra": 5142,
-                "three_sigma_ppm_lower": -4.434770219711211,
-                "three_sigma_ppm_upper": 1.3923650783443378
+                "three_sigma_ppm_lower": -4.434770210680809,
+                "three_sigma_ppm_upper": 1.3923650705671367
               },
               "fit": {
-                "delta_mz": -0.00020699868943552246,
-                "delta_ppm": -1.521202570683437,
-                "intensity": 23254101.86424718,
-                "mz": 136.07548300131057,
-                "sigma_mz": 0.00013215524273437742,
-                "sigma_ppm": 0.9711892163425916,
-                "y_offset": 79496.49181895978
+                "delta_mz": -0.00020699868935025734,
+                "delta_ppm": -1.5212025700568363,
+                "intensity": 23254101.867092416,
+                "mz": 136.07548300131066,
+                "sigma_mz": 0.00013215524235319308,
+                "sigma_ppm": 0.9711892135413244,
+                "y_offset": 79496.5175172158
               },
               "mode_bin": {
                 "ibin": 180377,
@@ -278,7 +314,7 @@
             "mz": 128.128116,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.161886290553796,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.161886290537762,
                 "comment": "Peak found and fit",
                 "fraction": 0.7663388179060575,
                 "is_found": true
@@ -287,17 +323,17 @@
                 "extent": 3,
                 "intensity": 81712409.15625,
                 "n_spectra": 16674,
-                "three_sigma_ppm_lower": -6.265491183563394,
-                "three_sigma_ppm_upper": 1.0173013820487364
+                "three_sigma_ppm_lower": -6.265491183590401,
+                "three_sigma_ppm_upper": 1.0173013820757437
               },
               "fit": {
                 "delta_mz": -0.0003362203358392435,
                 "delta_ppm": -2.6240949007573287,
-                "intensity": 39426352.16635059,
+                "intensity": 39426352.16548459,
                 "mz": 128.12777977966417,
-                "sigma_mz": 0.00015552174844178144,
-                "sigma_ppm": 1.213798760935355,
-                "y_offset": 471515.94632308197
+                "sigma_mz": 0.00015552174844293492,
+                "sigma_ppm": 1.2137987609443575,
+                "y_offset": 471515.9464235383
               },
               "mode_bin": {
                 "ibin": 140639,
@@ -313,7 +349,7 @@
             "mz": 129.13779,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.752984764154719,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.7529847644463206,
                 "comment": "Peak found and fit",
                 "fraction": 0.8958084382755768,
                 "is_found": true
@@ -322,17 +358,17 @@
                 "extent": 3,
                 "intensity": 160090917.390625,
                 "n_spectra": 19491,
-                "three_sigma_ppm_lower": -5.98802475652405,
-                "three_sigma_ppm_upper": 0.25710712058482166
+                "three_sigma_ppm_lower": -5.988024756193302,
+                "three_sigma_ppm_upper": 0.2571071202540738
               },
               "fit": {
                 "delta_mz": -0.00037003901908860826,
                 "delta_ppm": -2.865458817969614,
-                "intensity": 92803096.17609239,
+                "intensity": 92803096.16982175,
                 "mz": 129.1374199609809,
-                "sigma_mz": 0.00013441375481139853,
-                "sigma_ppm": 1.0408553128514786,
-                "y_offset": 410539.4048861422
+                "sigma_mz": 0.00013441375479716116,
+                "sigma_ppm": 1.0408553127412292,
+                "y_offset": 410539.41259780276
               },
               "mode_bin": {
                 "ibin": 145687,
@@ -348,7 +384,7 @@
             "mz": 130.134825,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.2247520111813746,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.2247520111241497,
                 "comment": "Peak found and fit",
                 "fraction": 0.8324294512363268,
                 "is_found": true
@@ -357,17 +393,17 @@
                 "extent": 4,
                 "intensity": 109362614.07128906,
                 "n_spectra": 18112,
-                "three_sigma_ppm_lower": -5.951257256393365,
-                "three_sigma_ppm_upper": 0.88304673773751
+                "three_sigma_ppm_lower": -5.951257256481261,
+                "three_sigma_ppm_upper": 0.8830467378254059
               },
               "fit": {
                 "delta_mz": -0.0003297753444542195,
                 "delta_ppm": -2.534105259327928,
-                "intensity": 56659729.31507865,
+                "intensity": 56659729.334116146,
                 "mz": 130.13449522465555,
-                "sigma_mz": 0.00014823015904550377,
-                "sigma_ppm": 1.1390506656884793,
-                "y_offset": 347483.701311976
+                "sigma_mz": 0.00014823015904931653,
+                "sigma_ppm": 1.139050665717778,
+                "y_offset": 347483.698098271
               },
               "mode_bin": {
                 "ibin": 150672,
@@ -406,7 +442,7 @@
             "mz": 126.127725,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.3945624673895451,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.3945624565879977,
                 "comment": "Peak found and fit",
                 "fraction": 0.6484051843000276,
                 "is_found": true
@@ -415,17 +451,17 @@
                 "extent": 4,
                 "intensity": 51371323.279296875,
                 "n_spectra": 14108,
-                "three_sigma_ppm_lower": -5.561033017558522,
-                "three_sigma_ppm_upper": 2.0315767935317948
+                "three_sigma_ppm_lower": -5.5610330441223175,
+                "three_sigma_ppm_upper": 2.031576821898317
               },
               "fit": {
-                "delta_mz": -0.0002225811420117907,
-                "delta_ppm": -1.7647281120133633,
-                "intensity": 24756201.12064801,
-                "mz": 126.12750241885799,
-                "sigma_mz": 0.00015960643371425024,
-                "sigma_ppm": 1.2654349685150528,
-                "y_offset": 116451.61236008188
+                "delta_mz": -0.00022258114189810385,
+                "delta_ppm": -1.7647281111120006,
+                "intensity": 24756201.242874846,
+                "mz": 126.1275024188581,
+                "sigma_mz": 0.00015960643486895624,
+                "sigma_ppm": 1.2654349776701057,
+                "y_offset": 116451.4822537382
               },
               "mode_bin": {
                 "ibin": 130638,
@@ -441,7 +477,7 @@
             "mz": 127.12476,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.5522736122657679,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.5522736171742413,
                 "comment": "Peak found and fit",
                 "fraction": 0.7832061770383307,
                 "is_found": true
@@ -450,17 +486,17 @@
                 "extent": 4,
                 "intensity": 75867823.09075928,
                 "n_spectra": 17041,
-                "three_sigma_ppm_lower": -5.1709352063676,
-                "three_sigma_ppm_upper": 1.6444748240421192
+                "three_sigma_ppm_lower": -5.170935193625046,
+                "three_sigma_ppm_upper": 1.6444748126410051
               },
               "fit": {
-                "delta_mz": -0.00022415021487631748,
-                "delta_ppm": -1.7632301911627404,
-                "intensity": 39093864.86268945,
-                "mz": 127.12453584978512,
-                "sigma_mz": 0.00014440122740290472,
-                "sigma_ppm": 1.1359016717349533,
-                "y_offset": 321589.92415463924
+                "delta_mz": -0.00022415021479105235,
+                "delta_ppm": -1.7632301904920202,
+                "intensity": 39093864.88144569,
+                "mz": 127.1245358497852,
+                "sigma_mz": 0.0001444012268913617,
+                "sigma_ppm": 1.1359016677110085,
+                "y_offset": 321589.9597950374
               },
               "mode_bin": {
                 "ibin": 135623,
@@ -476,7 +512,7 @@
             "mz": 128.134433,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.3044355110253076,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.3044355106314494,
                 "comment": "Peak found and fit",
                 "fraction": 0.6939516499678279,
                 "is_found": true
@@ -485,17 +521,17 @@
                 "extent": 4,
                 "intensity": 57571404.484375,
                 "n_spectra": 15099,
-                "three_sigma_ppm_lower": -7.335607988282539,
-                "three_sigma_ppm_upper": 0.9619097849494187
+                "three_sigma_ppm_lower": -7.335607989502192,
+                "three_sigma_ppm_upper": 0.9619097857254477
               },
               "fit": {
-                "delta_mz": -0.000408345102698604,
-                "delta_ppm": -3.18684910166656,
-                "intensity": 23707277.826899372,
-                "mz": 128.1340246548973,
-                "sigma_mz": 0.00017719962253008324,
-                "sigma_ppm": 1.382919628871993,
-                "y_offset": 315915.6336244311
+                "delta_mz": -0.00040834510272702573,
+                "delta_ppm": -3.186849101888372,
+                "intensity": 23707277.826342534,
+                "mz": 128.13402465489727,
+                "sigma_mz": 0.0001771996225727025,
+                "sigma_ppm": 1.3829196292046064,
+                "y_offset": 315915.63356858696
               },
               "mode_bin": {
                 "ibin": 140670,
@@ -511,7 +547,7 @@
             "mz": 129.131468,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.1378231737473135,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.137823174557445,
                 "comment": "Peak found and fit",
                 "fraction": 0.7972240095597022,
                 "is_found": true
@@ -520,17 +556,17 @@
                 "extent": 4,
                 "intensity": 89373890.44384766,
                 "n_spectra": 17346,
-                "three_sigma_ppm_lower": -5.686173668314616,
-                "three_sigma_ppm_upper": 0.9541953860769841
+                "three_sigma_ppm_lower": -5.686173667056426,
+                "three_sigma_ppm_upper": 0.9541953848187945
               },
               "fit": {
                 "delta_mz": -0.0003055236510647319,
                 "delta_ppm": -2.365989141118816,
-                "intensity": 44836473.529229894,
+                "intensity": 44836473.507893324,
                 "mz": 129.13116247634895,
-                "sigma_mz": 0.00014291343400922655,
-                "sigma_ppm": 1.1067281757319334,
-                "y_offset": 620321.3956777945
+                "sigma_mz": 0.00014291343395506927,
+                "sigma_ppm": 1.1067281753125369,
+                "y_offset": 620321.4163078004
               },
               "mode_bin": {
                 "ibin": 145656,
@@ -546,7 +582,7 @@
             "mz": 130.141141,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -3.2779908930549517,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -3.277990892888224,
                 "comment": "Peak found and fit",
                 "fraction": 0.859362073720011,
                 "is_found": true
@@ -555,17 +591,17 @@
                 "extent": 4,
                 "intensity": 121425765.10058594,
                 "n_spectra": 18698,
-                "three_sigma_ppm_lower": -5.642237921356154,
-                "three_sigma_ppm_upper": -0.24983960399201255
+                "three_sigma_ppm_lower": -5.64223792149329,
+                "three_sigma_ppm_upper": -0.24983960385487647
               },
               "fit": {
                 "delta_mz": -0.0003834008460046334,
                 "delta_ppm": -2.946038762674083,
-                "intensity": 77478692.64214343,
+                "intensity": 77478692.64870772,
                 "mz": 130.140757599154,
-                "sigma_mz": 0.00011696214495804158,
-                "sigma_ppm": 0.8987330528940235,
-                "y_offset": 512728.2073676195
+                "sigma_mz": 0.0001169621449639906,
+                "sigma_ppm": 0.8987330529397355,
+                "y_offset": 512728.20115324744
               },
               "mode_bin": {
                 "ibin": 150704,
@@ -581,7 +617,7 @@
             "mz": 131.138176,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.8779600516361232,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.8779600517805686,
                 "comment": "Peak found and fit",
                 "fraction": 0.8876734994025186,
                 "is_found": true
@@ -590,17 +626,17 @@
                 "extent": 3,
                 "intensity": 149829985.88867188,
                 "n_spectra": 19314,
-                "three_sigma_ppm_lower": -4.105958844880369,
-                "three_sigma_ppm_upper": 0.9444623985283593
+                "three_sigma_ppm_lower": -4.105958844686141,
+                "three_sigma_ppm_upper": 0.9444623983341303
               },
               "fit": {
                 "delta_mz": -0.00020729643870254222,
                 "delta_ppm": -1.580748223176005,
-                "intensity": 101525764.1728375,
+                "intensity": 101525764.1705889,
                 "mz": 131.13796870356128,
-                "sigma_mz": 0.00011038383831537877,
-                "sigma_ppm": 0.8417368739014548,
-                "y_offset": 881421.6423774936
+                "sigma_mz": 0.00011038383830688848,
+                "sigma_ppm": 0.8417368738367117,
+                "y_offset": 881421.6467242352
               },
               "mode_bin": {
                 "ibin": 155690,
@@ -616,7 +652,7 @@
             "mz": 230.1702,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -3.1621143508010143,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -3.1621143482661984,
                 "comment": "Peak found and fit",
                 "fraction": 0.8993933265925177,
                 "is_found": true
@@ -625,17 +661,17 @@
                 "extent": 4,
                 "intensity": 234960911.046875,
                 "n_spectra": 19569,
-                "three_sigma_ppm_lower": -3.930450823384451,
-                "three_sigma_ppm_upper": -0.10340322287356685
+                "three_sigma_ppm_lower": -3.9304508249183705,
+                "three_sigma_ppm_upper": -0.10340322133964697
               },
               "fit": {
                 "delta_mz": -0.00046423649629900865,
                 "delta_ppm": -2.016927023129009,
-                "intensity": 117175455.81842826,
+                "intensity": 117175455.81801829,
                 "mz": 230.1697357635037,
-                "sigma_mz": 0.00014681205193651836,
-                "sigma_ppm": 0.637841266751814,
-                "y_offset": 1291185.7506337953
+                "sigma_mz": 0.00014681205205420593,
+                "sigma_ppm": 0.6378412672631206,
+                "y_offset": 1291185.7207860348
               },
               "mode_bin": {
                 "ibin": 650849,
@@ -651,7 +687,7 @@
             "mz": 248.18079,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.5632427375325326,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.56324274122074,
                 "comment": "Peak found and fit",
                 "fraction": 0.3175843367956614,
                 "is_found": true
@@ -660,17 +696,17 @@
                 "extent": 7,
                 "intensity": 23928347.234375,
                 "n_spectra": 6910,
-                "three_sigma_ppm_lower": -4.066980862636622,
-                "three_sigma_ppm_upper": 0.3192892188739165
+                "three_sigma_ppm_lower": -4.066980859232403,
+                "three_sigma_ppm_upper": 0.31928921569873747
               },
               "fit": {
-                "delta_mz": -0.0004650525364127134,
-                "delta_ppm": -1.8738458218813527,
-                "intensity": 8208315.683895865,
-                "mz": 248.1803249474636,
-                "sigma_mz": 0.0001814313289971083,
-                "sigma_ppm": 0.7310450135850897,
-                "y_offset": 191932.42590411368
+                "delta_mz": -0.00046505253638429167,
+                "delta_ppm": -1.8738458217668326,
+                "intensity": 8208315.687411557,
+                "mz": 248.18032494746362,
+                "sigma_mz": 0.00018143132872496158,
+                "sigma_ppm": 0.7310450124885233,
+                "y_offset": 191932.42900947147
               },
               "mode_bin": {
                 "ibin": 740902,
@@ -732,14 +768,26 @@
             "mz": 115.08659,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.3086985196982597,
+                "comment": "Peak found and fit",
+                "fraction": 0.11448662560897141,
+                "is_found": true
               },
               "extended": {
                 "extent": 4,
                 "intensity": 7529564.940063477,
-                "n_spectra": 2491
+                "n_spectra": 2491,
+                "three_sigma_ppm_lower": -6.546749802426013,
+                "three_sigma_ppm_upper": 2.569807931881866
+              },
+              "fit": {
+                "delta_mz": -0.00022884633925457365,
+                "delta_ppm": -1.9884709352720735,
+                "intensity": 3344945.2493841834,
+                "mz": 115.08636115366075,
+                "sigma_mz": 0.00017486559036326995,
+                "sigma_ppm": 1.519426289051313,
+                "y_offset": 12773.337413226742
               },
               "mode_bin": {
                 "ibin": 75432,
@@ -755,14 +803,26 @@
             "mz": 158.0924,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.8657111301031122,
+                "comment": "Peak found and fit",
+                "fraction": 0.1751999264638294,
+                "is_found": true
               },
               "extended": {
                 "extent": 5,
                 "intensity": 20084260.75,
-                "n_spectra": 3812
+                "n_spectra": 3812,
+                "three_sigma_ppm_lower": -4.602649510133217,
+                "three_sigma_ppm_upper": 1.072964253689642
+              },
+              "fit": {
+                "delta_mz": -0.00027900820671789006,
+                "delta_ppm": -1.7648426282217873,
+                "intensity": 9041602.25875672,
+                "mz": 158.09212099179328,
+                "sigma_mz": 0.0001495452335659648,
+                "sigma_ppm": 0.9459356273038098,
+                "y_offset": 158314.76160677455
               },
               "mode_bin": {
                 "ibin": 290461,
@@ -778,14 +838,26 @@
             "mz": 141.10224,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.261358182106469,
+                "comment": "Peak found and fit",
+                "fraction": 0.05175108006250574,
+                "is_found": true
               },
               "extended": {
                 "extent": 5,
                 "intensity": 5709035.4091796875,
-                "n_spectra": 1126
+                "n_spectra": 1126,
+                "three_sigma_ppm_lower": -4.3966942193432725,
+                "three_sigma_ppm_upper": 0.6172516864452429
+              },
+              "fit": {
+                "delta_mz": -0.00026664390367159285,
+                "delta_ppm": -1.889721266449015,
+                "intensity": 3480225.128812927,
+                "mz": 141.10197335609632,
+                "sigma_mz": 0.00011791316642426476,
+                "sigma_ppm": 0.8356576509647526,
+                "y_offset": 28170.204887985125
               },
               "mode_bin": {
                 "ibin": 205510,
@@ -801,14 +873,26 @@
             "mz": 143.11789,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.407214480746249,
+                "comment": "Peak found and fit",
+                "fraction": 0.06802095780862212,
+                "is_found": true
               },
               "extended": {
                 "extent": 5,
                 "intensity": 12204504.908081055,
-                "n_spectra": 1480
+                "n_spectra": 1480,
+                "three_sigma_ppm_lower": -4.119650358161778,
+                "three_sigma_ppm_upper": 0.4516316275972465
+              },
+              "fit": {
+                "delta_mz": -0.00026247955059943706,
+                "delta_ppm": -1.8340093652822653,
+                "intensity": 8215489.153815632,
+                "mz": 143.1176275204494,
+                "sigma_mz": 0.00010903870539947358,
+                "sigma_ppm": 0.7618803309598373,
+                "y_offset": 47268.31318754177
               },
               "mode_bin": {
                 "ibin": 215588,
@@ -824,14 +908,26 @@
             "mz": 201.12337,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.970811924870283,
+                "comment": "Peak found and fit",
+                "fraction": 0.06967552164721022,
+                "is_found": true
               },
               "extended": {
                 "extent": 5,
                 "intensity": 22895957.91796875,
-                "n_spectra": 1516
+                "n_spectra": 1516,
+                "three_sigma_ppm_lower": -3.3833289781921385,
+                "three_sigma_ppm_upper": 0.016539268301633436
+              },
+              "fit": {
+                "delta_mz": -0.0003385700462672503,
+                "delta_ppm": -1.6833948549452524,
+                "intensity": 14881375.584260376,
+                "mz": 201.12303142995373,
+                "sigma_mz": 0.00011396549321513633,
+                "sigma_ppm": 0.5666447077489619,
+                "y_offset": 81593.07087434929
               },
               "mode_bin": {
                 "ibin": 505615,
@@ -847,14 +943,26 @@
             "mz": 185.09207,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.096574463313256,
+                "comment": "Peak found and fit",
+                "fraction": 0.07817814137328799,
+                "is_found": true
               },
               "extended": {
                 "extent": 6,
                 "intensity": 7040598.9013671875,
-                "n_spectra": 1701
+                "n_spectra": 1701,
+                "three_sigma_ppm_lower": -4.006982233576418,
+                "three_sigma_ppm_upper": 0.710282975539942
+              },
+              "fit": {
+                "delta_mz": -0.0003050964449187177,
+                "delta_ppm": -1.6483496290182376,
+                "intensity": 3119031.6907967348,
+                "mz": 185.0917649035551,
+                "sigma_mz": 0.00014552139704905498,
+                "sigma_ppm": 0.7862108681860599,
+                "y_offset": 57146.20164323914
               },
               "mode_bin": {
                 "ibin": 425459,
@@ -870,14 +978,26 @@
             "mz": 215.13902,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.1791086149525032,
+                "comment": "Peak found and fit",
+                "fraction": 0.048625792811839326,
+                "is_found": true
               },
               "extended": {
                 "extent": 6,
                 "intensity": 16064641.020507812,
-                "n_spectra": 1058
+                "n_spectra": 1058,
+                "three_sigma_ppm_lower": -4.385370447484048,
+                "three_sigma_ppm_upper": 1.9107623189057374
+              },
+              "fit": {
+                "delta_mz": -0.0002661923838331859,
+                "delta_ppm": -1.2373040642891553,
+                "intensity": 5836539.940278983,
+                "mz": 215.13875380761615,
+                "sigma_mz": 0.00022575730552516454,
+                "sigma_ppm": 1.0493554610649642,
+                "y_offset": -17140.12069512349
               },
               "mode_bin": {
                 "ibin": 575693,
@@ -893,14 +1013,26 @@
             "mz": 127.08659,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.8241104595645175,
+                "comment": "Peak found and fit",
+                "fraction": 0.05115359867634893,
+                "is_found": true
               },
               "extended": {
                 "extent": 4,
                 "intensity": 4971933.55871582,
-                "n_spectra": 1113
+                "n_spectra": 1113,
+                "three_sigma_ppm_lower": -4.331805652562981,
+                "three_sigma_ppm_upper": 1.0558889562632299
+              },
+              "fit": {
+                "delta_mz": -0.00020816254102840048,
+                "delta_ppm": -1.6379583481498754,
+                "intensity": 3178000.7739182673,
+                "mz": 127.08638183745897,
+                "sigma_mz": 0.00011411728929951785,
+                "sigma_ppm": 0.8979491014710351,
+                "y_offset": 26345.405020286034
               },
               "mode_bin": {
                 "ibin": 135432,
@@ -939,14 +1071,26 @@
             "mz": 183.14919,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.154604739349772,
+                "comment": "Peak found and fit",
+                "fraction": 0.02504825811195882,
+                "is_found": true
               },
               "extended": {
                 "extent": 5,
                 "intensity": 3146611.5512695312,
-                "n_spectra": 545
+                "n_spectra": 545,
+                "three_sigma_ppm_lower": -4.506398409481921,
+                "three_sigma_ppm_upper": 0.7390843819497819
+              },
+              "fit": {
+                "delta_mz": -0.00034499025630907454,
+                "delta_ppm": -1.8836570137660698,
+                "intensity": 1477315.7846674246,
+                "mz": 183.1488450097437,
+                "sigma_mz": 0.0001601176540682759,
+                "sigma_ppm": 0.8742471319052838,
+                "y_offset": 9342.887599908974
               },
               "mode_bin": {
                 "ibin": 415744,
@@ -962,14 +1106,26 @@
             "mz": 173.12845,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.9595524069936108,
+                "comment": "Peak found and fit",
+                "fraction": 0.028127585255997792,
+                "is_found": true
               },
               "extended": {
                 "extent": 5,
                 "intensity": 10967191.160644531,
-                "n_spectra": 612
+                "n_spectra": 612,
+                "three_sigma_ppm_lower": -3.2842748706637,
+                "three_sigma_ppm_upper": 0.022290434619523847
+              },
+              "fit": {
+                "delta_mz": -0.00028237115466822615,
+                "delta_ppm": -1.6309922180220882,
+                "intensity": 8341641.249829239,
+                "mz": 173.12816762884532,
+                "sigma_mz": 9.541008768791022e-05,
+                "sigma_ppm": 0.551094217547204,
+                "y_offset": 43866.24522985647
               },
               "mode_bin": {
                 "ibin": 365641,
@@ -985,14 +1141,26 @@
             "mz": 187.1441,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -3.325021732233325,
+                "comment": "Peak found and fit",
+                "fraction": 0.019349204890155344,
+                "is_found": true
               },
               "extended": {
                 "extent": 6,
                 "intensity": 9826335.129882812,
-                "n_spectra": 421
+                "n_spectra": 421,
+                "three_sigma_ppm_lower": -3.413537981639021,
+                "three_sigma_ppm_upper": -0.1754103107950611
+              },
+              "fit": {
+                "delta_mz": -0.0003358252490670566,
+                "delta_ppm": -1.794474146217041,
+                "intensity": 7332721.995945864,
+                "mz": 187.14376417475094,
+                "sigma_mz": 0.00010099941477419818,
+                "sigma_ppm": 0.53968794514066,
+                "y_offset": 20555.495879921313
               },
               "mode_bin": {
                 "ibin": 435719,
@@ -1031,14 +1199,26 @@
             "mz": 169.13354,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.768686953954345,
+                "comment": "Peak found and fit",
+                "fraction": 0.06792903759536723,
+                "is_found": true
               },
               "extended": {
                 "extent": 5,
                 "intensity": 9316620.192382812,
-                "n_spectra": 1478
+                "n_spectra": 1478,
+                "three_sigma_ppm_lower": -4.113207457126784,
+                "three_sigma_ppm_upper": 0.16493156129290432
+              },
+              "fit": {
+                "delta_mz": -0.0003338929395795276,
+                "delta_ppm": -1.9741379479169394,
+                "intensity": 5517207.347918615,
+                "mz": 169.13320610706043,
+                "sigma_mz": 0.00012059613279957451,
+                "sigma_ppm": 0.7130231697366146,
+                "y_offset": 49012.49917591338
               },
               "mode_bin": {
                 "ibin": 345666,
@@ -1077,14 +1257,26 @@
             "mz": 169.09715,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.834707163998711,
+                "comment": "Peak found and fit",
+                "fraction": 0.054600606673407485,
+                "is_found": true
               },
               "extended": {
                 "extent": 5,
                 "intensity": 6830555.1640625,
-                "n_spectra": 1188
+                "n_spectra": 1188,
+                "three_sigma_ppm_lower": -4.784905073027147,
+                "three_sigma_ppm_upper": 1.1532892093371565
+              },
+              "fit": {
+                "delta_mz": -0.00030704794622238296,
+                "delta_ppm": -1.8158079318449953,
+                "intensity": 3121507.182870214,
+                "mz": 169.09684295205378,
+                "sigma_mz": 0.00016735528821568317,
+                "sigma_ppm": 0.9896990470607173,
+                "y_offset": 14859.203277471443
               },
               "mode_bin": {
                 "ibin": 345484,
@@ -1100,14 +1292,26 @@
             "mz": 171.1128,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.8598468985947045,
+                "comment": "Peak found and fit",
+                "fraction": 0.02766798418972332,
+                "is_found": true
               },
               "extended": {
                 "extent": 5,
                 "intensity": 4263137.577636719,
-                "n_spectra": 602
+                "n_spectra": 602,
+                "three_sigma_ppm_lower": -4.0488940093813675,
+                "three_sigma_ppm_upper": 0.9498980437824853
+              },
+              "fit": {
+                "delta_mz": -0.0002651389384311642,
+                "delta_ppm": -1.549497982799441,
+                "intensity": 2167541.8766807127,
+                "mz": 171.11253486106156,
+                "sigma_mz": 0.00014255955080576927,
+                "sigma_ppm": 0.8331320088606421,
+                "y_offset": 20113.488618293894
               },
               "mode_bin": {
                 "ibin": 355563,
@@ -1123,14 +1327,26 @@
             "mz": 155.0815,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.2519556421449973,
+                "comment": "Peak found and fit",
+                "fraction": 0.053267763581211505,
+                "is_found": true
               },
               "extended": {
                 "extent": 5,
                 "intensity": 8857085.848632812,
-                "n_spectra": 1159
+                "n_spectra": 1159,
+                "three_sigma_ppm_lower": -4.189355691582656,
+                "three_sigma_ppm_upper": 0.5966965644165716
+              },
+              "fit": {
+                "delta_mz": -0.0002785774832148036,
+                "delta_ppm": -1.7963295635830423,
+                "intensity": 5063810.765592546,
+                "mz": 155.0812214225168,
+                "sigma_mz": 0.00012370469382312404,
+                "sigma_ppm": 0.7976753759998713,
+                "y_offset": 50098.48053607008
               },
               "mode_bin": {
                 "ibin": 275406,
@@ -1146,14 +1362,26 @@
             "mz": 129.10224,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.490468565914451,
+                "comment": "Peak found and fit",
+                "fraction": 0.16219321628826178,
+                "is_found": true
               },
               "extended": {
                 "extent": 4,
                 "intensity": 29767507.813476562,
-                "n_spectra": 3529
+                "n_spectra": 3529,
+                "three_sigma_ppm_lower": -4.217199132362614,
+                "three_sigma_ppm_upper": 1.4176682367674656
+              },
+              "fit": {
+                "delta_mz": -0.00018071285478526988,
+                "delta_ppm": -1.399765447797574,
+                "intensity": 18663707.58305398,
+                "mz": 129.1020592871452,
+                "sigma_mz": 0.00012124566657626667,
+                "sigma_ppm": 0.9391445615216799,
+                "y_offset": 89555.36867952844
               },
               "mode_bin": {
                 "ibin": 145510,
@@ -1169,14 +1397,26 @@
             "mz": 197.12845,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.33438496022162,
+                "comment": "Peak found and fit",
+                "fraction": 0.06075926096148543,
+                "is_found": true
               },
               "extended": {
                 "extent": 6,
                 "intensity": 10140936.973632812,
-                "n_spectra": 1322
+                "n_spectra": 1322,
+                "three_sigma_ppm_lower": -3.5048533528107035,
+                "three_sigma_ppm_upper": 0.43732934935231293
+              },
+              "fit": {
+                "delta_mz": -0.00030234812606977357,
+                "delta_ppm": -1.5337620017291953,
+                "intensity": 5425336.324038587,
+                "mz": 197.12814765187392,
+                "sigma_mz": 0.00012951939428236785,
+                "sigma_ppm": 0.6570304503605028,
+                "y_offset": 56177.90223755325
               },
               "mode_bin": {
                 "ibin": 485641,
@@ -1192,14 +1432,26 @@
             "mz": 129.06585,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -0.9657822581886562,
+                "comment": "Peak found and fit",
+                "fraction": 0.055611729019211326,
+                "is_found": true
               },
               "extended": {
                 "extent": 4,
                 "intensity": 5123839.318847656,
-                "n_spectra": 1210
+                "n_spectra": 1210,
+                "three_sigma_ppm_lower": -5.080942115728035,
+                "three_sigma_ppm_upper": 2.606230479645954
+              },
+              "fit": {
+                "delta_mz": -0.00015970038040791223,
+                "delta_ppm": -1.2373558180410404,
+                "intensity": 2377685.0957591925,
+                "mz": 129.0656902996196,
+                "sigma_mz": 0.00016535857751977497,
+                "sigma_ppm": 1.2811954325623314,
+                "y_offset": 12792.046493391623
               },
               "mode_bin": {
                 "ibin": 145328,
@@ -1445,14 +1697,26 @@
             "mz": 187.10772,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -3.758428105279958,
+                "comment": "Peak found and fit",
+                "fraction": 0.028954867175291846,
+                "is_found": true
               },
               "extended": {
                 "extent": 5,
                 "intensity": 10138497.766357422,
-                "n_spectra": 630
+                "n_spectra": 630,
+                "three_sigma_ppm_lower": -3.1592851121914247,
+                "three_sigma_ppm_upper": -0.35453371469714967
+              },
+              "fit": {
+                "delta_mz": -0.00032873131459609795,
+                "delta_ppm": -1.7569094134442873,
+                "intensity": 7832247.318584908,
+                "mz": 187.1073912686854,
+                "sigma_mz": 8.746510652532794e-05,
+                "sigma_ppm": 0.4674585662490459,
+                "y_offset": 59100.85795600591
               },
               "mode_bin": {
                 "ibin": 435537,
@@ -1468,14 +1732,26 @@
             "mz": 147.1128,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -2.1027700119380626,
+                "comment": "Peak found and fit",
+                "fraction": 0.09251769464105157,
+                "is_found": true
               },
               "extended": {
                 "extent": 4,
                 "intensity": 24294240.49243164,
-                "n_spectra": 2013
+                "n_spectra": 2013,
+                "three_sigma_ppm_lower": -3.542408570544726,
+                "three_sigma_ppm_upper": 0.6228685972568833
+              },
+              "fit": {
+                "delta_mz": -0.00021475085009114991,
+                "delta_ppm": -1.4597699866439215,
+                "intensity": 17767884.154425953,
+                "mz": 147.1125852491499,
+                "sigma_mz": 0.0001021275978218941,
+                "sigma_ppm": 0.6942128613002683,
+                "y_offset": 83160.50922889884
               },
               "mode_bin": {
                 "ibin": 235563,
@@ -1491,14 +1767,26 @@
             "mz": 130.08626,
             "peak": {
               "assessment": {
-                "comment": "Too few peaks found in ROI",
-                "fraction": 0.0,
-                "is_found": false
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -1.2045444852635336,
+                "comment": "Peak found and fit",
+                "fraction": 0.06595275301038699,
+                "is_found": true
               },
               "extended": {
                 "extent": 4,
                 "intensity": 11687475.772094727,
-                "n_spectra": 1435
+                "n_spectra": 1435,
+                "three_sigma_ppm_lower": -4.383721981381598,
+                "three_sigma_ppm_upper": 1.8719692071588898
+              },
+              "fit": {
+                "delta_mz": -0.00016337226222162826,
+                "delta_ppm": -1.255876387111354,
+                "intensity": 6733533.042355866,
+                "mz": 130.0860966277378,
+                "sigma_mz": 0.00013562991173869784,
+                "sigma_ppm": 1.0426151980900813,
+                "y_offset": 15578.145065765688
               },
               "mode_bin": {
                 "ibin": 150430,
@@ -1514,7 +1802,7 @@
             "mz": 175.11895,
             "peak": {
               "assessment": {
-                "# of sigma_ppm(s) away from theoretical peak (ppm)": -3.147678409990588,
+                "# of sigma_ppm(s) away from theoretical peak (ppm)": -3.147678409890882,
                 "comment": "Peak found and fit",
                 "fraction": 0.6604007721297913,
                 "is_found": true
@@ -1523,17 +1811,17 @@
                 "extent": 4,
                 "intensity": 143806578.95507812,
                 "n_spectra": 14369,
-                "three_sigma_ppm_lower": -3.8275436081641336,
-                "three_sigma_ppm_upper": -0.091944554761475
+                "three_sigma_ppm_lower": -3.827543608223298,
+                "three_sigma_ppm_upper": -0.09194455470231055
               },
               "fit": {
                 "delta_mz": -0.0003431883258144808,
                 "delta_ppm": -1.9597440814628042,
-                "intensity": 94602136.9606397,
+                "intensity": 94602136.96251535,
                 "mz": 175.1186068116742,
-                "sigma_mz": 0.00010902903064214457,
-                "sigma_ppm": 0.6225998422337764,
-                "y_offset": 1031756.8370626289
+                "sigma_mz": 0.00010902903064559818,
+                "sigma_ppm": 0.6225998422534978,
+                "y_offset": 1031756.8342007825
               },
               "mode_bin": {
                 "ibin": 375593,
@@ -1563,11 +1851,11 @@
                 "n_spectra": 308
               },
               "fit": {
-                "delta_mz": -0.0023975854797697593,
-                "intensity": 114353.68347308299,
-                "mz": 79.96393341452023,
-                "sigma_mz": -9.782606423645938e-05,
-                "y_offset": 222533.5628175109
+                "delta_mz": -0.002397585327599927,
+                "intensity": 114353.70558966443,
+                "mz": 79.9639334146724,
+                "sigma_mz": -9.782580100239812e-05,
+                "y_offset": 222533.562288799
               },
               "mode_bin": {
                 "ibin": 79964,
@@ -1593,11 +1881,11 @@
                 "n_spectra": 6266
               },
               "fit": {
-                "delta_mz": 6.135689217501294e-05,
-                "intensity": 240974119.17769682,
-                "mz": 39.98322685689217,
-                "sigma_mz": 0.0006208147629490987,
-                "y_offset": 2817770.7149310037
+                "delta_mz": 6.135689199027183e-05,
+                "intensity": 240974119.26075402,
+                "mz": 39.98322685689199,
+                "sigma_mz": 0.0006208147631771259,
+                "y_offset": 2817770.6289379653
               },
               "mode_bin": {
                 "ibin": 39983,
@@ -1623,11 +1911,11 @@
                 "n_spectra": 546
               },
               "fit": {
-                "delta_mz": 0.00016821592900839732,
-                "intensity": 2169099.2948417156,
-                "mz": 26.655611882595675,
-                "sigma_mz": 0.0007562684540812232,
-                "y_offset": 49416.37696276767
+                "delta_mz": 0.0001682159289764229,
+                "intensity": 2169099.294632073,
+                "mz": 26.655611882595643,
+                "sigma_mz": 0.0007562684542447776,
+                "y_offset": 49416.37730104559
               },
               "mode_bin": {
                 "ibin": 26656,
@@ -1654,10 +1942,10 @@
               },
               "fit": {
                 "delta_mz": 6.377129196266651e-05,
-                "intensity": 2145053.882938359,
+                "intensity": 2145053.8836906236,
                 "mz": 97.97695947129196,
-                "sigma_mz": 0.0010606866867698935,
-                "y_offset": 127754.00222305387
+                "sigma_mz": 0.0010606866863929962,
+                "y_offset": 127754.0023822236
               },
               "mode_bin": {
                 "ibin": 97977,
@@ -1683,11 +1971,11 @@
                 "n_spectra": 7732
               },
               "fit": {
-                "delta_mz": -5.207565637732614e-05,
-                "intensity": 675380024.5225672,
-                "mz": 48.98839577434362,
-                "sigma_mz": 0.0006939649509145956,
-                "y_offset": 5465800.932986142
+                "delta_mz": -5.207565581599738e-05,
+                "intensity": 675380024.5092318,
+                "mz": 48.988395774344184,
+                "sigma_mz": 0.0006939649484566206,
+                "y_offset": 5465801.962479752
               },
               "mode_bin": {
                 "ibin": 48988,
@@ -1713,11 +2001,11 @@
                 "n_spectra": 1706
               },
               "fit": {
-                "delta_mz": 0.00014179625581789423,
-                "intensity": 23465634.177588485,
-                "mz": 32.65910702958915,
-                "sigma_mz": 0.0005524967399845039,
-                "y_offset": 227830.6613530264
+                "delta_mz": 0.00014179625586763223,
+                "intensity": 23465634.17187913,
+                "mz": 32.6591070295892,
+                "sigma_mz": 0.0005524967398280775,
+                "y_offset": 227830.6672294311
               },
               "mode_bin": {
                 "ibin": 32659,
@@ -1743,11 +2031,11 @@
                 "n_spectra": 616
               },
               "fit": {
-                "delta_mz": -0.00015441353901834987,
-                "intensity": 845353.2759533179,
-                "mz": 18.01041028646098,
-                "sigma_mz": 0.0012264019792824997,
-                "y_offset": 47251.54993514557
+                "delta_mz": -0.00015441353898637544,
+                "intensity": 845353.2757610752,
+                "mz": 18.010410286461013,
+                "sigma_mz": 0.0012264019801866825,
+                "y_offset": 47251.549550092044
               },
               "mode_bin": {
                 "ibin": 18010,
@@ -1773,11 +2061,11 @@
                 "n_spectra": 3549
               },
               "fit": {
-                "delta_mz": 0.0002695410060908898,
-                "intensity": 17605118.318271436,
-                "mz": 9.00555189100609,
-                "sigma_mz": 0.0009968800706859073,
-                "y_offset": 268806.66881818237
+                "delta_mz": 0.00026954100608556075,
+                "intensity": 17605118.318103753,
+                "mz": 9.005551891006085,
+                "sigma_mz": 0.0009968800706519748,
+                "y_offset": 268806.66887813294
               },
               "mode_bin": {
                 "ibin": 9006,
@@ -1803,11 +2091,11 @@
                 "n_spectra": 320
               },
               "fit": {
-                "delta_mz": -1.7615858852515487e-05,
-                "intensity": 950685.5345750466,
-                "mz": 6.003503950807814,
-                "sigma_mz": 0.000885927515886469,
-                "y_offset": 27380.867525301728
+                "delta_mz": -1.7615859237096743e-05,
+                "intensity": 950685.5345709209,
+                "mz": 6.0035039508074295,
+                "sigma_mz": 0.0008859275161288093,
+                "y_offset": 27380.867504716975
               },
               "mode_bin": {
                 "ibin": 6004,
@@ -1857,12 +2145,12 @@
       },
       "summary": {
         "HR_HCD": {
-          "absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss": 0.00032161666246821596,
+          "absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss": 0.00032161666190155813,
           "fragmentation_type": "HR_HCD",
           "has phospho_spectra": true,
           "has water_loss": true,
-          "intensity of z=2 phosphoric_acid": 669914223.589581,
-          "intensity of z=2 water_loss": 17336311.649453253,
+          "intensity of z=2 phosphoric_acid": 669914222.5467521,
+          "intensity of z=2 water_loss": 17336311.64922562,
           "labeling": {
             "call": "TMT10plex",
             "scores": {
@@ -1876,41 +2164,40 @@
             }
           },
           "tolerance": {
-            "fragment_tolerance_ppm_lower": -6.209997898155525,
-            "fragment_tolerance_ppm_upper": 1.594052874902563,
-            "number of peaks with fragment_tolerance": 13,
-            "recommended fragment tolerance (ppm)": "7 ppm"
+            "fragment_tolerance_ppm_lower": -6.312034621357392,
+            "fragment_tolerance_ppm_upper": 2.2089415796168237,
+            "number of peaks with fragment_tolerance": 37,
+            "recommended fragment tolerance (ppm)": "9 ppm"
           },
-          "z=2 phosphoric_acid to z=2 water_loss intensity ratio": 38.64225777290457
+          "z=2 phosphoric_acid to z=2 water_loss intensity ratio": 38.64225771325909
         },
         "combined summary": {
           "call": "TMT10plex",
           "fragmentation tolerance": {
-            "fragment_tolerance_ppm_lower": -6.209997898155525,
-            "fragment_tolerance_ppm_upper": 1.594052874902563,
-            "number of peaks with fragment_tolerance": 13,
-            "recommended fragment tolerance (ppm)": "7 ppm"
+            "fragment_tolerance_ppm_lower": -6.312034621357392,
+            "fragment_tolerance_ppm_upper": 2.2089415796168237,
+            "number of peaks with fragment_tolerance": 37,
+            "recommended fragment tolerance (ppm)": "9 ppm"
           },
           "fragmentation type": "HR_HCD",
           "has phospho_spectra": true,
           "has water_loss": true,
-          "total intensity of z=2 phosphoric_acid": 669914223.589581,
-          "total intensity of z=2 water_loss": 17336311.649453253,
-          "total z=2 phosphoric_acid to z=2 water_loss intensity ratio": 38.64225777290457
+          "total intensity of z=2 phosphoric_acid": 669914222.5467521,
+          "total intensity of z=2 water_loss": 17336311.64922562,
+          "total z=2 phosphoric_acid to z=2 water_loss intensity ratio": 38.64225771325909
         },
         "precursor stats": {
           "dynamic exclusion window": {
             "dynamic_exclusion_time_fit_call": "uncertain about fit, manually check time graph",
             "fit_pulse_time": {
-              "chi_squared": 17.22579356859539,
-              "decay constant": 1.8910746841888368,
-              "final level": 40.97169063106894,
-              "inital level": 31.86841979297618,
-              "peak level": 1149.8347892642357,
-              "peak to following level ratio": 8.87089440842837,
-              "peak to preceding level ratio": 36.080696712726876,
-              "pulse duration": 0.22233789551592506,
-              "pulse start": 30.76365741346253
+              "chi_squared": 17.55522406799493,
+              "decay constant": 1.7904028517760997,
+              "final level": 40.804346085759256,
+              "inital level": 31.86842211686811,
+              "peak level": 1228.3277666714146,
+              "peak to following level ratio": 10.817585253984365,
+              "peak to preceding level ratio": 38.54372714679384,
+              "pulse start": 30.811494975243036
             },
             "histogram_time": {
               "bin_centers": [
@@ -2224,14 +2511,14 @@
           },
           "precursor tolerance": {
             "fit_ppm": {
-              "chi_squared": 11.92189180218246,
-              "delta_ppm peak": 0.029405643890860277,
-              "intensity": 2826.4130754284147,
-              "lower_three_sigma (ppm)": -2.058990959726515,
-              "recommended precursor tolerance (ppm)": "3 ppm",
-              "sigma (ppm)": 0.6863303199088383,
-              "upper_three_sigma (ppm)": 2.058990959726515,
-              "y_offset": 26.829322292093163
+              "chi_squared": 11.921891782637028,
+              "delta_ppm peak": 0.02940564727566621,
+              "intensity": 2826.413072600563,
+              "lower_three_sigma (ppm)": -2.0589909628415612,
+              "recommended precursor tolerance (ppm)": "6 ppm",
+              "sigma (ppm)": 0.686330320947187,
+              "upper_three_sigma (ppm)": 2.0589909628415612,
+              "y_offset": 26.829322284832287
             },
             "histogram_ppm": {
               "bin_centers": [
