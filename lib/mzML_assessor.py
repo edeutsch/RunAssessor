@@ -7,6 +7,7 @@ import os.path
 import timeit
 import re
 import numpy
+numpy.seterr(invalid='ignore')
 import gzip
 from lxml import etree
 from multiprocessing.pool import ThreadPool
@@ -19,6 +20,9 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 from scipy.optimize import curve_fit
 from pyteomics import mzml, auxiliary
+import warnings
+import scipy.optimize as so
+warnings.filterwarnings("ignore", category=so.OptimizeWarning)
 
 #### Import the metadata handler
 from metadata_handler import MetadataHandler
