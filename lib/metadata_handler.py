@@ -8,6 +8,7 @@ import json
 import shutil
 import pandas as pd
 import numpy
+numpy.seterr(invalid='ignore')
 import csv
 import math
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
@@ -171,7 +172,9 @@ class MetadataHandler:
                 eprint(f"INFO: No study_metadata key-value hints file defined")
                 file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
                 eprint(f"INFO: Using Template key-value hints {file}")
-                self.copy_template()
+
+            file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
+            self.copy_template()
 
         return file
 
