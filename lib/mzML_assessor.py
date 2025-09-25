@@ -7,7 +7,7 @@ import os.path
 import timeit
 import re
 import numpy
-numpy.seterr(invalid='ignore')
+numpy.seterr(all='ignore')
 import gzip
 from lxml import etree
 from multiprocessing.pool import ThreadPool
@@ -23,6 +23,7 @@ from pyteomics import mzml, auxiliary
 import warnings
 import scipy.optimize as so
 warnings.filterwarnings("ignore", category=so.OptimizeWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 #### Import the metadata handler
 from metadata_handler import MetadataHandler
@@ -478,14 +479,14 @@ class MzMLAssessor:
             self.precursor_stats["precursor tolerance"] = {
                             "ppm_fit call": ppm_fit_call,
                             "histogram_ppm":{"counts": counts_ppm.tolist(), "bin_edges": bins_ppm.tolist(), "bin_centers": bin_centers_ppm.tolist()}}
-
+        
         except:
            self.precursor_stats['precursor tolerance']["good ppm_fit?"] = ppm_fit_call
            self.precursor_stats['precursor tolerance']["histogram_ppm"] = "no delta_ppm values recorded"
 
         try:
             
-            self.precursor_stats['precursor tolerance']['fit_ppm'] = {"lower_three_sigma (ppm)":-fit_ppm[2]*3, "upper_three_sigma (ppm)":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma (ppm)": fit_ppm[2], "y_offset": fit_ppm[3], "chi_squared":chi_squared_red_ppm, "recommended precursor tolerance (ppm)": f"{math.ceil(math.sqrt(self.ppm_error**2 + (fit_ppm[2]*3)**2))} ppm"}
+            self.precursor_stats['precursor tolerance']['fit_ppm'] = {"lower_three_sigma (ppm)":-fit_ppm[2]*3, "upper_three_sigma (ppm)":fit_ppm[2]*3, "delta_ppm peak": fit_ppm[1], "intensity": fit_ppm[0], "sigma (ppm)": fit_ppm[2], "y_offset": fit_ppm[3], "chi_squared":chi_squared_red_ppm, "recommended precursor tolerance (ppm)": math.ceil(math.sqrt(self.ppm_error**2 + (fit_ppm[2]*3)**2))}
         
         except:
             self.precursor_stats['precursor tolerance']['fit_ppm'] = "no guassian ppm curve fit"
@@ -1425,7 +1426,7 @@ class MzMLAssessor:
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with fragment_tolerance'] = len(upper)
 
                         recommended_precursor = math.ceil(math.sqrt(self.ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
-                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance (ppm)'] = f"{recommended_precursor} ppm"
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance (ppm)'] = recommended_precursor
 
 
                         if len(upper) < 5:
@@ -1446,7 +1447,7 @@ class MzMLAssessor:
                         self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with sigma_m/z'] = len(upper)
      
                         recommended_precursor = round(math.sqrt(self.mz_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper)))**2), 3)
-                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance (m/z)'] = f"{recommended_precursor} m/z"
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance (m/z)'] = recommended_precursor
 
                         if len(upper) < 5:
                             self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = "too few peaks found, overall fragment tolerance cannot be accurately computed"
@@ -1606,7 +1607,7 @@ class MzMLAssessor:
 
         self.metadata['files'][self.mzml_file]['summary']['precursor stats'] = self.precursor_stats
         
-        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None, "has water_loss":None, "has phospho_spectra": None, "total intensity of z=2 water_loss": 0, "total intensity of z=2 phosphoric_acid": 0, "total z=2 phosphoric_acid to z=2 water_loss intensity ratio":0}
+        full_results = {"fragmentation type": None, "call": None, "fragmentation tolerance": None, "has water_loss":None, "has phospho_spectra": None, "total intensity of z=2 water_loss": 0, "total intensity of z=2 phosphoric_acid": 0, "total z=2 phosphoric_acid to z=2 water_loss intensity ratio":0, "recommended precursor tolerance (ppm)": None}
         self.metadata['files'][self.mzml_file]['summary']['combined summary'] = full_results
         file_summary = self.metadata['files'][self.mzml_file]['summary']
         for keys in file_summary:
@@ -1669,6 +1670,11 @@ class MzMLAssessor:
                     full_results['total intensity of z=2 phosphoric_acid'] += file_summary[keys]['intensity of z=2 phosphoric_acid']
                     
                     full_results['total intensity of z=2 water_loss'] += file_summary[keys]['intensity of z=2 water_loss']
+                except:
+                    pass
+
+                try:
+                    full_results['recommended precursor tolerance (ppm)'] = self.precursor_stats["precursor tolerance"]['fit_ppm']['recommended precursor tolerance (ppm)']
                 except:
                     pass
         

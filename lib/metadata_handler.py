@@ -9,6 +9,7 @@ import shutil
 import pandas as pd
 import numpy
 numpy.seterr(invalid='ignore')
+
 import csv
 import math
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
@@ -57,7 +58,7 @@ class MetadataHandler:
         else:
             self.write_ions = False
         
-        #### Values used to calculate tolerance reccomendations
+        #### Values used to calculate tolerance recomendations
         self.ppm_error = 5
         self.mz_error = 0.3
 
@@ -321,7 +322,10 @@ class MetadataHandler:
         #### Creates a dictionary to store sigma values for all ions in each file
         ion_three_sigma_table = {}
         ### Creates a variable to store 3sigma values across all values
-        all_3sigma_values_away = {"Status":False, "Highest": [], "Lowest":[]}
+        all_3sigma_values_away = {"Status":False, "Highest": [], "Lowest":[], "precursors":[], "precursor_found": False}
+
+        ### Store information about phosphoenrichment in files
+        phosphoenrichment = {'has_phospho':0, 'no_phospho':0}
 
         ### Creates a list to hold information to generate a table with info about all files
         info = []
@@ -438,18 +442,22 @@ class MetadataHandler:
                         spectra_stats[key] += value
 
             #### Colect sigma values
+
             try:
                 if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
-                    if 'warning' not in fileinfo['summary']['tolerance']:
-                        all_3sigma_values_away['Lowest'].append(fileinfo['summary']['tolerance']['fragment_tolerance_ppm_lower'])
-                        all_3sigma_values_away['Highest'].append(fileinfo['summary']['tolerance']['fragment_tolerance_ppm_upper'])
+                    if 'warning' not in fileinfo['summary']['combined summary']['fragmentation tolerance']:
+                        all_3sigma_values_away['Lowest'].append(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'])
+                        all_3sigma_values_away['Highest'].append(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'])
                         all_3sigma_values_away['Status'] = True
 
                 elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
-                    if 'warning' not in fileinfo['summary']['tolerance']:
-                        all_3sigma_values_away['Lowest'].append(fileinfo['summary']['tolerance']['lower_m/z'])
-                        all_3sigma_values_away['Highest'].append(fileinfo['summary']['tolerance']['upper_m/z'])
+                    if 'warning' not in fileinfo['summary']['combined summary']['fragmentation tolerance']:
+                        all_3sigma_values_away['Lowest'].append(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'])
+                        all_3sigma_values_away['Highest'].append(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'])
                         all_3sigma_values_away['Status'] = True
+
+                all_3sigma_values_away['precursors'].append(fileinfo['summary']['combined summary']['recommended precursor tolerance (ppm)'])
+                all_3sigma_values_away['precursor_found'] = True
                 
             except:
                 pass
@@ -586,6 +594,12 @@ class MetadataHandler:
                 except:
                     has_phospho = False
                 info_dict["has phospho_spectra"] = has_phospho
+            
+                if has_phospho:
+                    phosphoenrichment['has_phospho'] += 1
+                else:
+                    phosphoenrichment['no_phospho'] += 1
+
 
                 try:
                     total_phospho = fileinfo['summary']['combined summary']['total intensity of z=2 phosphoric_acid']
@@ -622,6 +636,26 @@ class MetadataHandler:
         #### Set the the main tolerance based on three_sigma values from all files
         self.set_main_tolerance(all_3sigma_values_away)
 
+        ### Set phosphoenrichment
+        criteria.setdefault('phosphoenrichment', {})
+        if phosphoenrichment['has_phospho'] > 0 and phosphoenrichment['no_phospho'] == 0:
+            criteria['phosphoenrichment']['has_phosphoenrichment'] = 'true'
+            criteria['phosphoenrichment']['phospho_enriched_spectra'] = phosphoenrichment['has_phospho']
+        elif phosphoenrichment['has_phospho'] == 0 and phosphoenrichment['no_phospho'] > 0:
+            criteria['phosphoenrichment']['has_phosphoenrichment'] = 'false'
+            criteria['phosphoenrichment']['non_phospho_enriched_spectra'] = phosphoenrichment['no_phospho']
+        elif phosphoenrichment['has_phospho'] > 0 and phosphoenrichment['no_phospho'] > 0:
+            criteria['phosphoenrichment']['has_phosphoenrichment'] = 'mixed'
+            criteria['phosphoenrichment']['phospho_enriched_spectra'] = phosphoenrichment['has_phospho']
+            criteria['phosphoenrichment']['non_phospho_enriched_spectra'] = phosphoenrichment['no_phospho']
+        else:
+            criteria['phosphoenrichment']['has_phosphoenrichment'] = 'unknown'
+            criteria['phosphoenrichment']['phospho_enriched_spectra'] = phosphoenrichment['has_phospho']
+            criteria['phosphoenrichment']['non_phospho_enriched_spectra'] = phosphoenrichment['no_phospho']
+
+       
+        
+
         #### write ion data into a table
         if self.write_ions == True:
             self.write_ion_table(ion_three_sigma_table)
@@ -631,22 +665,39 @@ class MetadataHandler:
     #### If standard deviations have been found, set them in the file
     def set_main_tolerance(self, three_sigma_dict):
         criteria = self.metadata['search_criteria']
+        ppm_error = 5
+        
+       
         if (three_sigma_dict['Status']):
-            criteria.setdefault('tolerance', {})
+            criteria.setdefault('tolerances', {})
             percentile = 90 #Picks this percentile for the three_sigma value
             lower = three_sigma_dict['Lowest']
             upper = three_sigma_dict['Highest']
+            
+
             three_sigma_upper = numpy.percentile(upper, percentile) # Gives x percentile for a sorted list
             three_sigma_lower = numpy.percentile(lower, 100-percentile)
 
             if criteria["fragmentation_type"].startswith('HR'):
-                self.metadata['search_criteria']['tolerance']['fragment_tolerance_ppm_lower'] =three_sigma_upper
-                self.metadata['search_criteria']['tolerance']['fragment_tolerance_ppm_upper'] = three_sigma_lower
+                self.metadata['search_criteria']['tolerances']['max_fragment_tolerance_ppm'] = three_sigma_upper
+                self.metadata['search_criteria']['tolerances']['min_fragment_tolerance_ppm'] = three_sigma_lower
+                self.metadata['search_criteria']['tolerances']['recommended fragment tolerance (ppm)'] = math.ceil(math.sqrt(ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
+
             elif criteria["fragmentation_type"].startswith('LR'):
-                self.metadata['search_criteria']['tolerance']['lower_m/z'] =three_sigma_lower
-                self.metadata['search_criteria']['tolerance']['upper_m/z'] = three_sigma_upper
+                self.metadata['search_criteria']['tolerances']['min_m/z'] =three_sigma_lower
+                self.metadata['search_criteria']['tolerances']['max_upper_m/z'] = three_sigma_upper
+                self.metadata['search_criteria']['tolerances']['recommended fragment tolerance (m/z)'] = math.ceil(math.sqrt(ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
+
+            elif criteria['fragmentation_type'] == "multiple":
+                self.metadata['search_criteria']['tolerances']['recommended fragment tolerance'] = "multiple"
+        
+        if three_sigma_dict['precursor_found']:
+            precursor = three_sigma_dict['precursors']
+            upper_precursor = numpy.percentile(precursor, percentile)
+            self.metadata['search_criteria']['tolerances']['recommended overall precursor tolerance (ppm)'] = upper_precursor
         else:
-            criteria['tolerance'] = "N/A"
+            self.metadata['search_criteria']['tolerances']['recommended overall precursor tolerance (ppm)'] = None
+        
 
     ###################################################################################################
     #### Generates a table of every file and their fit ions with upper and lower three_sigma values
