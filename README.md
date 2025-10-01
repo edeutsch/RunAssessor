@@ -22,6 +22,21 @@ Code can also accept multiple `.mzML` files at a time
 python bin/assess_mzMLs.py ~/file_path/*.mzML # can add .gz to end
 ```
 
+### Test
+
+In `RunAssessor/tests/data/` there is a small `.mzML.gz` file that can be used to quickly try RunAssessor
+```bash
+cd tests/data
+python bin/assess_mzMLs.py chlo_6_tiny.mzML.gz
+```
+
+There is also a small respository of larger `.mzML.gz` files we used to test RunAssessor in `RunAssessor/tests/large_files/`.
+You can also quickly try RunAssessor on those files. Files in `large_files` will generate a more substantial JSON and summary file.
+```bash
+cd tests/large_files
+python bin/assess_mzMLs.py *.mzML.gz #Or single file of your choice
+```
+
 # Usage
 
 ## assess_mzMLs.py
