@@ -31,7 +31,7 @@ python ../../bin/assess_mzMLs.py chlo_6_tiny.mzML.gz
 ```
 
 There is also a small respository of larger `.mzML.gz` files we used to test RunAssessor in `RunAssessor/tests/large_files/`.
-You can also quickly try RunAssessor on those files. Files in `large_files` will generate a more substantial JSON and summary file.
+You can try RunAssessor on those files. Files in `large_files` will generate a more substantial JSON and summary file comapred to `chlo_6_tiny.mzML.gz`.
 ```bash
 cd tests/large_files
 python large_test_file_downloader.py
