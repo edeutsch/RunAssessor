@@ -34,7 +34,7 @@ There is also a small respository of larger `.mzML.gz` files we used to test Run
 You can also quickly try RunAssessor on those files. Files in `large_files` will generate a more substantial JSON and summary file.
 ```bash
 cd tests/large_files
-python bin/assess_mzMLs.py *.mzML.gz #Or single file of your choice
+python ../../bin/assess_mzMLs.py *.mzML.gz #Or single file of your choice
 ```
 
 # Usage
