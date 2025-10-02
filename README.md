@@ -27,7 +27,7 @@ python bin/assess_mzMLs.py ~/file_path/*.mzML # can add .gz to end
 In `RunAssessor/tests/data/` there is a small `.mzML.gz` file that can be used to quickly try RunAssessor
 ```bash
 cd tests/data
-python bin/assess_mzMLs.py chlo_6_tiny.mzML.gz
+python ../../bin/assess_mzMLs.py chlo_6_tiny.mzML.gz
 ```
 
 There is also a small respository of larger `.mzML.gz` files we used to test RunAssessor in `RunAssessor/tests/large_files/`.
