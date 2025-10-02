@@ -679,17 +679,17 @@ class MetadataHandler:
             three_sigma_lower = numpy.percentile(lower, 100-percentile)
 
             if criteria["fragmentation_type"].startswith('HR'):
-                self.metadata['search_criteria']['tolerances']['max_fragment_tolerance_ppm'] = three_sigma_upper
-                self.metadata['search_criteria']['tolerances']['min_fragment_tolerance_ppm'] = three_sigma_lower
-                self.metadata['search_criteria']['tolerances']['recommended fragment tolerance (ppm)'] = math.ceil(math.sqrt(ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
+                self.metadata['search_criteria']['tolerances']['overall_upper_fragment_tolerance_ppm'] = three_sigma_upper
+                self.metadata['search_criteria']['tolerances']['overall_lower_fragment_tolerance_ppm'] = three_sigma_lower
+                self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance (ppm)'] = math.ceil(math.sqrt(ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
 
             elif criteria["fragmentation_type"].startswith('LR'):
-                self.metadata['search_criteria']['tolerances']['min_m/z'] =three_sigma_lower
-                self.metadata['search_criteria']['tolerances']['max_upper_m/z'] = three_sigma_upper
-                self.metadata['search_criteria']['tolerances']['recommended fragment tolerance (m/z)'] = math.ceil(math.sqrt(ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
+                self.metadata['search_criteria']['tolerances']['overall_min_m/z'] =three_sigma_lower
+                self.metadata['search_criteria']['tolerances']['overall_upper_m/z'] = three_sigma_upper
+                self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance (m/z)'] = math.ceil(math.sqrt(ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
 
             elif criteria['fragmentation_type'] == "multiple":
-                self.metadata['search_criteria']['tolerances']['recommended fragment tolerance'] = "multiple"
+                self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance'] = "multiple"
         
         if three_sigma_dict['precursor_found']:
             precursor = three_sigma_dict['precursors']
