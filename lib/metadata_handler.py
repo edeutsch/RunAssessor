@@ -668,8 +668,8 @@ class MetadataHandler:
         ppm_error = 5
         
        
+        criteria.setdefault('tolerances', {})
         if (three_sigma_dict['Status']):
-            criteria.setdefault('tolerances', {})
             percentile = 90 #Picks this percentile for the three_sigma value
             lower = three_sigma_dict['Lowest']
             upper = three_sigma_dict['Highest']
