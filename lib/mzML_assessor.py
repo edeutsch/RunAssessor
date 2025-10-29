@@ -69,6 +69,8 @@ class MzMLAssessor:
         self.ppm_error = 5
         self.mz_error = 0.3
 
+        self.skipped_spectrum_types = {}
+
         self.composite_spectrum_attributes = {
                 'lowend': {
                     'HR_HCD': {
@@ -787,7 +789,10 @@ class MzMLAssessor:
 
             if destination not in self.composite:
                 if spectrum_type not in self.composite_spectrum_attributes[composite_type]:
-                    eprint(f"ERROR: Unrecognized spectrum type {spectrum_type}")
+                    message = f"WARNING: Not currently able to compute some metrics for spectrum type {spectrum_type}"
+                    if message not in self.skipped_spectrum_types:
+                        self.skipped_spectrum_types[message] = True
+                        eprint(message)
                     return
                 
                 #print(f"INFO: Creating a composite spectrum {destination}")
