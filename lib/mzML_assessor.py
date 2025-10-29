@@ -944,6 +944,7 @@ class MzMLAssessor:
                 'MS:1000639|LTQ Orbitrap XL ETD',
                 'MS:1001910|LTQ Orbitrap Elite', 
                 'MS:1001742|LTQ Orbitrap Velos', 
+                'MS:1003096|LTQ Orbitrap Velos Pro', 
                 'MS:1002835|LTQ Orbitrap Classic', 
                 'MS:1002416|Orbitrap Fusion', 
                 'MS:1002417|Orbitrap Fusion ETD', 
