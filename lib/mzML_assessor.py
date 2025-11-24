@@ -528,42 +528,34 @@ class MzMLAssessor:
         p_c = 0
         used_index = set()
 
+        max_time = 100 # Maximum time in seconds to search for the next same precursor
+        min_time = 0 # Minimum time in seconds to search for the next same precursor
+        max_delta_ppm = 10 # Maximum distance to search for the next same precursor
+
         if (len(times) != len(ions)) or not len(ions):
             eprint('WARNING: Unable to find tolerance for MS1 scan')
 
         while p_c < len(ions) and p_b < len(ions): #Figure out what end condition is
             delta_time = (times[p_b] - times[p_a]) * 60
             delta_ppm = ((ions[p_b] - ions[p_a]) / ions[p_a]) * 10**6
-            if self.within_ppm_time(delta_time, delta_ppm):
+
+            if delta_time >= min_time and delta_time <= max_time and abs(delta_ppm) <= max_delta_ppm:
                 delta_ppm_list.append(delta_ppm)
                 delta_time_list.append(delta_time)
                 used_index.add(p_b)
                 p_a = p_b
                 p_b = p_a + 1
-        
 
             else:
                 p_b += 1
-                if p_b >= len(ions) or delta_time > 80:
+                delta_time = (times[p_b] - times[p_a]) * 60
+                if p_b >= len(ions) or delta_time > max_time:
                     used_index.add(p_c)
                     while p_c in used_index:
                          p_c += 1
                     p_a = p_c
                     p_b = p_a + 1
 
-
-    ####################################################################################################
-    #### Returns whether or not a delta_ppm and delta_time are within set perameters
-    def within_ppm_time(self, delta_time, delta_ppm):
-        max_time = 80 #Secounds
-        min_time = 0 #Secounds
-        max_delta_ppm = 30 #ppm
-        
-        
-        if delta_time >= min_time and delta_time <= max_time:
-            if abs(delta_ppm) <= max_delta_ppm:
-                return True
-        return False
 
     ####################################################################################################
     #### Returns a gaussian fit for delta_ppm
