@@ -63,7 +63,7 @@ class MzMLAssessor:
         self.verbose = verbose
 
         #### Creates a list of supported composite types that the code can handle
-        self.supported_composite_type_list = ['HR_HCD', 'LR_IT_CID', 'HR_QTOF', 'HR_IT_ETD']
+        self.supported_composite_type_list = ['HR_HCD', 'LR_IT_CID', 'LR_HCD', 'HR_QTOF', 'HR_IT_ETD']
 
         #### Values used to calculate tolerance reccomendations
         self.ppm_error = 5
@@ -79,6 +79,11 @@ class MzMLAssessor:
                         'binsize': 0.0002
                     },
                     'LR_IT_CID': {
+                        'minimum': 100,
+                        'maximum': 460,
+                        'binsize': 0.05
+                    },
+                    'LR_HCD': {
                         'minimum': 100,
                         'maximum': 460,
                         'binsize': 0.05
@@ -106,6 +111,11 @@ class MzMLAssessor:
                         'binsize': 0.001
                     },
                     'LR_IT_CID': {
+                        'minimum': 0,
+                        'maximum': 100,
+                        'binsize': 0.05
+                    },
+                    'LR_HCD': {
                         'minimum': 0,
                         'maximum': 100,
                         'binsize': 0.05
@@ -1128,7 +1138,7 @@ class MzMLAssessor:
                         ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 0.01}
             
             #### What should we look at for ion trap data?
-            if composite_type == 'lowend_LR_IT_CID':
+            if composite_type in [ 'lowend_LR_IT_CID', 'lowend_LR_HCD' ]:
                 ROIs = {
                     'TMT6plex': { 'type': 'TMT6', 'mz': 230.1702, 'initial_window': 1.0 },
                     'TMT6plex+H2O': { 'type': 'TMT6', 'mz': 248.18079, 'initial_window': 1.0 },
@@ -1186,7 +1196,7 @@ class MzMLAssessor:
                         self.all_3sigma_values_away['lower_ppm'].append(lower)
                         self.all_3sigma_values_away['Status'] = True
 
-                    if composite_type == "lowend_LR_IT_CID":
+                    if composite_type in [ "lowend_LR_IT_CID", "lowend_LR_IT_CID" ]:
                         upper = peak['extended']['three_sigma_mz_upper']
                         lower = peak['extended']['three_sigma_mz_lower']
                         self.all_3sigma_values_away['upper_mz'].append(upper)
@@ -1244,7 +1254,7 @@ class MzMLAssessor:
                     ROIs[ROI_name] = {'type': type, 'mz': mz, 'initial_window': 0.01}
 
             #### What should we look at for ion trap data?
-            if composite_type == 'precursor_loss_LR_IT_CID':
+            if composite_type in [ 'precursor_loss_LR_IT_CID', 'precursor_loss_LR_HCD' ]:
                 ROIs = {}
                 charges = [1, 2, 3]
                 for item in singly_charged_peaks:
@@ -1354,7 +1364,7 @@ class MzMLAssessor:
                     peak['extended']['three_sigma_ppm_lower'] = peak['fit']['delta_ppm']-sigma_ppm*3
                     peak['extended']['three_sigma_ppm_upper'] = peak['fit']['delta_ppm']+3*sigma_ppm
 
-                elif composite_type == 'lowend_LR_IT_CID':
+                elif composite_type in [ 'lowend_LR_IT_CID', 'lowend_LR_HCD' ]:
                     peak['extended']['three_sigma_mz_lower'] = peak['fit']['delta_mz']-popt[2]*3
                     peak['extended']['three_sigma_mz_upper'] = peak['fit']['delta_mz']+popt[2]*3
                 
