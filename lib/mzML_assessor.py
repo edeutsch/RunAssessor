@@ -548,8 +548,7 @@ class MzMLAssessor:
 
             else:
                 p_b += 1
-                delta_time = (times[p_b] - times[p_a]) * 60
-                if p_b >= len(ions) or delta_time > max_time:
+                if p_b >= len(ions) or (times[p_b] - times[p_a]) * 60 > max_time:
                     used_index.add(p_c)
                     while p_c in used_index:
                          p_c += 1
