@@ -65,8 +65,3 @@ python ../../bin/assess_mzMLs.py *.mzML.gz   # Or single file of your choice
 | `--metadata_file` | Specify a metadata file if different than the default. | `study_metadata.json` | `--metadata_file ~/file_path/custom_metadata.json` |
 | `--write_sdrf_file` | If set, writes an SDRF file based on the metadata file. Can be passed multiple times. | Not set | `--write_sdrf_file` |
 | `--verbose` | If set, enables verbose output. Use multiple times to increase verbosity. | Not set | `--verbose` |
-
-
-## rename_msruns.py
-
-## Interpretting JSON file: `study_metadata.json`
