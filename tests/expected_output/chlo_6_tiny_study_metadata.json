@@ -1312,13 +1312,14 @@
           "fragmentation type": "HR_HCD",
           "has phospho_spectra": false,
           "has water_loss": false,
+          "recommended precursor tolerance (ppm)": null,
           "total intensity of z=2 phosphoric_acid": 0,
           "total intensity of z=2 water_loss": 0,
           "total z=2 phosphoric_acid to z=2 water_loss intensity ratio": 0.0
         },
         "precursor stats": {
           "dynamic exclusion window": {
-            "dynamic_exclusion_time_fit_call": "good fit, dynamic exclusion window found",
+            "dynamic_exclusion_time_fit_call": "no fit",
             "fit_pulse_time": {
               "chi_squared": 0.0,
               "decay constant": 1.0,
@@ -1830,7 +1831,7 @@
                 0
               ]
             },
-            "ppm_fit call": "probably not a good fit, suggested tolerance may not be accurate, check ppm graph"
+            "ppm_fit call": "no fit"
           }
         }
       }
@@ -1862,7 +1863,13 @@
     },
     "high_accuracy_precursors": "true",
     "labeling": "none",
-    "tolerance": "N/A"
+    "phosphoenrichment": {
+      "has_phosphoenrichment": "false",
+      "non_phospho_enriched_spectra": 1
+    },
+    "tolerances": {
+      "recommended overall precursor tolerance (ppm)": null
+    }
   },
   "spectra_stats": {
     "n_HR_ETciD_spectra": 0,
