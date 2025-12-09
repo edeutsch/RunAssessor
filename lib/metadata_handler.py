@@ -8,6 +8,7 @@ import json
 import shutil
 import pandas as pd
 import numpy
+import datetime
 numpy.seterr(invalid='ignore')
 
 import csv
@@ -349,12 +350,26 @@ class MetadataHandler:
             for fragmentation_type in criteria['fragmentation_types']:
                 criteria['fragmentation_types'][fragmentation_type] = 0
 
-        
+        #### Loop over all the files twice to extract the start timestamps and compute the relative start times
+        earliest_epoch_seconds = 0
+        for file in self.metadata['files']:
+            fileinfo = self.metadata['files'][file]
+            if fileinfo.get('start_timestamp', None) and len(fileinfo['start_timestamp']) > 10:
+                try:
+                    start_timestamp = datetime.datetime.strptime(fileinfo['start_timestamp'], '%Y-%m-%dT%H:%M:%SZ')
+                    fileinfo['delta_start_days'] = start_timestamp.timestamp()
+                    if earliest_epoch_seconds == 0 or fileinfo['delta_start_days'] < earliest_epoch_seconds:
+                        earliest_epoch_seconds = fileinfo['delta_start_days']
+                except:
+                    self.log_event('ERROR','Unparsable Timestamp',f"The run timestamp '{fileinfo['start_timestamp']}' cannot be parsed.")
+        for file in self.metadata['files']:
+            fileinfo = self.metadata['files'][file]
+            if 'delta_start_days' in fileinfo:
+                fileinfo['delta_start_days'] = round( ( fileinfo['delta_start_days'] - earliest_epoch_seconds ) / (60 * 60 * 24), 5)
+
         #### Loop over all the files and decide on search criteria
         for file in self.metadata['files']:
             fileinfo = self.metadata['files'][file]
-
-            
 
             #### Assemble consensus instrument
             if 'instrument_model' in fileinfo:
@@ -501,6 +516,8 @@ class MetadataHandler:
                     
                 info_dict = {
                     "file": file,
+                    "acquisition datetime": fileinfo.get('start_timestamp', ''),
+                    "relative acquisition time (days)": fileinfo.get('delta_start_days', '?'),
                     "labeling": labeling,
                     "file_instrument": file_instrument,
                     "acquisition type": fileinfo['spectra_stats'].get('acquisition_type', ''),
@@ -723,7 +740,7 @@ class MetadataHandler:
     ####################################################################################################
     #### Generates a table summarizing all the info in 
     def write_summary_table(self, info):
-        headers = ["file", "labeling", "file_instrument", "acquisition type",
+        headers = ["file", "acquisition datetime", "relative acquisition time (days)", "acquisition type", "file_instrument", "labeling",
                     "High accuracy precursor", "fragmentation type", 
                     "fragment tolerance lower_three_sigma", "fragment tolerance upper_three_sigma", "recommended fragment tolerance",
                     "dynamic exclusion time (s)",

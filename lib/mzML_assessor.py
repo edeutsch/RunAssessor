@@ -877,6 +877,7 @@ class MzMLAssessor:
 
         #### Keep a dict of random recognized things
         recognized_things = {}
+        self.metadata['files'][self.mzml_file]['start_timestamp'] = None
 
         #### Read line by line
         for line in infile:
@@ -890,6 +891,10 @@ class MzMLAssessor:
 
             #### Look for first tag after the header and end when found
             if '<run ' in line:
+                #### Extract the startTimeStamp
+                match = re.search(r'startTimeStamp="(.+?)"', line)
+                if match:
+                    self.metadata['files'][self.mzml_file]['start_timestamp'] = match.group(1)
                 break
 
             #### Look for some known artificts that are useful to record
@@ -1048,6 +1053,7 @@ class MzMLAssessor:
                 self.referenceable_param_group_list[group_id][name] = value
 
         return model_data
+
 
 
     ####################################################################################################
