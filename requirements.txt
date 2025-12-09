@@ -1,5 +1,8 @@
+pandas
 numpy
 lxml
+deepdiff
 matplotlib
+pypdf
 scipy
 pyteomics
