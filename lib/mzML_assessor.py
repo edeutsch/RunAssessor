@@ -63,11 +63,13 @@ class MzMLAssessor:
         self.verbose = verbose
 
         #### Creates a list of supported composite types that the code can handle
-        self.supported_composite_type_list = ['HR_HCD', 'LR_IT_CID', 'HR_QTOF', 'HR_IT_ETD']
+        self.supported_composite_type_list = ['HR_HCD', 'LR_IT_CID', 'LR_HCD', 'HR_QTOF', 'HR_IT_ETD']
 
         #### Values used to calculate tolerance reccomendations
         self.ppm_error = 5
         self.mz_error = 0.3
+
+        self.skipped_spectrum_types = {}
 
         self.composite_spectrum_attributes = {
                 'lowend': {
@@ -77,6 +79,11 @@ class MzMLAssessor:
                         'binsize': 0.0002
                     },
                     'LR_IT_CID': {
+                        'minimum': 100,
+                        'maximum': 460,
+                        'binsize': 0.05
+                    },
+                    'LR_HCD': {
                         'minimum': 100,
                         'maximum': 460,
                         'binsize': 0.05
@@ -104,6 +111,11 @@ class MzMLAssessor:
                         'binsize': 0.001
                     },
                     'LR_IT_CID': {
+                        'minimum': 0,
+                        'maximum': 100,
+                        'binsize': 0.05
+                    },
+                    'LR_HCD': {
                         'minimum': 0,
                         'maximum': 100,
                         'binsize': 0.05
@@ -516,42 +528,33 @@ class MzMLAssessor:
         p_c = 0
         used_index = set()
 
+        max_time = 100 # Maximum time in seconds to search for the next same precursor
+        min_time = 0 # Minimum time in seconds to search for the next same precursor
+        max_delta_ppm = 10 # Maximum distance to search for the next same precursor
+
         if (len(times) != len(ions)) or not len(ions):
             eprint('WARNING: Unable to find tolerance for MS1 scan')
 
         while p_c < len(ions) and p_b < len(ions): #Figure out what end condition is
             delta_time = (times[p_b] - times[p_a]) * 60
             delta_ppm = ((ions[p_b] - ions[p_a]) / ions[p_a]) * 10**6
-            if self.within_ppm_time(delta_time, delta_ppm):
+
+            if delta_time >= min_time and delta_time <= max_time and abs(delta_ppm) <= max_delta_ppm:
                 delta_ppm_list.append(delta_ppm)
                 delta_time_list.append(delta_time)
                 used_index.add(p_b)
                 p_a = p_b
                 p_b = p_a + 1
-        
 
             else:
                 p_b += 1
-                if p_b >= len(ions) or delta_time > 80:
+                if p_b >= len(ions) or (times[p_b] - times[p_a]) * 60 > max_time:
                     used_index.add(p_c)
                     while p_c in used_index:
                          p_c += 1
                     p_a = p_c
                     p_b = p_a + 1
 
-
-    ####################################################################################################
-    #### Returns whether or not a delta_ppm and delta_time are within set perameters
-    def within_ppm_time(self, delta_time, delta_ppm):
-        max_time = 80 #Secounds
-        min_time = 0 #Secounds
-        max_delta_ppm = 30 #ppm
-        
-        
-        if delta_time >= min_time and delta_time <= max_time:
-            if abs(delta_ppm) <= max_delta_ppm:
-                return True
-        return False
 
     ####################################################################################################
     #### Returns a gaussian fit for delta_ppm
@@ -787,7 +790,10 @@ class MzMLAssessor:
 
             if destination not in self.composite:
                 if spectrum_type not in self.composite_spectrum_attributes[composite_type]:
-                    eprint(f"ERROR: Unrecognized spectrum type {spectrum_type}")
+                    message = f"WARNING: Not currently able to compute some metrics for spectrum type {spectrum_type}"
+                    if message not in self.skipped_spectrum_types:
+                        self.skipped_spectrum_types[message] = True
+                        eprint(message)
                     return
                 
                 #print(f"INFO: Creating a composite spectrum {destination}")
@@ -944,6 +950,7 @@ class MzMLAssessor:
                 'MS:1000639|LTQ Orbitrap XL ETD',
                 'MS:1001910|LTQ Orbitrap Elite', 
                 'MS:1001742|LTQ Orbitrap Velos', 
+                'MS:1003096|LTQ Orbitrap Velos Pro', 
                 'MS:1002835|LTQ Orbitrap Classic', 
                 'MS:1002416|Orbitrap Fusion', 
                 'MS:1002417|Orbitrap Fusion ETD', 
@@ -1122,7 +1129,7 @@ class MzMLAssessor:
                         ROIs[parts[6]] = {'type':'fragment_ion', "mz":float(parts[4]), 'initial_window': 0.01}
             
             #### What should we look at for ion trap data?
-            if composite_type == 'lowend_LR_IT_CID':
+            if composite_type in [ 'lowend_LR_IT_CID', 'lowend_LR_HCD' ]:
                 ROIs = {
                     'TMT6plex': { 'type': 'TMT6', 'mz': 230.1702, 'initial_window': 1.0 },
                     'TMT6plex+H2O': { 'type': 'TMT6', 'mz': 248.18079, 'initial_window': 1.0 },
@@ -1180,7 +1187,7 @@ class MzMLAssessor:
                         self.all_3sigma_values_away['lower_ppm'].append(lower)
                         self.all_3sigma_values_away['Status'] = True
 
-                    if composite_type == "lowend_LR_IT_CID":
+                    if composite_type in [ "lowend_LR_IT_CID", "lowend_LR_IT_CID" ]:
                         upper = peak['extended']['three_sigma_mz_upper']
                         lower = peak['extended']['three_sigma_mz_lower']
                         self.all_3sigma_values_away['upper_mz'].append(upper)
@@ -1238,7 +1245,7 @@ class MzMLAssessor:
                     ROIs[ROI_name] = {'type': type, 'mz': mz, 'initial_window': 0.01}
 
             #### What should we look at for ion trap data?
-            if composite_type == 'precursor_loss_LR_IT_CID':
+            if composite_type in [ 'precursor_loss_LR_IT_CID', 'precursor_loss_LR_HCD' ]:
                 ROIs = {}
                 charges = [1, 2, 3]
                 for item in singly_charged_peaks:
@@ -1348,7 +1355,7 @@ class MzMLAssessor:
                     peak['extended']['three_sigma_ppm_lower'] = peak['fit']['delta_ppm']-sigma_ppm*3
                     peak['extended']['three_sigma_ppm_upper'] = peak['fit']['delta_ppm']+3*sigma_ppm
 
-                elif composite_type == 'lowend_LR_IT_CID':
+                elif composite_type in [ 'lowend_LR_IT_CID', 'lowend_LR_HCD' ]:
                     peak['extended']['three_sigma_mz_lower'] = peak['fit']['delta_mz']-popt[2]*3
                     peak['extended']['three_sigma_mz_upper'] = peak['fit']['delta_mz']+popt[2]*3
                 

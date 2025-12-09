@@ -541,9 +541,7 @@ class MetadataHandler:
                     low_tol = high_tol = "N/A"
                     rec_tol = "0.6 m/z"
                 info_dict["fragment tolerance lower_three_sigma"] = low_tol
-                
                 info_dict["fragment tolerance upper_three_sigma"] = high_tol
-                
                 info_dict['recommended fragment tolerance'] = rec_tol
                 
                 # Dynamic exclusion time
@@ -634,7 +632,6 @@ class MetadataHandler:
                info.append({"file": file, "labeling": "N/A"})
 
         #### Write file summary table
-
         self.write_summary_table(info)
 
         #### Set the the main tolerance based on three_sigma values from all files
@@ -657,9 +654,6 @@ class MetadataHandler:
             criteria['phosphoenrichment']['phospho_enriched_spectra'] = phosphoenrichment['has_phospho']
             criteria['phosphoenrichment']['non_phospho_enriched_spectra'] = phosphoenrichment['no_phospho']
 
-       
-        
-
         #### write ion data into a table
         if self.write_ions == True:
             self.write_ion_table(ion_three_sigma_table)
@@ -673,11 +667,11 @@ class MetadataHandler:
         criteria.setdefault('tolerances', {})
         percentile = 90 #Picks this percentile for the three_sigma value
         lower = three_sigma_dict['Lowest']
-        upper = three_sigma_dict['Highest']
+        upper = three_sigma_dict['Highest']       
+        criteria.setdefault('tolerances', {})
         
-       
+        
         if (three_sigma_dict['Status']):
-
             three_sigma_upper = numpy.percentile(upper, percentile) # Gives x percentile for a sorted list
             three_sigma_lower = numpy.percentile(lower, 100-percentile)
 
@@ -707,7 +701,6 @@ class MetadataHandler:
     #### Generates a table of every file and their fit ions with upper and lower three_sigma values
     def write_ion_table(self, ion_data):
         rows = []
-        
         for file, ions_list in ion_data.items():            
                 for ion_info in ions_list:
                     if ion_info == "No peaks":
@@ -730,7 +723,6 @@ class MetadataHandler:
     ####################################################################################################
     #### Generates a table summarizing all the info in 
     def write_summary_table(self, info):
-        
         headers = ["file", "labeling", "file_instrument", "acquisition type",
                     "High accuracy precursor", "fragmentation type", 
                     "fragment tolerance lower_three_sigma", "fragment tolerance upper_three_sigma", "recommended fragment tolerance",
