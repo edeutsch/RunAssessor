@@ -506,7 +506,6 @@ class MetadataHandler:
                     "acquisition type": fileinfo['spectra_stats'].get('acquisition_type', ''),
                     "High accuracy precursor": high_accuracy_precursors,
                 }
-
                 # Fragmentation type
                 try:
                     frag_type = fileinfo['summary']['combined summary']['fragmentation type']
@@ -533,6 +532,8 @@ class MetadataHandler:
                             rec_tol = f"{round(math.sqrt(self.mz_error**2 + (max(abs(low_tol), abs(high_tol)))**2), 2)} m/z"
                             low_tol = f"{low_tol} m/z"
                             high_tol = f"{high_tol} m/z"
+                        else:
+                            low_tol = high_tol = rec_tol =  "multiple"
                     else: 
                         low_tol = high_tol = "N/A"
                         rec_tol = "0.6 m/z"
@@ -542,7 +543,7 @@ class MetadataHandler:
                 info_dict["fragment tolerance lower_three_sigma"] = low_tol
                 info_dict["fragment tolerance upper_three_sigma"] = high_tol
                 info_dict['recommended fragment tolerance'] = rec_tol
-
+                
                 # Dynamic exclusion time
                 try:
                     dynamic_exclusion_time = round(fileinfo['summary']['precursor stats']['dynamic exclusion window']['fit_pulse_time']['pulse start'], 2)
@@ -653,9 +654,6 @@ class MetadataHandler:
             criteria['phosphoenrichment']['phospho_enriched_spectra'] = phosphoenrichment['has_phospho']
             criteria['phosphoenrichment']['non_phospho_enriched_spectra'] = phosphoenrichment['no_phospho']
 
-       
-        
-
         #### write ion data into a table
         if self.write_ions == True:
             self.write_ion_table(ion_three_sigma_table)
@@ -666,15 +664,14 @@ class MetadataHandler:
     def set_main_tolerance(self, three_sigma_dict):
         criteria = self.metadata['search_criteria']
         ppm_error = 5
-        
-       
         criteria.setdefault('tolerances', {})
+        percentile = 90 #Picks this percentile for the three_sigma value
+        lower = three_sigma_dict['Lowest']
+        upper = three_sigma_dict['Highest']       
+        criteria.setdefault('tolerances', {})
+        
+        
         if (three_sigma_dict['Status']):
-            percentile = 90 #Picks this percentile for the three_sigma value
-            lower = three_sigma_dict['Lowest']
-            upper = three_sigma_dict['Highest']
-            
-
             three_sigma_upper = numpy.percentile(upper, percentile) # Gives x percentile for a sorted list
             three_sigma_lower = numpy.percentile(lower, 100-percentile)
 
@@ -684,13 +681,14 @@ class MetadataHandler:
                 self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance (ppm)'] = math.ceil(math.sqrt(ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
 
             elif criteria["fragmentation_type"].startswith('LR'):
-                self.metadata['search_criteria']['tolerances']['overall_min_m/z'] =three_sigma_lower
+                self.metadata['search_criteria']['tolerances']['overall_lower_m/z'] =three_sigma_lower
                 self.metadata['search_criteria']['tolerances']['overall_upper_m/z'] = three_sigma_upper
                 self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance (m/z)'] = math.ceil(math.sqrt(ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
 
             elif criteria['fragmentation_type'] == "multiple":
                 self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance'] = "multiple"
-        
+
+            
         if three_sigma_dict['precursor_found']:
             precursor = three_sigma_dict['precursors']
             upper_precursor = numpy.percentile(precursor, percentile)
@@ -703,7 +701,6 @@ class MetadataHandler:
     #### Generates a table of every file and their fit ions with upper and lower three_sigma values
     def write_ion_table(self, ion_data):
         rows = []
-        
         for file, ions_list in ion_data.items():            
                 for ion_info in ions_list:
                     if ion_info == "No peaks":
@@ -744,7 +741,7 @@ class MetadataHandler:
             writer = csv.DictWriter(f, fieldnames=headers, delimiter="\t", extrasaction='ignore')
             writer.writeheader()
             writer.writerows(info)
-
+       
 
     ####################################################################################################
     #### Generate SDRF table data
