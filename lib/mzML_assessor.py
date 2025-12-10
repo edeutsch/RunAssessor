@@ -877,6 +877,7 @@ class MzMLAssessor:
 
         #### Keep a dict of random recognized things
         recognized_things = {}
+        self.metadata['files'][self.mzml_file]['start_timestamp'] = None
 
         #### Read line by line
         for line in infile:
@@ -890,6 +891,10 @@ class MzMLAssessor:
 
             #### Look for first tag after the header and end when found
             if '<run ' in line:
+                #### Extract the startTimeStamp
+                match = re.search(r'startTimeStamp="(.+?)"', line)
+                if match:
+                    self.metadata['files'][self.mzml_file]['start_timestamp'] = match.group(1)
                 break
 
             #### Look for some known artificts that are useful to record
@@ -921,49 +926,61 @@ class MzMLAssessor:
         instrument_by_category = {
             'pureHCD': [
                 'MS:1000649|Exactive',
-                'MS:1001911|Q Exactive',
                 'MS:1002526|Exactive Plus',
-                'MS:1002634|Q Exactive Plus',
+                'MS:1001911|Q Exactive',
+                'MS:1002993|Q Exactive Focus',
                 'MS:1002523|Q Exactive HF',
                 'MS:1002877|Q Exactive HF-X',
+                'MS:1002634|Q Exactive Plus',
+                'MS:1003245|Q Exactive UHMR',
                 'MS:1003378|Orbitrap Astral',
                 'MS:1003442|Orbitrap Astral Zoom'
             ],
             'ion_trap': [
                 'MS:1000447|LTQ',
-                'MS:1000638|LTQ XL ETD',
-                'MS:1000854|LTQ XL',
                 'MS:1000855|LTQ Velos',
-                'MS:1000856|LTQ Velos ETD',
+                'MS:1000856|LTQ Velos/ETD',
+                'MS:1000854|LTQ XL',
+                'MS:1000638|LTQ XL ETD',
                 'MS:1000167|LCQ Advantage',
                 'MS:1000168|LCQ Classic',
                 'MS:1000169|LCQ Deca XP Plus',
                 'MS:1000554|LCQ Deca',
-                'MS:1000578|LCQ Fleet'
+                'MS:1000578|LCQ Fleet',
+                'MS:1001909|Velos Plus',
+                'MS:1003495|Velos Pro'
             ],
             'variable': [ 
                 'MS:1000448|LTQ FT', 
                 'MS:1000557|LTQ FT Ultra', 
                 'MS:1000449|LTQ Orbitrap',
+                'MS:1002835|LTQ Orbitrap Classic', 
                 'MS:1000555|LTQ Orbitrap Discovery', 
+                'MS:1001742|LTQ Orbitrap Velos', 
+                'MS:1003499|LTQ Orbitrap Velos/ETD', 
                 'MS:1000556|LTQ Orbitrap XL',
                 'MS:1000639|LTQ Orbitrap XL ETD',
-                'MS:1001910|LTQ Orbitrap Elite', 
-                'MS:1001742|LTQ Orbitrap Velos', 
-                'MS:1003096|LTQ Orbitrap Velos Pro', 
-                'MS:1002835|LTQ Orbitrap Classic', 
+                'MS:1003356|Orbitrap Ascend',
+                'MS:1003029|Orbitrap Eclipse',
+                'MS:1001910|Orbitrap Elite', 
+                'MS:1002994|Orbitrap Excedion Pro', 
+                'MS:1003095|Orbitrap Exploris 120',
+                'MS:1003094|Orbitrap Exploris 240',
+                'MS:1003028|Orbitrap Exploris 480',
+                'MS:1003423|Orbitrap Exploris GC 240',
+                'MS:1002992|Orbitrap Exploris GC-MS',
                 'MS:1002416|Orbitrap Fusion', 
                 'MS:1002417|Orbitrap Fusion ETD', 
                 'MS:1002732|Orbitrap Fusion Lumos',
-                'MS:1003028|Orbitrap Exploris 480',
-                'MS:1003029|Orbitrap Eclipse',
-                'MS:1003356|Orbitrap Ascend',
+                'MS:1003096|Orbitrap Velos Pro', 
                 'MS:1000031|instrument model',
                 'MS:1000483|Thermo Fisher Scientific instrument model'
             ],
             'QTOF': [
                 'MS:1000126|Waters instrument model',
                 'MS:1000122|Bruker Daltonics instrument model',
+                'MS:1001547|Bruker Daltonics maXis series',
+                'MS:1003123|Bruker Daltonics timsTOF series',
                 'MS:1000121|AB SCIEX instrument model'
             ]
         }
@@ -1048,6 +1065,7 @@ class MzMLAssessor:
                 self.referenceable_param_group_list[group_id][name] = value
 
         return model_data
+
 
 
     ####################################################################################################
