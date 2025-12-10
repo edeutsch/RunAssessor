@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY lib /assessor/lib
 COPY bin /assessor/bin
 
-ENTRYPOINT ["python", "bin/assess_mzMLs.py"]
+CMD ["bin/assess_mzMLs.py"]
