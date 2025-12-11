@@ -762,7 +762,7 @@ class MetadataHandler:
 
     ####################################################################################################
     #### Generate SDRF table data
-    def generate_sdrf_table(self):
+    def generate_sdrf_table(self, include_provenance=None):
 
         self.sdrf_table_column_titles = []
         self.sdrf_table_rows = []
@@ -798,41 +798,55 @@ class MetadataHandler:
                     return
                 for value in self.sdrf_hints['keys'][key]:
 
-                    if value != '':
+                    if value != '' and include_provenance:
                         value += '[HUMAN]'
 
                     if key == 'source name':
-                        value = f"sample {i_sample}[AG-TBA]"
+                        value = f"sample {i_sample}"
+                        if include_provenance:
+                            value += '[AG-TBA]'
 
                     if key == 'comment[proteomics data acquisition method]':
                         if value == '':
                             if self.metadata['files'][file]['spectra_stats']['acquisition_type'] == 'DDA':
-                                value = 'NT=data-dependent acquisition;AC=MS:1003221[DATA-I]'
+                                value = 'NT=data-dependent acquisition;AC=MS:1003221'
                             elif self.metadata['files'][file]['spectra_stats']['acquisition_type'] == 'DIA':
-                                value = 'NT=data-independent acquisition;AC=MS:1003215[DATA-I]'
+                                value = 'NT=data-independent acquisition;AC=MS:1003215'
+                            if include_provenance:
+                                value += '[DATA-I]'
 
                     if key == 'comment[data file]':
-                        value = f"{file}[DATA]"
+                        value = f"{file}"
+                        if include_provenance:
+                            value += '[DATA]'
 
                     if key == 'comment[precursor mass tolerance]':
                         if value == '':
                             if self.metadata['files'][file]['spectra_stats']['high_accuracy_precursors'] == 'true':
-                                value = '20 ppm[DATA-DI]'
+                                value = '20 ppm'
                             elif self.metadata['files'][file]['spectra_stats']['high_accuracy_precursors'] == 'false':
-                                value = '3.1 Da[DATA-DI]'
+                                value = '3.1 Da'
+                            if include_provenance:
+                                value += '[DATA-I]'
 
                     if key == 'comment[fragment mass tolerance]':
                         if value == '':
                             if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
-                                value = '20 ppm[DATA-DI]'
+                                value = '20 ppm'
                             elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
-                                value = '0.6 Da[DATA-DI]'
+                                value = '0.6 Da'
+                            if include_provenance:
+                                value += '[DATA-I]'
 
                     if key == 'comment[instrument]':
-                        value = f"NT={self.metadata['files'][file]['instrument_model']['name']};AC={self.metadata['files'][file]['instrument_model']['accession']}[DATA]"
+                        value = f"NT={self.metadata['files'][file]['instrument_model']['name']};AC={self.metadata['files'][file]['instrument_model']['accession']}"
+                        if include_provenance:
+                            value += '[DATA]'
 
                     if key == 'comment[tool metadata]':
-                        value = 'RunAssessor v0.1[TOOL]'
+                        value = 'RunAssessor v0.1'
+                        if include_provenance:
+                            value += '[TOOL]'
 
                     row.append(value)
             self.sdrf_table_rows.append(row)

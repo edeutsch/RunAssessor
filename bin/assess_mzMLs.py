@@ -48,6 +48,7 @@ def main():
     argparser.add_argument('--verbose', action='count', help='If set, print more information about ongoing processing' )
     argparser.add_argument('--version', action='version', version='%(prog)s 0.8')
     argparser.add_argument('--write_sdrf_file', action='count', help='If set, then write an SDRF file based on the metadata file')
+    argparser.add_argument('--include_sdrf_provenance', action='count', help='If set, then all information written to the SDRF file will have provenance tags (non-standard SDRF)')
     argparser.add_argument('--write_pdfs', action='count', help='If set, then generate a PDF of delta time and ppm graphs from precursor stats')
     argparser.add_argument('--write_ions', action='count', help='If set, then write a TSV file of fragment ion peaks found')
     argparser.add_argument('files', type=str, nargs='+', help='Filenames of one or more mzML files to read')
@@ -147,7 +148,7 @@ def main():
 
     #### Infer parameters based on the latest data
     study.infer_search_criteria()
-    study.generate_sdrf_table()
+    study.generate_sdrf_table(include_provenance=params.include_sdrf_provenance)
 
     #### Write out our state of mind
     study.store()
