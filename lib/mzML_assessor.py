@@ -981,7 +981,15 @@ class MzMLAssessor:
                 'MS:1000122|Bruker Daltonics instrument model',
                 'MS:1001547|Bruker Daltonics maXis series',
                 'MS:1003123|Bruker Daltonics timsTOF series',
-                'MS:1000121|AB SCIEX instrument model'
+                'MS:1000121|AB SCIEX instrument model',
+                'MS:1002583|TripleTOF 4600',
+                'MS:1000932|TripleTOF 5600',
+                'MS:1002584|TripleTOF 5600+',
+                'MS:1002533|TripleTOF 6600',
+                'MS:1003456|TripleTOF 6600+',
+                'MS:1003293|ZenoTOF 7600',
+                'MS:1003444|ZenoTOF 7600+',
+                'MS:1003443|ZenoTOF 8600'
             ]
         }
 
