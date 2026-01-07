@@ -3,6 +3,7 @@ import os
 import subprocess
 import json
 from deepdiff import DeepDiff
+import glob
 
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
 
@@ -29,30 +30,13 @@ current_study_metadata = os.path.join(tests_data_dir, "study_metadata.json")
 tests_expected_output_dir = os.path.join(tests_dir, "expected_output")
 expected_study_metadata = os.path.join(tests_expected_output_dir, "chlo_6_tiny_study_metadata.json")
 
-
-def test_mzML_assessor():
-
-    with open(current_study_metadata, 'r') as study_metadata:
-        current = json.load(study_metadata)
-    assessor = MzMLAssessor(mzml_file=input_mzML_filepath, metadata=current, verbose=1)
-
-    model_data = assessor.read_header()
-    assert model_data['accession'] == 'MS:1001911'
-    assert model_data['category'] == 'pureHCD'
-    assert model_data['name'] == 'Q Exactive'
-
-    stats = assessor.read_spectra()
-    assert stats['n_spectra'] == 100
-    assert stats['n_ms1_spectra'] == 92
-    assert stats['n_ms2_spectra'] == 8
-
-    ROIs = assessor.assess_lowend_composite_spectra()
-    assert ROIs['TMT6_126']['peak']['mode_bin']['n_spectra'] == 2
-
-    assert assessor.metadata['state']['status'] != 'ERROR'
-
+study_metadata_files = os.path.join(tests_data_dir, "study_metadata.*")
 
 def test_assess_mzMLs():
+
+    for file_path in glob.glob(study_metadata_files):
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
     output = subprocess.run(
         [sys.executable, assess_mzMLs_file, input_mzML_file, '--verbose'],
@@ -87,3 +71,31 @@ def test_assess_mzMLs():
     assert not diff, \
         f"Current generated study_metadata.json for '{input_mzML_file}' does not match expected output." \
         f"\n\nDifferences found:\n{diff.pretty()}\n"
+
+
+def test_mzML_assessor():
+
+    with open(current_study_metadata, 'r') as study_metadata:
+        current = json.load(study_metadata)
+    assessor = MzMLAssessor(mzml_file=input_mzML_filepath, metadata=current, verbose=1)
+
+    try:
+        model_data = assessor.read_header()
+        assert model_data['accession'] == 'MS:1001911'
+        assert model_data['category'] == 'pureHCD'
+        assert model_data['name'] == 'Q Exactive'
+
+        stats = assessor.read_spectra()
+        assert stats['n_spectra'] == 100
+        assert stats['n_ms1_spectra'] == 92
+        assert stats['n_ms2_spectra'] == 8
+
+        ROIs = assessor.assess_lowend_composite_spectra()
+        assert ROIs['TMT6_126']['peak']['mode_bin']['n_spectra'] == 2
+
+        assert assessor.metadata['state']['status'] != 'ERROR'
+
+    finally:
+        for file_path in glob.glob(study_metadata_files):
+            if os.path.exists(file_path):
+                os.remove(file_path)
