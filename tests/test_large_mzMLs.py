@@ -84,7 +84,7 @@ def test_large_files_present():
 
 # Mark following test as slow and skip it unless specify "--runslow" in command line
 @pytest.mark.slow
-def test_compare_study_metadatas():     # This test takes ~17 minutes
+def test_compare_study_metadatas():     # This test takes ~ 1 hour
 
     for file_type in study_metadata_files:
         for file_path in glob.glob(file_type):
