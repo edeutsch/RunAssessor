@@ -1,6 +1,7 @@
 {
   "files": {
     "chlo_6_tiny.mzML.gz": {
+      "delta_start_days": 0.0,
       "instrument_model": {
         "accession": "MS:1001911",
         "category": "pureHCD",
@@ -1283,6 +1284,7 @@
         "n_spectra_examined": 8,
         "n_unknown_fragmentation_type_spectra": 0
       },
+      "start_timestamp": "2014-08-22T01:14:43Z",
       "summary": {
         "HR_HCD": {
           "absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss": "n/a",
