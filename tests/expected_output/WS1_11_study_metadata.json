@@ -634,6 +634,7 @@
         "n_spectra_examined": 11215,
         "n_unknown_fragmentation_type_spectra": 0
       },
+      "start_timestamp": "2013-05-20T21:46:55.83Z",
       "summary": {
         "LR_IT_CID": {
           "absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss": 0.5021004620587401,
@@ -1215,9 +1216,13 @@
   },
   "problems": {
     "errors": {
-      "codes": {},
-      "count": 0,
-      "list": []
+      "codes": {
+        "Unparsable Timestamp": 1
+      },
+      "count": 1,
+      "list": [
+        "ERROR: [Unparsable Timestamp]: The run timestamp '2013-05-20T21:46:55.83Z' cannot be parsed."
+      ]
     },
     "warnings": {
       "codes": {},
@@ -1238,7 +1243,7 @@
       "non_phospho_enriched_spectra": 1
     },
     "tolerances": {
-      "overall_min_m/z": -0.27486865708792463,
+      "overall_lower_m/z": -0.27486865708792463,
       "overall_upper_m/z": 0.17779495139857449,
       "recommended overall fragment tolerance (m/z)": 6,
       "recommended overall precursor tolerance (ppm)": 7.0
@@ -1272,9 +1277,9 @@
     "n_unknown_fragmentation_type_spectra": 0
   },
   "state": {
-    "code": "OK",
-    "message": "No problems detected",
-    "status": "OK",
+    "code": "Unparsable Timestamp",
+    "message": "The run timestamp '2013-05-20T21:46:55.83Z' cannot be parsed.",
+    "status": "ERROR",
     "version": "v0.1"
   }
 }

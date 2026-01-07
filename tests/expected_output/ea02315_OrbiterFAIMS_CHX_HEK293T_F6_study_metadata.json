@@ -635,6 +635,7 @@
         "n_spectra_examined": 37283,
         "n_unknown_fragmentation_type_spectra": 0
       },
+      "start_timestamp": null,
       "summary": {
         "LR_IT_CID": {
           "absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss": 0.05002778433621913,
@@ -1239,7 +1240,7 @@
       "non_phospho_enriched_spectra": 1
     },
     "tolerances": {
-      "overall_min_m/z": -0.32202530665788287,
+      "overall_lower_m/z": -0.32202530665788287,
       "overall_upper_m/z": 0.19275076873916475,
       "recommended overall fragment tolerance (m/z)": 6,
       "recommended overall precursor tolerance (ppm)": 6.0
