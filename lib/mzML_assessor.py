@@ -36,7 +36,7 @@ class MzMLAssessor:
 
     ####################################################################################################
     #### Constructor
-    def __init__(self, mzml_file, metadata=None, verbose=None):
+    def __init__(self, mzml_file, metadata=None, verbose=None, frag_units=None):
         self.mzml_file = mzml_file
 
         #### Store the provided metadata or create a template to work in
@@ -61,6 +61,10 @@ class MzMLAssessor:
         #### Set verbosity
         if verbose is None: verbose = 0
         self.verbose = verbose
+
+        #### Set up type of units for ms/ms tolerances
+        # frag_units can only be mz, ppm, or None
+        self.fragmentation_units = frag_units 
 
         #### Creates a list of supported composite types that the code can handle
         self.supported_composite_type_list = ['HR_HCD', 'LR_IT_CID', 'LR_HCD', 'HR_QTOF', 'HR_IT_ETD']
@@ -1198,20 +1202,24 @@ class MzMLAssessor:
                 #If a 3 standard deviation is availible from the guassian curve, check to see if its distance is a max or min in the whole spectra set
 
                 try:
-                    if composite_type == "lowend_HR_HCD":
-                        upper = peak['extended']['three_sigma_ppm_upper']
-                        lower = peak['extended']['three_sigma_ppm_lower']
-                        self.all_3sigma_values_away['upper_ppm'].append(upper)
-                        self.all_3sigma_values_away['lower_ppm'].append(lower)
-                        self.all_3sigma_values_away['Status'] = True
+                    if self.fragmentation_units in {"mz", "ppm"}:
+                        units = self.fragmentation_units
+                    else:
+                        if composite_type == "lowend_HR_HCD":
+                            units = "ppm"
+                        elif composite_type in {"lowend_LR_IT_CID"}:
+                            units = "mz"
+                        else:
+                            units = None
 
-                    if composite_type in [ "lowend_LR_IT_CID", "lowend_LR_IT_CID" ]:
-                        upper = peak['extended']['three_sigma_mz_upper']
-                        lower = peak['extended']['three_sigma_mz_lower']
-                        self.all_3sigma_values_away['upper_mz'].append(upper)
-                        self.all_3sigma_values_away['lower_mz'].append(lower)
-                        self.all_3sigma_values_away['Status'] = True
+                    if units:
+                        upper = peak['extended'][f'three_sigma_{units}_upper']
+                        lower = peak['extended'][f'three_sigma_{units}_lower']
 
+                        self.all_3sigma_values_away[f'upper_{units}'].append(upper)
+                        self.all_3sigma_values_away[f'lower_{units}'].append(lower)
+                        self.all_3sigma_values_away['Status'] = True
+                                    
 
                 except KeyError:
                     pass
@@ -1372,10 +1380,14 @@ class MzMLAssessor:
                 if composite_type == "lowend_HR_HCD":
                     peak['extended']['three_sigma_ppm_lower'] = peak['fit']['delta_ppm']-sigma_ppm*3
                     peak['extended']['three_sigma_ppm_upper'] = peak['fit']['delta_ppm']+3*sigma_ppm
+                    peak['extended']['three_sigma_mz_lower'] = peak['fit']['delta_mz']-popt[2]*3
+                    peak['extended']['three_sigma_mz_upper'] = peak['fit']['delta_mz']+popt[2]*3
 
                 elif composite_type in [ 'lowend_LR_IT_CID', 'lowend_LR_HCD' ]:
                     peak['extended']['three_sigma_mz_lower'] = peak['fit']['delta_mz']-popt[2]*3
                     peak['extended']['three_sigma_mz_upper'] = peak['fit']['delta_mz']+popt[2]*3
+                    peak['extended']['three_sigma_ppm_lower'] = peak['fit']['delta_ppm']-sigma_ppm*3
+                    peak['extended']['three_sigma_ppm_upper'] = peak['fit']['delta_ppm']+3*sigma_ppm
                 
                 elif composite_type.startswith("precursor_"):
                     pass
@@ -1438,21 +1450,33 @@ class MzMLAssessor:
             if (self.all_3sigma_values_away['Status']):
                 percentile = 90 #Picks this percentile for the three_sigma value
                 try:
-                    if fragmentations.startswith('HR'):
-                        lower = self.all_3sigma_values_away['lower_ppm']
-                        upper = self.all_3sigma_values_away['upper_ppm']
+                    if self.fragmentation_units in {"mz", "ppm"}:
+                        units = self.fragmentation_units
+                    else:
+                        if fragmentations.startswith('HR'):
+                            units = "ppm"
+                        elif fragmentations.startswith('LR'):
+                            units = "mz"
+                        else:
+                            units = None
+
+                    if units:
+                        lower = self.all_3sigma_values_away[f'lower_{units}']
+                        upper = self.all_3sigma_values_away[f'upper_{units}']
                         
                         three_sigma_upper = numpy.percentile(upper, percentile)
                         three_sigma_lower = numpy.percentile(lower, 100-percentile)
 
-
-                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_lower'] = three_sigma_lower
-                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['fragment_tolerance_ppm_upper'] = three_sigma_upper
-                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with fragment_tolerance'] = len(upper)
-
-                        recommended_precursor = math.ceil(math.sqrt(self.ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
-                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance (ppm)'] = recommended_precursor
-
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance'][f'fragment_tolerance_{units}_lower'] = three_sigma_lower
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance'][f'fragment_tolerance_{units}_upper'] = three_sigma_upper
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance'][f'number of peaks with fragment_tolerance'] = len(upper)
+                        if units == 'ppm':
+                            recommended_precursor = math.ceil(math.sqrt(self.ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
+                        elif units == 'mz':
+                            recommended_precursor = round(math.sqrt(self.mz_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper)))**2), 4)
+                            units = 'm/z'
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance'] = recommended_precursor
+                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance units'] = units
 
                         if len(upper) < 5:
                             self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = "too few peaks found, overall fragment tolerance cannot be accurately computed"
@@ -1460,27 +1484,7 @@ class MzMLAssessor:
                         elif abs(three_sigma_lower) > 20 or abs(three_sigma_upper) > 20:
                             self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = "overall fragment tolerance levels are too high, peak fitting may not be accurate"
                         
-                    elif fragmentations.startswith('LR'):
-                        lower = self.all_3sigma_values_away['lower_mz']
-                        upper = self.all_3sigma_values_away['upper_mz']
-
-                        three_sigma_upper = numpy.percentile(upper, percentile)
-                        three_sigma_lower = numpy.percentile(lower, 100-percentile)
-
-                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['lower_m/z'] = three_sigma_lower
-                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['upper_m/z'] = three_sigma_upper
-                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['number of peaks with sigma_m/z'] = len(upper)
-     
-                        recommended_precursor = round(math.sqrt(self.mz_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper)))**2), 3)
-                        self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['recommended fragment tolerance (m/z)'] = recommended_precursor
-
-                        if len(upper) < 5:
-                            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = "too few peaks found, overall fragment tolerance cannot be accurately computed"
-        
-                        elif abs(three_sigma_lower) > 1 or abs(three_sigma_upper) > 1:
-                            self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance']['warning'] = "overall fragment tolerance levels are too high, peak fitting may not be accurate"
-                        
-
+                    
 
                 except:
                     self.metadata['files'][self.mzml_file]['summary'][fragmentations]['tolerance'] = 'no tolerance values recorded'
