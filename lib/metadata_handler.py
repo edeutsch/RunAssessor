@@ -569,18 +569,19 @@ class MetadataHandler:
                             error = self.ppm_error
                             unit_label = "ppm"
                             rec_fmt = lambda v: math.ceil(v)
+                            frag_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']
+                            low_tol = frag_tol[lower_key]
+                            high_tol = frag_tol[upper_key]
                         else: 
                             lower_key, upper_key = ('fragment_tolerance_mz_lower', 'fragment_tolerance_mz_upper')
                             error = self.mz_error
                             unit_label = "m/z"
                             rec_fmt = lambda v: round(v, 4)
+                            frag_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']
+                            low_tol = rec_fmt(frag_tol[lower_key])
+                            high_tol = rec_fmt(frag_tol[upper_key])
                             
-                        frag_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']
-                        low_tol = frag_tol[lower_key]
-                        high_tol = frag_tol[upper_key]
                         combined = math.sqrt(error**2 + max(abs(low_tol), abs(high_tol))**2)
-
-
                         rec_tol = rec_fmt(combined)
                         frag_units = unit_label
                         
@@ -882,9 +883,11 @@ class MetadataHandler:
                             if isinstance(self.metadata['files'][file]['summary']['combined summary']['fragmentation tolerance'], dict):
                                     if self.metadata['files'][file]['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance units'] == 'mz':
                                         units = 'Da'
+                                        rec_fmt = lambda v: round(v, 2)
                                     else:
                                         units = 'ppm'
-                                    value = f"{self.metadata['files'][file]['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance']} {units}"
+                                        rec_fmt = lambda v: round(v, 4)
+                                    value = f"{rec_fmt(self.metadata['files'][file]['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance'])} {units}"
                             else:
                                 if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
                                     value = '0.6 Da'
