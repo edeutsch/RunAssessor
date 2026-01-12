@@ -1,0 +1,34 @@
+A list of tests that pulls a set of putative SDRF files from PRIDE (many are very bad quality) and reads and validates them
+using the SDRFHandler
+
+#### Good. A few warnings
+python ..\..\lib\sdrf_handler.py --url https://ftp.pride.ebi.ac.uk/pride/data/archive/2025/12/PXD061699/sdrf-methamphetamine_gonad.tsv
+
+#### Disastrous
+python ..\..\lib\sdrf_handler.py --url https://ftp.pride.ebi.ac.uk/pride/data/archive/2025/12/PXD069101/sdrf.csv
+
+#### Poor
+python ..\..\lib\sdrf_handler.py --url https://ftp.pride.ebi.ac.uk/pride/data/archive/2025/12/PXD070583/GS_secretome.sdrf.tsv
+
+#### Not even an SDRF file
+python ..\..\lib\sdrf_handler.py --url https://ftp.pride.ebi.ac.uk/pride/data/archive/2025/11/PXD069676/SDRFics.txt
+
+#### Hideous disaster
+python ..\..\lib\sdrf_handler.py --url https://ftp.pride.ebi.ac.uk/pride/data/archive/2025/11/PXD057806/SDRF_file.xlsx
+
+#### No errors! Only two minor warnings
+python ..\..\lib\sdrf_handler.py --url https://ftp.pride.ebi.ac.uk/pride/data/archive/2025/11/PXD066622/sdrf.tsv
+
+
+#### Merge testing - fails because too different
+python ..\..\lib\sdrf_handler.py --filepath sdrf_files/sdrf.tsv --merge_filepath sdrf_files/sdrf-methamphetamine_gonad.tsv
+
+#### Merge testing - should work nicely
+python ..\..\lib\sdrf_handler.py --filepath sdrf_files/sdrf-methamphetamine_gonad.tsv --merge_filepath sdrf_files/sdrf-methamphetamine_gonad_newcolumns.tsv
+
+#### Merge testing - should work nicely. Tags all the cells with decisions for debugging
+python ..\..\lib\sdrf_handler.py --filepath sdrf_files/sdrf-methamphetamine_gonad.tsv --merge_filepath sdrf_files/sdrf-methamphetamine_gonad_newcolumns.tsv --tag_with_decisions
+
+
+
+
