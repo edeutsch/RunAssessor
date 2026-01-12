@@ -584,11 +584,12 @@ def main():
 
     #### If there are no merge operations requested, then just return
     if params.merge_url is None and params.merge_filepath is None:
-        tmp = sdrf.__dict__.copy()
-        tmp['sdrf_data'] = "SDRF data structure truncated for display simplicity. See zz1.sdrf.tsv for contents"
-        del(tmp['verbose'])
-        print(json.dumps(tmp, indent=2, sort_keys=True))
-        sdrf.write('zz1.sdrf.tsv')
+        if params.show_result:
+            tmp = sdrf.__dict__.copy()
+            tmp['sdrf_data'] = "SDRF data structure truncated for display simplicity. See sdrf_handler_show_result.sdrf.tsv for contents"
+            del(tmp['verbose'])
+            print(json.dumps(tmp, indent=2, sort_keys=True))
+            sdrf.write('sdrf_handler_show_result.sdrf.tsv')
         return
 
     merge_sdrf = SDRFHandler(verbose=params.verbose)
