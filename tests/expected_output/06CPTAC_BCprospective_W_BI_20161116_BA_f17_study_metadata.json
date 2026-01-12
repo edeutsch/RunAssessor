@@ -1,6 +1,7 @@
 {
   "files": {
     "06CPTAC_BCprospective_W_BI_20161116_BA_f17.mzML.gz": {
+      "delta_start_days": 0.0,
       "instrument_model": {
         "accession": "MS:1002732",
         "category": "variable",
@@ -2238,6 +2239,7 @@
         "n_spectra_examined": 40217,
         "n_unknown_fragmentation_type_spectra": 0
       },
+      "start_timestamp": "2016-11-18T06:42:27Z",
       "summary": {
         "HR_HCD": {
           "absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss": 0.002249900563962015,

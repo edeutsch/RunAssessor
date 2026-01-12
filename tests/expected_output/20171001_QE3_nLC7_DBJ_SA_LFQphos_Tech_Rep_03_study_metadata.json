@@ -2153,6 +2153,7 @@
         "n_spectra_examined": 18464,
         "n_unknown_fragmentation_type_spectra": 0
       },
+      "start_timestamp": null,
       "summary": {
         "HR_HCD": {
           "absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss": 0.00016787615784075172,

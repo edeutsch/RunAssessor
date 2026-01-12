@@ -1,6 +1,7 @@
 {
   "files": {
     "ALS081215_10.mzML.gz": {
+      "delta_start_days": 0.0,
       "instrument_model": {
         "accession": "MS:1001742",
         "category": "variable",
@@ -639,6 +640,7 @@
         "n_spectra_examined": 35301,
         "n_unknown_fragmentation_type_spectra": 0
       },
+      "start_timestamp": "2015-12-14T20:32:20Z",
       "summary": {
         "LR_IT_CID": {
           "absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss": 0.5007918544440528,
@@ -1243,7 +1245,7 @@
       "non_phospho_enriched_spectra": 1
     },
     "tolerances": {
-      "overall_min_m/z": -0.3162519832491648,
+      "overall_lower_m/z": -0.3162519832491648,
       "overall_upper_m/z": 0.1533982129204912,
       "recommended overall fragment tolerance (m/z)": 6,
       "recommended overall precursor tolerance (ppm)": 9.0

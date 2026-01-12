@@ -1969,6 +1969,7 @@
         "n_spectra_examined": 37036,
         "n_unknown_fragmentation_type_spectra": 0
       },
+      "start_timestamp": null,
       "summary": {
         "HR_QTOF": {
           "absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss": "n/a",

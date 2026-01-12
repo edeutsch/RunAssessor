@@ -1,6 +1,7 @@
 {
   "files": {
     "C_i012_PO4_SCX_15_ETD_qMODE.mzML.gz": {
+      "delta_start_days": 0.0,
       "instrument_model": {
         "accession": "MS:1001742",
         "category": "variable",
@@ -1290,6 +1291,7 @@
         "n_spectra_examined": 1514,
         "n_unknown_fragmentation_type_spectra": 0
       },
+      "start_timestamp": "2010-06-14T10:31:11Z",
       "summary": {
         "HR_IT_ETD": {
           "absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss": "n/a",
