@@ -312,7 +312,7 @@ class MetadataHandler:
     ####################################################################################################
     #### Creates a study_metadata_template.txt in the directory the user is in
     def copy_template(self):
-        eprint("INFO: Creating a study_metadata_template.txt in users directory")
+        eprint("INFO: Creating a study_metadata_template.txt file in current working directory. You can edit this file to provide global parameters for the dataset.")
         file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
         destination_file = os.getcwd() + "/study_metadata.txt"
         shutil.copy2(file, destination_file)
