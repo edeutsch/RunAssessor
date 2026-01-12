@@ -23,7 +23,7 @@ class MetadataHandler:
 
     ####################################################################################################
     #### Constructor
-    def __init__(self, metadata_filepath=None, verbose=None, write_ions=None):
+    def __init__(self, metadata_filepath=None, verbose=None, write_ions=None, frag_units=None):
 
         default_metadata_filepath = 'study_metadata.json'
 
@@ -59,6 +59,10 @@ class MetadataHandler:
         else:
             self.write_ions = False
         
+        #### Set up type of units for ms/ms tolerances
+        # frag_units can only be mz, ppm, or None
+        self.fragmentation_units = frag_units 
+
         #### Values used to calculate tolerance recomendations
         self.ppm_error = 5
         self.mz_error = 0.3
@@ -459,21 +463,37 @@ class MetadataHandler:
             #### Colect sigma values
 
             try:
-                if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
-                    if 'warning' not in fileinfo['summary']['combined summary']['fragmentation tolerance']:
-                        all_3sigma_values_away['Lowest'].append(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'])
-                        all_3sigma_values_away['Highest'].append(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'])
-                        all_3sigma_values_away['Status'] = True
+                if self.fragmentation_units in {"mz", "ppm"}:
+                    units = self.fragmentation_units
+                else:
+                    frag_type = self.metadata['files'][file]['spectra_stats']['fragmentation_type']
+                    if frag_type.startswith('HR'):
+                        units = "ppm"
+                    elif frag_type.startswith('LR'):
+                        units = "mz"
+                    else:
+                        units = None
 
-                elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
-                    if 'warning' not in fileinfo['summary']['combined summary']['fragmentation tolerance']:
-                        all_3sigma_values_away['Lowest'].append(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'])
-                        all_3sigma_values_away['Highest'].append(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'])
-                        all_3sigma_values_away['Status'] = True
+                frag_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']
 
-                all_3sigma_values_away['precursors'].append(fileinfo['summary']['combined summary']['recommended precursor tolerance (ppm)'])
-                all_3sigma_values_away['precursor_found'] = True
-                
+                if units and 'warning' not in frag_tol:
+                    if units == "ppm":
+                        lower_key = 'fragment_tolerance_ppm_lower'
+                        upper_key = 'fragment_tolerance_ppm_upper'
+                    else:
+                        lower_key = 'lower_m/z'
+                        upper_key = 'upper_m/z'
+
+                    all_3sigma_values_away['Lowest'].append(frag_tol[lower_key])
+                    all_3sigma_values_away['Highest'].append(frag_tol[upper_key])
+                    all_3sigma_values_away['Status'] = True
+
+                #### precursor tolerance (independent of units)
+                precursor_tol = fileinfo['summary']['combined summary']['recommended precursor tolerance (ppm)']
+                if precursor_tol is not None:
+                    all_3sigma_values_away['precursors'].append(precursor_tol)
+                    all_3sigma_values_away['precursor_found'] = True
+                    
             except:
                 pass
            
@@ -532,34 +552,61 @@ class MetadataHandler:
 
                 # Fragmentation tolerances
                 try:
-                    if 'warning' not in fileinfo['summary']['combined summary']['fragmentation tolerance']:
-                        frag_type_value = self.metadata['files'][file]['spectra_stats']['fragmentation_type']
-                        if frag_type_value.startswith('HR'):
-                            low_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_lower'], 2)
-                            high_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['fragment_tolerance_ppm_upper'], 2)
-                            rec_tol = f"{math.ceil(math.sqrt(self.ppm_error**2 + (max(abs(low_tol), abs(high_tol)))**2))} ppm"
-
-                            low_tol = f"{low_tol} ppm"
-                            high_tol = f"{high_tol} ppm"
-
-                        
-                        elif frag_type_value.startswith('LR'):
-                            low_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['lower_m/z'], 2)
-                            high_tol = round(fileinfo['summary']['combined summary']['fragmentation tolerance']['upper_m/z'], 2)
-                            rec_tol = f"{round(math.sqrt(self.mz_error**2 + (max(abs(low_tol), abs(high_tol)))**2), 2)} m/z"
-                            low_tol = f"{low_tol} m/z"
-                            high_tol = f"{high_tol} m/z"
+                    #if 'warning' not in frag_tol:
+                    if self.fragmentation_units in {"mz", "ppm"}:
+                        units = self.fragmentation_units
+                    else:
+                        frag_type = self.metadata['files'][file]['spectra_stats']['fragmentation_type']
+                        if frag_type.startswith('HR'):
+                            units = "ppm"
+                        elif frag_type.startswith('LR'):
+                            units = "mz"
                         else:
-                            low_tol = high_tol = rec_tol =  "multiple"
-                    else: 
-                        low_tol = high_tol = "N/A"
-                        rec_tol = "0.6 m/z"
+                            units = None
+                    if units:
+                        if units == "ppm":
+                            lower_key, upper_key = ('fragment_tolerance_ppm_lower','fragment_tolerance_ppm_upper')
+                            error = self.ppm_error
+                            unit_label = "ppm"
+                            rec_fmt = lambda v: math.ceil(v)
+                            frag_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']
+                            low_tol = frag_tol[lower_key]
+                            high_tol = frag_tol[upper_key]
+                        else: 
+                            lower_key, upper_key = ('fragment_tolerance_mz_lower', 'fragment_tolerance_mz_upper')
+                            error = self.mz_error
+                            unit_label = "m/z"
+                            rec_fmt = lambda v: round(v, 4)
+                            frag_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']
+                            low_tol = rec_fmt(frag_tol[lower_key])
+                            high_tol = rec_fmt(frag_tol[upper_key])
+                            
+                        combined = math.sqrt(error**2 + max(abs(low_tol), abs(high_tol))**2)
+                        rec_tol = rec_fmt(combined)
+                        frag_units = unit_label
+                        
+                    else:
+                        low_tol = high_tol = rec_tol = "multiple"
+                        frag_units = None
+
+
                 except (KeyError, TypeError):
-                    low_tol = high_tol = "N/A"
-                    rec_tol = "0.6 m/z"
+                    if units == "ppm":
+                        low_tol = high_tol = "N/A"
+                        rec_tol = 20
+                        frag_units = "ppm"
+                    else:
+                        low_tol = high_tol = "N/A"
+                        rec_tol = 0.6
+                        frag_units = "m/z" 
+
                 info_dict["fragment tolerance lower_three_sigma"] = low_tol
+                info_dict["fragment tolerance lower_three_sigma units"] = frag_units
                 info_dict["fragment tolerance upper_three_sigma"] = high_tol
-                info_dict['recommended fragment tolerance'] = rec_tol
+                info_dict["fragment tolerance upper_three_sigma units"] = frag_units
+                info_dict["recommended fragment tolerance"] = rec_tol
+                info_dict["recommended fragment tolerance units"] = frag_units
+
                 
                 # Dynamic exclusion time
                 try:
@@ -705,14 +752,13 @@ class MetadataHandler:
             elif criteria['fragmentation_type'] == "multiple":
                 self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance'] = "multiple"
 
-            
         if three_sigma_dict['precursor_found']:
             precursor = three_sigma_dict['precursors']
             upper_precursor = numpy.percentile(precursor, percentile)
             self.metadata['search_criteria']['tolerances']['recommended overall precursor tolerance (ppm)'] = upper_precursor
         else:
             self.metadata['search_criteria']['tolerances']['recommended overall precursor tolerance (ppm)'] = None
-        
+
 
     ###################################################################################################
     #### Generates a table of every file and their fit ions with upper and lower three_sigma values
@@ -742,10 +788,13 @@ class MetadataHandler:
     def write_summary_table(self, info):
         headers = ["file", "acquisition datetime", "relative acquisition time (days)", "acquisition type", "file_instrument", "labeling",
                     "High accuracy precursor", "fragmentation type", 
-                    "fragment tolerance lower_three_sigma", "fragment tolerance upper_three_sigma", "recommended fragment tolerance",
+                    "fragment tolerance lower_three_sigma", 'fragment tolerance lower_three_sigma units', "fragment tolerance upper_three_sigma", 'fragment tolerance upper_three_sigma units', 
+                    "recommended fragment tolerance", "recommended fragment tolerance units", 
                     "dynamic exclusion time (s)",
-                    "precursor tolerance three_sigma_lower (ppm)", "precursor tolerance three_sigma_higher (ppm)", "recommended precursor tolerance (ppm)",
-                    "isolation window", "has water_loss", "has phospho_spectra",
+                    "precursor tolerance three_sigma_lower (ppm)", "precursor tolerance three_sigma_higher (ppm)", 
+                    "recommended precursor tolerance (ppm)",
+                    "isolation window", 
+                    "has water_loss", "has phospho_spectra",
                     "total intensity of z=2 phospho_spectra", "total intensity of z=2 water_loss_spectra",
                     "total z=2 phosphoric_acid to z=2 water_loss intensity ratio"]
         for row in info:
@@ -822,21 +871,29 @@ class MetadataHandler:
 
                     if key == 'comment[precursor mass tolerance]':
                         if value == '':
-                            if self.metadata['files'][file]['spectra_stats']['high_accuracy_precursors'] == 'true':
-                                value = '20 ppm'
-                            elif self.metadata['files'][file]['spectra_stats']['high_accuracy_precursors'] == 'false':
+                            if self.metadata['files'][file]['spectra_stats']['high_accuracy_precursors'] == 'true' and self.metadata['files'][file]['summary']['combined summary']['recommended precursor tolerance (ppm)'] != None:
+                                value = str(self.metadata['files'][file]['summary']['combined summary']['recommended precursor tolerance (ppm)']) + " ppm"
+                            else:
                                 value = '3.1 Da'
                             if include_provenance:
                                 value += '[DATA-I]'
 
                     if key == 'comment[fragment mass tolerance]':
                         if value == '':
-                            if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
-                                value = '20 ppm'
-                            elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
-                                value = '0.6 Da'
-                            if include_provenance:
-                                value += '[DATA-I]'
+                            if isinstance(self.metadata['files'][file]['summary']['combined summary']['fragmentation tolerance'], dict):
+                                    if self.metadata['files'][file]['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance units'] == 'mz':
+                                        units = 'Da'
+                                        rec_fmt = lambda v: round(v, 2)
+                                    else:
+                                        units = 'ppm'
+                                        rec_fmt = lambda v: round(v, 4)
+                                    value = f"{rec_fmt(self.metadata['files'][file]['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance'])} {units}"
+                            else:
+                                if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
+                                    value = '0.6 Da'
+                                else: 
+                                    #Uses this value for HR or multiple fragmentation type
+                                    value = '20 ppm'
 
                     if key == 'comment[instrument]':
                         value = f"NT={self.metadata['files'][file]['instrument_model']['name']};AC={self.metadata['files'][file]['instrument_model']['accession']}"
