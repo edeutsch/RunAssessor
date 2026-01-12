@@ -31,7 +31,7 @@ python ../../bin/assess_mzMLs.py chlo_6_tiny.mzML.gz
 ```
 
 There is also a small respository of larger `.mzML.gz` files we used to test RunAssessor in `RunAssessor/tests/large_files/`.
-You can try RunAssessor on those files. Files in `large_files` will generate a more substantial JSON and summary file comapred to `chlo_6_tiny.mzML.gz`.
+You can try RunAssessor on those files. Files in `large_files` will generate a more substantial JSON and summary file compared to `chlo_6_tiny.mzML.gz`.
 ```bash
 cd tests/large_files
 python large_test_file_downloader.py
@@ -59,9 +59,13 @@ python ../../bin/assess_mzMLs.py *.mzML.gz   # Or single file of your choice
 
 ## assess_metadata.py
 
-### Comand-line Arguments
+### Command-line Arguments
 | Argument | Description | Default | Example |
 |----------|-------------|---------|---------|
 | `--metadata_file` | Specify a metadata file if different than the default. | `study_metadata.json` | `--metadata_file ~/file_path/custom_metadata.json` |
 | `--write_sdrf_file` | If set, writes an SDRF file based on the metadata file. Can be passed multiple times. | Not set | `--write_sdrf_file` |
 | `--verbose` | If set, enables verbose output. Use multiple times to increase verbosity. | Not set | `--verbose` |
+
+## rename_msruns.py
+
+Renames raw files in current directory to replace miscellaneous characters in file names with underscores and writes a mapping document of changes.
