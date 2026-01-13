@@ -8,7 +8,7 @@ import json
 import shutil
 import pandas as pd
 import numpy
-import datetime
+import dateutil
 numpy.seterr(invalid='ignore')
 
 import csv
@@ -360,7 +360,7 @@ class MetadataHandler:
             fileinfo = self.metadata['files'][file]
             if fileinfo.get('start_timestamp', None) and len(fileinfo['start_timestamp']) > 10:
                 try:
-                    start_timestamp = datetime.datetime.strptime(fileinfo['start_timestamp'], '%Y-%m-%dT%H:%M:%SZ')
+                    start_timestamp = dateutil.parser.parse(fileinfo['start_timestamp'])
                     fileinfo['delta_start_days'] = start_timestamp.timestamp()
                     if earliest_epoch_seconds == 0 or fileinfo['delta_start_days'] < earliest_epoch_seconds:
                         earliest_epoch_seconds = fileinfo['delta_start_days']
@@ -963,7 +963,7 @@ def main():
 
     #### Store the metadata structure, infer the SDRF file name and write the SDRF.tsv file
     metadata.store()
-    filename = metadata.infer_filename()
+    filename = metadata.infer_sdrf_filename()
     metadata.write_sdrf_file(filename)
 
 if __name__ == "__main__": main()
