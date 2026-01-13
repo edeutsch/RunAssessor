@@ -24,10 +24,28 @@ python ..\..\lib\sdrf_handler.py --url https://ftp.pride.ebi.ac.uk/pride/data/ar
 python ..\..\lib\sdrf_handler.py --filepath sdrf_files/sdrf.tsv --merge_filepath sdrf_files/sdrf-methamphetamine_gonad.tsv
 
 #### Merge testing - should work nicely
-python ..\..\lib\sdrf_handler.py --filepath sdrf_files/sdrf-methamphetamine_gonad.tsv --merge_filepath sdrf_files/sdrf-methamphetamine_gonad_newcolumns.tsv
+python ..\..\lib\sdrf_handler.py --filepath sdrf_files/sdrf-methamphetamine_gonad.tsv --merge_filepath sdrf_files/sdrf-methamphetamine_gonad_newcolumns.tsv --show_result
 
 #### Merge testing - should work nicely. Tags all the cells with decisions for debugging
-python ..\..\lib\sdrf_handler.py --filepath sdrf_files/sdrf-methamphetamine_gonad.tsv --merge_filepath sdrf_files/sdrf-methamphetamine_gonad_newcolumns.tsv --tag_with_decisions
+python ..\..\lib\sdrf_handler.py --filepath sdrf_files/sdrf-methamphetamine_gonad.tsv --merge_filepath sdrf_files/sdrf-methamphetamine_gonad_newcolumns.tsv --tag_with_decisions --show_result
+
+===============
+
+Run RunAssessor on a full dataset
+
+cd /proteomics/peptideatlas/archive/Human/PXD046535/HL60_HLA-I/data
+mv study_metadata.json study_metadata.json-prev1
+srun -c 80 /proteomics/sw/python/apps-dev/RunAssessor/bin/assess_mzMLs.py --write_sdrf --write_pdfs *.mzML
+
+python3 /proteomics/sw/python/apps-dev/RunAssessor/lib/sdrf_handler.py --url https://ftp.pride.ebi.ac.uk/pride/data/archive/2024/03/PXD046535/SDRF.tsv --show_result
+python3 /proteomics/sw/python/apps-dev/RunAssessor/lib/sdrf_handler.py --filepath sdrf_files/SDRF.tsv --merge_filepath PXD046535_study_metadata.sdrf.tsv --show_result
+
+python ..\..\lib\sdrf_handler.py --url https://ftp.pride.ebi.ac.uk/pride/data/archive/2024/03/PXD046535/SDRF.tsv --show_result
+
+python ..\..\lib\sdrf_handler.py  --filepath sdrf_files/SDRF.tsv --merge_filepath PXD046535_study_metadata.sdrf.tsv --show_result --prefer_main_columns "comment[instrument]" --tag
+
+python ..\..\lib\sdrf_handler.py  --filepath sdrf_files/SDRF.tsv --merge_filepath PXD046535_study_metadata.sdrf.tsv --show_result --prefer_main_columns "comment[instrument]"
+
 
 
 
