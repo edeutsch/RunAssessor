@@ -47,7 +47,7 @@ python ../../bin/assess_mzMLs.py *.mzML.gz   # Or single file of your choice
 
 | Argument | Description | Default | Example |
 |----------|-------------|---------|---------|
-| `--metadata_filepath` | Filepath of the metadata file. | `study_metadata.json` | `--metadata_filepath ~/file_path/my_metadata.json` |
+| `--metadata_filepath` | Filename and path of the ouput metadata file. This parameter may be used to change the root name and directory path (relative or absolute) of the output file (affecting the JSON file, the TSV file, optional PDF files and SDRF files) | `study_metadata.json` | `--metadata_filepath ~/PXD123456/PXD123456_metadata.json` |
 | `--preserve_existing_metadata` | If set, read the existing metadata file, preserve its contents, and build on it (default is to overwrite current file). | Not set | `--preserve_existing_metadata` |
 | `--n_threads` | Number of files to read in parallel. | Number of CPU cores | `--n_threads 4` |
 | `--write_fragmentation_type_files` | If set, writes a fragmentation type file for each mzML input. | Not set | `--write_fragmentation_type_files` |

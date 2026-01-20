@@ -41,7 +41,7 @@ def process_job(job):
 def main():
 
     argparser = argparse.ArgumentParser(description='Read one or more mzML files and extract some knowledge from them')
-    argparser.add_argument('--metadata_filepath', action='store', help='Filepath of the metadata file (defaults to study_metadata.json)')
+    argparser.add_argument('--metadata_filepath', action='store', help='Filename and path of the ouput metadata file (defaults to study_metadata.json in the current working directory)')
     argparser.add_argument('--preserve_existing_metadata', action='count', default=0, help='If set, read the existing metadata file, preserve its contents, and build on it (default is to overwrite current file)')
     argparser.add_argument('--n_threads', action='store', type=int, help='Set the number of files to process in parallel (defaults to number of cores)')
     argparser.add_argument('--write_fragmentation_type_files', action='count', help='If set, write a fragmentation_type file for each mzML')
