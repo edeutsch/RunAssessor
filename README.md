@@ -56,8 +56,9 @@ the mzML files accordingly. This is generally the only program that needs to be 
 | `--n_threads` | Number of files to read in parallel. | Number of CPU cores | `--n_threads 4` |
 | `--write_fragmentation_type_files` | If set, writes a fragmentation type file for each mzML input. | Not set | `--write_fragmentation_type_files` |
 | `--verbose` | If set, prints more detailed processing information. Use multiple times to increase verbosity. | Not set | `--verbose` |
-| `--version` | Prints the version of the script/tool. | 0.8 | `--version` |
+| `--version` | Prints the version of the script/tool. | Not set | `--version` |
 | `--write_sdrf_file` | If set, writes an SDRF file based on the metadata text file. | Not set | `--write_sdrf_file` |
+| `--include_sdrf_provenance` | If set, then all information written to the SDRF file will have provenance tags (this is experimental non-standard SDRF, not for routine use). | Not set | `--include_sdrf_provenance` |
 | `--write_pdfs` | If set, generates a PDF of delta time and ppm graphs from precursor stats, and a PDF of neutral loss windows from composite intensities. | Not set | `--write_pdfs` |
 | `--write_ions` | If set, writes a TSV file of the ion three-sigma table, which lists all fragment ions found. | Not set | `--write_ions` |
 
