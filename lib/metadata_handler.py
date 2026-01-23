@@ -164,23 +164,17 @@ class MetadataHandler:
                 eprint(f"INFO: Study metadata file '{file}' does not end in .json, so cannot look for corresponding .txt file")
             return
 
-        #### If the specified key-value file does not exist, no table will be generated. However, if none is specified, a template file will be used
-        if not os.path.isfile(file) and not self.default_filename:
-            eprint(f"INFO: Looked for but did not find study metadata key-value hints file '{file}'. File not found or not a file. SDRF table will not be generated")
-            return None
-
-        elif os.path.isfile(file):
-            eprint(f"INFO: {file} found")
-
-        #### Loads Template as key-value pair file
-        else:
+        #### If the appropriately prefixed key-value file does not exist, create it based on a template file
+        if not os.path.isfile(file):
+            template_file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
             if self.verbose >= 1:
-                eprint(f"INFO: No study_metadata key-value hints file defined")
-                file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
-                eprint(f"INFO: Using Template key-value hints {file}")
+                eprint(f"INFO: User-defined default value file '{file}' not found. Create it based on template '{template_file}'")
 
-            file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
-            self.copy_template()
+            try:
+                shutil.copy2(template_file, file)
+            except:
+                eprint(f"ERROR: unable to copy template '{template_file}' to '{file}'")
+                return
 
         return file
 
@@ -308,17 +302,6 @@ class MetadataHandler:
             print("\t".join(self.sdrf_table_column_titles), file=outfile)
             for row in self.sdrf_table_rows:
                 print("\t".join(row), file=outfile)
-
-    ####################################################################################################
-    #### Creates a study_metadata_template.txt in the directory the user is in
-    def copy_template(self):
-        eprint("INFO: Creating a study_metadata_template.txt file in current working directory. You can edit this file to provide global parameters for the dataset.")
-        file = os.path.dirname(os.path.abspath(__file__)) + "/study_metadata_template.txt"
-        destination_file = os.getcwd() + "/study_metadata.txt"
-        shutil.copy2(file, destination_file)
-        if self.verbose >= 1:
-            eprint("INFO: study_metadata_template.txt copied over as study_metadata.txt")
-
 
     ####################################################################################################
     #### Infer search criteria based on available information
