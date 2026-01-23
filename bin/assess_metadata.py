@@ -15,13 +15,13 @@ def main():
 
     #### Parse command line arguments
     argparser = argparse.ArgumentParser(description='Study metadata processor')
-    argparser.add_argument('--metadata_file', action='store', help='Specify a metadata file if different than the default study_metadata.json')
+    argparser.add_argument('--metadata_filepath', action='store', help='Specify a metadata file path if different than the default study_metadata.json in the current working directory')
     argparser.add_argument('--write_sdrf_file', action='count', help='If set, then write an SDRF file based on the metadata file')
     argparser.add_argument('--verbose', action='count' )
     params = argparser.parse_args()
 
     #### Create metadata handler object and read or create the metadata structure
-    metadata = MetadataHandler(params.metadata_file, params.verbose)
+    metadata = MetadataHandler(params.metadata_filepath, params.verbose)
     metadata.read_or_create()
 
     #### Try to infer search criteria based on the information we have available

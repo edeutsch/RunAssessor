@@ -950,8 +950,8 @@ def main():
     #### Parse command line arguments
     argparser = argparse.ArgumentParser(description='Handler for study/experiment metadata files')
     argparser.add_argument('--metadata_filepath', action='store', help='Filepath of the metadata file (defaults to study_metadata.json)')
+    argparser.add_argument('--write_sdrf_file', action='count', help='If set, then write an SDRF file based on the metadata file')
     argparser.add_argument('--verbose', action='count' )
-    argparser.add_argument('--version', action='version', version='%(prog)s 0.5')
     params = argparser.parse_args()
 
     #### Create metadata handler object and read or create the metadata structure
@@ -963,7 +963,9 @@ def main():
 
     #### Store the metadata structure, infer the SDRF file name and write the SDRF.tsv file
     metadata.store()
-    filename = metadata.infer_sdrf_filename()
-    metadata.write_sdrf_file(filename)
+
+    if params.write_sdrf_file:
+        filename = metadata.infer_sdrf_filename()
+        metadata.write_sdrf_file(filename)
 
 if __name__ == "__main__": main()
