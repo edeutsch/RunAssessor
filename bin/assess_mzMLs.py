@@ -22,7 +22,7 @@ from graph_generator import GraphGenerator
 def process_job(job):
 
     #### Assess the mzML file
-    assessor = MzMLAssessor(job['filename'], metadata=job['metadata'], verbose=job['verbose'])
+    assessor = MzMLAssessor(job['filename'], metadata=job['metadata'], verbose=job['verbose'], frag_units=job['fragmentation_units'])
     assessor.read_header()
     assessor.read_spectra(write_fragmentation_type_file=job['write_fragmentation_type_files'])
     assessor.assess_lowend_composite_spectra()
@@ -51,6 +51,7 @@ def main():
     argparser.add_argument('--include_sdrf_provenance', action='count', help='If set, then all information written to the SDRF file will have provenance tags (non-standard SDRF)')
     argparser.add_argument('--write_pdfs', action='count', help='If set, then generate a PDF of delta time and ppm graphs from precursor stats')
     argparser.add_argument('--write_ions', action='count', help='If set, then write a TSV file of fragment ion peaks found')
+    argparser.add_argument('--ms_ms_units', choices=['mz', 'ppm'], help='Sets units for MS/MS tolerance recommendations: mz or ppm (defaults to ppm for HR and mz for LR)')
     argparser.add_argument('files', type=str, nargs='+', help='Filenames of one or more mzML files to read')
     params = argparser.parse_args()
 
@@ -76,7 +77,7 @@ def main():
         eprint(f"INFO: Found {n_files} input files to process")
 
     #### Initialize the metadata handler
-    study = MetadataHandler(params.metadata_filepath, verbose=params.verbose, write_ions=params.write_ions)
+    study = MetadataHandler(params.metadata_filepath, verbose=params.verbose, write_ions=params.write_ions, frag_units=params.ms_ms_units)
 
     #### If the user wants to read and preserve an existing file, then read or create it
     if params.preserve_existing_metadata > 0:
@@ -106,7 +107,8 @@ def main():
             'filename': file,
             'metadata': copy.deepcopy(study.metadata),
             'verbose': verbose,
-            'write_fragmentation_type_files': params.write_fragmentation_type_files
+            'write_fragmentation_type_files': params.write_fragmentation_type_files,
+            'fragmentation_units': params.ms_ms_units
             }
         jobs.append(job)
 
