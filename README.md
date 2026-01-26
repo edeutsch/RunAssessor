@@ -61,6 +61,7 @@ the mzML files accordingly. This is generally the only program that needs to be 
 | `--include_sdrf_provenance` | If set, then all information written to the SDRF file will have provenance tags (this is experimental non-standard SDRF, not for routine use). | Not set | `--include_sdrf_provenance` |
 | `--write_pdfs` | If set, generates a PDF of delta time and ppm graphs from precursor stats, and a PDF of neutral loss windows from composite intensities. | Not set | `--write_pdfs` |
 | `--write_ions` | If set, writes a TSV file of the ion three-sigma table, which lists all fragment ions found. | Not set | `--write_ions` |
+| `--ms_ms_units` | Sets units for MS/MS tolerance recommendations: mz or ppm (defaults to ppm for HR and mz for LR) | ppm for HR and mz for LR | `--ms_ms_units mz` |
 
 
 ## assess_metadata.py
