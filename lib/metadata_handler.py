@@ -64,9 +64,11 @@ class MetadataHandler:
         self.fragmentation_units = frag_units 
 
         #### Values used to calculate tolerance recomendations
-        self.ppm_error = 5
-        self.mz_error = 0.3
-
+        self.default_tolerances = { 'HR': { 'ppm': { 'default': 20, 'minimum': 5 },
+                                            'm/z' : { 'default': 0.01, 'minimum': 0.005 } },
+                                    'LR': { 'ppm': { 'default': 3000, 'minimum': 500 },
+                                            'm/z' : { 'default': 0.6, 'minimum': 0.1 } }
+                                  }
 
     ####################################################################################################
     #### Create a study metadata file
@@ -310,7 +312,7 @@ class MetadataHandler:
         #### Creates a dictionary to store sigma values for all ions in each file
         ion_three_sigma_table = {}
         ### Creates a variable to store 3sigma values across all values
-        all_3sigma_values_away = {"Status":False, "Highest": [], "Lowest":[], "precursors":[], "precursor_found": False}
+        all_3sigma_values_away = {"Status": False, "Highest": [], "Lowest":[], "precursors":[], "precursor_found": False}
 
         ### Store information about phosphoenrichment in files
         phosphoenrichment = {'has_phospho':0, 'no_phospho':0}
@@ -443,43 +445,14 @@ class MetadataHandler:
                             spectra_stats[key] = 0
                         spectra_stats[key] += value
 
-            #### Colect sigma values
-
+            #### Default fragmentation resoluion to high res, but set to low res if confirmed to be low res
             try:
-                if self.fragmentation_units in {"mz", "ppm"}:
-                    units = self.fragmentation_units
-                else:
-                    frag_type = self.metadata['files'][file]['spectra_stats']['fragmentation_type']
-                    if frag_type.startswith('HR'):
-                        units = "ppm"
-                    elif frag_type.startswith('LR'):
-                        units = "mz"
-                    else:
-                        units = None
-
-                frag_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']
-
-                if units and 'warning' not in frag_tol:
-                    if units == "ppm":
-                        lower_key = 'fragment_tolerance_ppm_lower'
-                        upper_key = 'fragment_tolerance_ppm_upper'
-                    else:
-                        lower_key = 'lower_m/z'
-                        upper_key = 'upper_m/z'
-
-                    all_3sigma_values_away['Lowest'].append(frag_tol[lower_key])
-                    all_3sigma_values_away['Highest'].append(frag_tol[upper_key])
-                    all_3sigma_values_away['Status'] = True
-
-                #### precursor tolerance (independent of units)
-                precursor_tol = fileinfo['summary']['combined summary']['recommended precursor tolerance (ppm)']
-                if precursor_tol is not None:
-                    all_3sigma_values_away['precursors'].append(precursor_tol)
-                    all_3sigma_values_away['precursor_found'] = True
-                    
+                frag_type = self.metadata['files'][file]['spectra_stats']['fragmentation_type']
             except:
-                pass
-           
+                frag_type = 'unknown'
+            fragmentation_resolution = 'HR'
+            if frag_type.startswith('LR'):
+                fragmentation_resolution = 'LR'
 
             #### Add info to ion data
             try:
@@ -491,7 +464,7 @@ class MetadataHandler:
                                 if file not in ion_three_sigma_table:
                                     ion_three_sigma_table[file] = []
                                 
-                                if self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('HR'):
+                                if fragmentation_resolution == 'HR':
                                     ion_three_sigma_table[file].append({
                                         "ion": ions,
                                         "three_sigma_lower": fileinfo["lowend_peaks"][frag_types][ions]["peak"]["extended"]["three_sigma_ppm_lower"],
@@ -500,7 +473,7 @@ class MetadataHandler:
                                         "intensity": fileinfo["lowend_peaks"][frag_types][ions]['peak']["fit"]['intensity'],
                                     })
 
-                                elif self.metadata['files'][file]['spectra_stats']['fragmentation_type'].startswith('LR'):
+                                elif fragmentation_resolution == 'LR':
                                     ion_three_sigma_table[file].append({
                                         "ion": ions,
                                         "three_sigma_lower": fileinfo["lowend_peaks"][frag_types][ions]["peak"]["extended"]["three_sigma_mz_lower"],
@@ -514,169 +487,206 @@ class MetadataHandler:
                 if file not in ion_three_sigma_table:
                     ion_three_sigma_table[file] = []
                 ion_three_sigma_table[file].append("No peaks")
+
             #### Gather info for summary table 
+            info_dict = {
+                "file": file,
+                "acquisition datetime": fileinfo.get('start_timestamp', ''),
+                "relative acquisition time (days)": fileinfo.get('delta_start_days', '?'),
+                "labeling": labeling,
+                "file_instrument": file_instrument,
+                "acquisition type": fileinfo['spectra_stats'].get('acquisition_type', ''),
+                "High accuracy precursor": high_accuracy_precursors,
+                "fragmentation type": frag_type
+            }
+
+            # Fragmentation tolerances
             try:
-                    
-                info_dict = {
-                    "file": file,
-                    "acquisition datetime": fileinfo.get('start_timestamp', ''),
-                    "relative acquisition time (days)": fileinfo.get('delta_start_days', '?'),
-                    "labeling": labeling,
-                    "file_instrument": file_instrument,
-                    "acquisition type": fileinfo['spectra_stats'].get('acquisition_type', ''),
-                    "High accuracy precursor": high_accuracy_precursors,
-                }
-                # Fragmentation type
-                try:
-                    frag_type = fileinfo['summary']['combined summary']['fragmentation type']
-                except:
-                    frag_type = "N/A"
-                info_dict["fragmentation type"] = frag_type
-
-                # Fragmentation tolerances
-                try:
-                    #if 'warning' not in frag_tol:
-                    if self.fragmentation_units in {"mz", "ppm"}:
-                        units = self.fragmentation_units
-                    else:
-                        frag_type = self.metadata['files'][file]['spectra_stats']['fragmentation_type']
-                        if frag_type.startswith('HR'):
-                            units = "ppm"
-                        elif frag_type.startswith('LR'):
-                            units = "mz"
-                        else:
-                            units = None
-                    if units:
-                        if units == "ppm":
-                            lower_key, upper_key = ('fragment_tolerance_ppm_lower','fragment_tolerance_ppm_upper')
-                            error = self.ppm_error
-                            unit_label = "ppm"
-                            rec_fmt = lambda v: math.ceil(v)
-                            frag_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']
-                            low_tol = frag_tol[lower_key]
-                            high_tol = frag_tol[upper_key]
-                        else: 
-                            lower_key, upper_key = ('fragment_tolerance_mz_lower', 'fragment_tolerance_mz_upper')
-                            error = self.mz_error
-                            unit_label = "m/z"
-                            rec_fmt = lambda v: round(v, 4)
-                            frag_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']
-                            low_tol = rec_fmt(frag_tol[lower_key])
-                            high_tol = rec_fmt(frag_tol[upper_key])
-                            
-                        combined = math.sqrt(error**2 + max(abs(low_tol), abs(high_tol))**2)
-                        rec_tol = rec_fmt(combined)
-                        frag_units = unit_label
-                        
-                    else:
-                        low_tol = high_tol = rec_tol = "multiple"
-                        frag_units = None
-
-
-                except (KeyError, TypeError):
-                    if units == "ppm":
-                        low_tol = high_tol = "N/A"
-                        rec_tol = 20
-                        frag_units = "ppm"
-                    else:
-                        low_tol = high_tol = "N/A"
-                        rec_tol = 0.6
-                        frag_units = "m/z" 
-
-                info_dict["fragment tolerance lower_three_sigma"] = low_tol
-                info_dict["fragment tolerance lower_three_sigma units"] = frag_units
-                info_dict["fragment tolerance upper_three_sigma"] = high_tol
-                info_dict["fragment tolerance upper_three_sigma units"] = frag_units
-                info_dict["recommended fragment tolerance"] = rec_tol
-                info_dict["recommended fragment tolerance units"] = frag_units
-
-                
-                # Dynamic exclusion time
-                try:
-                    dynamic_exclusion_time = round(fileinfo['summary']['precursor stats']['dynamic exclusion window']['fit_pulse_time']['pulse start'], 2)
-                except:
-                    dynamic_exclusion_time = "N/A"
-                info_dict["dynamic exclusion time (s)"] = dynamic_exclusion_time
-
-                # Precursor tolerances
-                try:
-                    precursor_low = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['lower_three_sigma (ppm)'], 2)
-                    precursor_high = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['upper_three_sigma (ppm)'], 2)
-                    recommended_precursor = fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['recommended precursor tolerance (ppm)']
-                    if recommended_precursor == 0:
-                        recommended_precursor = "N/A"
-
-                except:
-                    precursor_low = precursor_high = recommended_precursor =  "N/A"
-                info_dict["precursor tolerance three_sigma_lower (ppm)"] = precursor_low
-                info_dict["precursor tolerance three_sigma_higher (ppm)"] = precursor_high
-                info_dict['recommended precursor tolerance (ppm)'] = recommended_precursor
-
-                # Isolation window
-                try:
-                    isolation_window = fileinfo['spectra_stats']['isolation_window_full_widths']
-                    
-                    if isinstance(isolation_window, dict):
-                        if len(isolation_window) <= 0:
-                            iso_str = "N/A"
-                        elif len(isolation_window) > 3:
-                            first_three = list(isolation_window.items())[:3]
-                            iso_str = ', '.join(f"{{{k}: {v}}}" for k, v in first_three) + " ..."
-                        else:
-                            iso_str = ', '.join(f"{{{k}: {v}}}" for k, v in isolation_window.items())
-                    else:
-                        iso_str = "N/A"
-                except:
-                    iso_str = "N/A"
-                info_dict["isolation window"] = iso_str
-
-                # Water/phospho info
-                try:
-                    has_water = fileinfo['summary']['combined summary']['has water_loss']
-                except:
-                    has_water = False
-                info_dict["has water_loss"] = has_water
-
-                try:
-                    has_phospho = fileinfo['summary']['combined summary']['has phospho_spectra']
-                except:
-                    has_phospho = False
-                info_dict["has phospho_spectra"] = has_phospho
-            
-                if has_phospho:
-                    phosphoenrichment['has_phospho'] += 1
+                #if 'warning' not in frag_tol:
+                if self.fragmentation_units in {"mz", "ppm"}:
+                    units = self.fragmentation_units
                 else:
-                    phosphoenrichment['no_phospho'] += 1
+                    if fragmentation_resolution == 'HR':
+                        units = "ppm"
+                    elif fragmentation_resolution == 'LR':
+                        units = "mz"
+                    else:
+                        units = None
+                if units:
+                    if units == "ppm":
+                        lower_key, upper_key = ('fragment_tolerance_ppm_lower','fragment_tolerance_ppm_upper')
+                        error = self.default_tolerances[fragmentation_resolution]['ppm']['minimum']
+                        unit_label = "ppm"
+                        rec_fmt = lambda v: math.ceil(v)
+                        frag_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']
+                        low_tol = frag_tol[lower_key]
+                        high_tol = frag_tol[upper_key]
+                    else: 
+                        lower_key, upper_key = ('fragment_tolerance_mz_lower', 'fragment_tolerance_mz_upper')
+                        error = self.default_tolerances[fragmentation_resolution]['m/z']['minimum']
+                        unit_label = "m/z"
+                        rec_fmt = lambda v: round(v, 4)
+                        frag_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']
+                        low_tol = rec_fmt(frag_tol[lower_key])
+                        high_tol = rec_fmt(frag_tol[upper_key])
+
+                    combined = math.sqrt(error**2 + max(abs(low_tol), abs(high_tol))**2)
+                    rec_tol = rec_fmt(combined)
+                    frag_units = unit_label
+                    
+                else:
+                    low_tol = high_tol = rec_tol = "multiple"
+                    frag_units = None
 
 
-                try:
-                    total_phospho = fileinfo['summary']['combined summary']['total intensity of z=2 phosphoric_acid']
-                    total_water = fileinfo['summary']['combined summary']['total intensity of z=2 water_loss']
-                    ratio = round(fileinfo['summary']['combined summary']['total z=2 phosphoric_acid to z=2 water_loss intensity ratio'], 2)
-                except:
-                    total_phospho = total_water = ratio = "N/A"
-                info_dict["total intensity of z=2 phospho_spectra"] = total_phospho
-                info_dict["total intensity of z=2 water_loss_spectra"] = total_water
-                info_dict["total z=2 phosphoric_acid to z=2 water_loss intensity ratio"] = ratio
+            except (KeyError, TypeError):
+                if units == "ppm":
+                    low_tol = high_tol = "N/A"
+                    rec_tol = self.default_tolerances[fragmentation_resolution]['ppm']['default']
+                    frag_units = "ppm"
+                else:
+                    low_tol = high_tol = "N/A"
+                    rec_tol = self.default_tolerances[fragmentation_resolution]['m/z']['default']
+                    frag_units = "m/z" 
 
-                #Info about phospho shifts
-                for keys in fileinfo['summary']:
-                    if "HR" in keys:
-                        try:
-                            info_dict[keys + " absolute difference between delta m/z for z=2"] = round(fileinfo['summary'][keys]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'], 5)
-                        except:
-                            info_dict[keys + " absolute difference between delta m/z for z=2"] =  "N/A"
-                    elif "LR" in keys:
-                        try:
-                            info_dict[keys + " absolute difference between delta m/z for z=2"] = round(fileinfo['summary'][keys]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'], 2)
-                        except:
-                            info_dict[keys + " absolute difference between delta m/z for z=2"] =  "N/A"
+            info_dict["fragment tolerance lower_three_sigma"] = low_tol
+            info_dict["fragment tolerance lower_three_sigma units"] = frag_units
+            info_dict["fragment tolerance upper_three_sigma"] = high_tol
+            info_dict["fragment tolerance upper_three_sigma units"] = frag_units
+            info_dict["recommended fragment tolerance"] = rec_tol
+            info_dict["recommended fragment tolerance units"] = frag_units
 
-                # Save
-                info.append(info_dict)
+            #### Also update the main data structure with the recommended tolerance information
+            fileinfo['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance'] = rec_tol
+            fileinfo['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance units'] = frag_units
+
+            #### Collect sigma values
+            try:
+                if self.fragmentation_units in {"mz", "ppm"}:
+                    units = self.fragmentation_units
+                else:
+                    if fragmentation_resolution == 'HR':
+                        units = "ppm"
+                    elif fragmentation_resolution == 'LR':
+                        units = "mz"
+                    else:
+                        units = None
+
+                frag_tol = fileinfo['summary']['combined summary']['fragmentation tolerance']
+
+                if units and 'warning' not in frag_tol:
+                    if units == "ppm":
+                        lower_key = 'fragment_tolerance_ppm_lower'
+                        upper_key = 'fragment_tolerance_ppm_upper'
+                    else:
+                        lower_key = 'fragment_tolerance_mz_lower'
+                        upper_key = 'fragment_tolerance_mz_upper'
+
+                    all_3sigma_values_away['Lowest'].append(frag_tol[lower_key])
+                    all_3sigma_values_away['Highest'].append(frag_tol[upper_key])
+                    all_3sigma_values_away['Status'] = True
+
+                #### precursor tolerance (independent of units)
+                precursor_tol = fileinfo['summary']['combined summary']['recommended precursor tolerance (ppm)']
+                if precursor_tol is not None:
+                    all_3sigma_values_away['precursors'].append(precursor_tol)
+                    all_3sigma_values_away['precursor_found'] = True
+                    
+            except Exception as e:
+                eprint(f"ERROR: Unable to compute fragmentation tolerance: {type(e).__name__} - {e}")
+           
+
+            # Dynamic exclusion time
+            try:
+                dynamic_exclusion_time = round(fileinfo['summary']['precursor stats']['dynamic exclusion window']['fit_pulse_time']['pulse start'], 2)
+            except:
+                dynamic_exclusion_time = "N/A"
+            info_dict["dynamic exclusion time (s)"] = dynamic_exclusion_time
+
+
+            # Precursor tolerances
+            try:
+                precursor_low = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['lower_three_sigma (ppm)'], 2)
+                precursor_high = round(fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['upper_three_sigma (ppm)'], 2)
+                recommended_precursor = fileinfo['summary']['precursor stats']['precursor tolerance']['fit_ppm']['recommended precursor tolerance (ppm)']
+                if recommended_precursor == 0:
+                    recommended_precursor = "N/A"
 
             except:
-               info.append({"file": file, "labeling": "N/A"})
+                precursor_low = precursor_high = recommended_precursor =  "N/A"
+
+            info_dict["precursor tolerance three_sigma_lower (ppm)"] = precursor_low
+            info_dict["precursor tolerance three_sigma_higher (ppm)"] = precursor_high
+            info_dict['recommended precursor tolerance (ppm)'] = recommended_precursor
+
+
+            # Isolation window
+            try:
+                isolation_window = fileinfo['spectra_stats']['isolation_window_full_widths']
+                
+                if isinstance(isolation_window, dict):
+                    if len(isolation_window) <= 0:
+                        iso_str = "N/A"
+                    elif len(isolation_window) > 3:
+                        first_three = list(isolation_window.items())[:3]
+                        iso_str = ', '.join(f"{{{k}: {v}}}" for k, v in first_three) + " ..."
+                    else:
+                        iso_str = ', '.join(f"{{{k}: {v}}}" for k, v in isolation_window.items())
+                else:
+                    iso_str = "N/A"
+            except:
+                iso_str = "N/A"
+            info_dict["isolation window"] = iso_str
+
+
+            # Water/phospho info
+            try:
+                has_water = fileinfo['summary']['combined summary']['has water_loss']
+            except:
+                has_water = False
+            info_dict["has water_loss"] = has_water
+
+            try:
+                has_phospho = fileinfo['summary']['combined summary']['has phospho_spectra']
+            except:
+                has_phospho = False
+            info_dict["has phospho_spectra"] = has_phospho
+        
+            if has_phospho:
+                phosphoenrichment['has_phospho'] += 1
+            else:
+                phosphoenrichment['no_phospho'] += 1
+
+
+            try:
+                total_phospho = fileinfo['summary']['combined summary']['total intensity of z=2 phosphoric_acid']
+                total_water = fileinfo['summary']['combined summary']['total intensity of z=2 water_loss']
+                ratio = round(fileinfo['summary']['combined summary']['total z=2 phosphoric_acid to z=2 water_loss intensity ratio'], 2)
+            except:
+                total_phospho = total_water = ratio = "N/A"
+            info_dict["total intensity of z=2 phospho_spectra"] = total_phospho
+            info_dict["total intensity of z=2 water_loss_spectra"] = total_water
+            info_dict["total z=2 phosphoric_acid to z=2 water_loss intensity ratio"] = ratio
+
+            #Info about phospho shifts
+            for keys in fileinfo['summary']:
+                if "HR" in keys:
+                    try:
+                        info_dict[keys + " absolute difference between delta m/z for z=2"] = round(fileinfo['summary'][keys]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'], 5)
+                    except:
+                        info_dict[keys + " absolute difference between delta m/z for z=2"] =  "N/A"
+                elif "LR" in keys:
+                    try:
+                        info_dict[keys + " absolute difference between delta m/z for z=2"] = round(fileinfo['summary'][keys]['absolute difference in delta m/z for z=2 phosphoric_acid_loss and z=2 water_loss'], 2)
+                    except:
+                        info_dict[keys + " absolute difference between delta m/z for z=2"] =  "N/A"
+
+            # Save
+            info.append(info_dict)
+
+            #except:
+            #   info.append({"file": file, "labeling": "N/A"})
+
 
         #### Write file summary table
         self.write_summary_table(info)
@@ -706,31 +716,31 @@ class MetadataHandler:
             self.write_ion_table(ion_three_sigma_table)
             eprint("INFO: Ion Three-Sigma Table generated and stored")
 
+
     ####################################################################################################
     #### If standard deviations have been found, set them in the file
     def set_main_tolerance(self, three_sigma_dict):
         criteria = self.metadata['search_criteria']
-        ppm_error = 5
         criteria.setdefault('tolerances', {})
-        percentile = 90 #Picks this percentile for the three_sigma value
+        percentile = 90 # Select the 90th percentile of the values from all the files
         lower = three_sigma_dict['Lowest']
         upper = three_sigma_dict['Highest']       
-        criteria.setdefault('tolerances', {})
-        
-        
-        if (three_sigma_dict['Status']):
+
+        if three_sigma_dict['Status']:
             three_sigma_upper = numpy.percentile(upper, percentile) # Gives x percentile for a sorted list
             three_sigma_lower = numpy.percentile(lower, 100-percentile)
 
             if criteria["fragmentation_type"].startswith('HR'):
+                error = self.default_tolerances['HR']['ppm']['minimum']
                 self.metadata['search_criteria']['tolerances']['overall_upper_fragment_tolerance_ppm'] = three_sigma_upper
                 self.metadata['search_criteria']['tolerances']['overall_lower_fragment_tolerance_ppm'] = three_sigma_lower
-                self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance (ppm)'] = math.ceil(math.sqrt(ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
+                self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance (ppm)'] = math.ceil(math.sqrt(error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
 
             elif criteria["fragmentation_type"].startswith('LR'):
-                self.metadata['search_criteria']['tolerances']['overall_lower_m/z'] =three_sigma_lower
+                error = self.default_tolerances['LR']['m/z']['minimum']
+                self.metadata['search_criteria']['tolerances']['overall_lower_m/z'] = three_sigma_lower
                 self.metadata['search_criteria']['tolerances']['overall_upper_m/z'] = three_sigma_upper
-                self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance (m/z)'] = math.ceil(math.sqrt(ppm_error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
+                self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance (m/z)'] = math.ceil(math.sqrt(error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
 
             elif criteria['fragmentation_type'] == "multiple":
                 self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance'] = "multiple"
@@ -864,7 +874,7 @@ class MetadataHandler:
                     if key == 'comment[fragment mass tolerance]':
                         if value == '':
                             if isinstance(self.metadata['files'][file]['summary']['combined summary']['fragmentation tolerance'], dict):
-                                    if self.metadata['files'][file]['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance units'] == 'mz':
+                                    if self.metadata['files'][file]['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance units'] == 'm/z':
                                         units = 'Da'
                                         rec_fmt = lambda v: round(v, 2)
                                     else:
