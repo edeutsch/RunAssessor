@@ -557,8 +557,9 @@ class MetadataHandler:
             info_dict["recommended fragment tolerance units"] = frag_units
 
             #### Also update the main data structure with the recommended tolerance information
-            fileinfo['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance'] = rec_tol
-            fileinfo['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance units'] = frag_units
+            if isinstance(fileinfo['summary']['combined summary']['fragmentation tolerance'], dict):
+                fileinfo['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance'] = rec_tol
+                fileinfo['summary']['combined summary']['fragmentation tolerance']['recommended fragment tolerance units'] = frag_units
 
             #### Collect sigma values
             try:
