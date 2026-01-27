@@ -2,6 +2,7 @@ import sys
 import os
 import subprocess
 import json
+import glob
 from deepdiff import DeepDiff
 
 def eprint(*args, **kwargs): print(*args, file=sys.stderr, **kwargs)
@@ -67,7 +68,6 @@ def test_assess_mzMLs():
         f"\n\nDifferences found:\n{diff.pretty()}\n"
 
 
-
 def test_mzML_assessor():
 
     with open(current_study_metadata, 'r') as study_metadata:
@@ -89,4 +89,9 @@ def test_mzML_assessor():
 
     assert assessor.metadata['state']['status'] != 'ERROR'
 
+    #### If all assertions pass, then go ahead and remove the test output files
+    study_metadata_files = os.path.join(tests_data_dir, "study_metadata.*")
+    for file_path in glob.glob(study_metadata_files):
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
