@@ -1321,7 +1321,7 @@
         },
         "precursor stats": {
           "dynamic exclusion window": {
-            "dynamic_exclusion_time_fit_call": "no fit",
+            "dynamic_exclusion_time_fit_call": "good fit, dynamic exclusion window found",
             "fit_pulse_time": {
               "chi_squared": 0.0,
               "decay constant": 1.0,
@@ -1833,7 +1833,7 @@
                 0
               ]
             },
-            "ppm_fit call": "no fit"
+            "ppm_fit call": "probably not a good fit, suggested tolerance may not be accurate, check ppm graph"
           }
         }
       }
