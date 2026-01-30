@@ -1056,11 +1056,11 @@ class MzMLAssessor:
 
         #### If none are an instrument we know about about, ask for help
         if not found_instrument:
-            self.log_event('ERROR','UnrecogInstr',f"Did not recognize the instrument. Please teach me about this instrument.")
+            self.log_event('WARNING','UnrecogInstr',f"Did not find the instrument CV term. Please update RunAssessor with information about this instrument. Proceding as if it were a QTOF type instrument.")
             model_data = {
                 'accession': None,
                 'name': 'unknown',
-                'category': 'unknown'
+                'category': 'QTOF'
             }
             self.metadata['files'][self.mzml_file]['instrument_model'] = model_data
             return
@@ -1748,9 +1748,13 @@ class MzMLAssessor:
             self.metadata['state']['status'] = status
             self.metadata['state']['code'] = code
             self.metadata['state']['message'] = message
-            #if self.verbose >= 1:
-             #   eprint(full_message)
 
+        #### In verbose mode, print out warnings and errors
+        if self.verbose >= 1:
+            eprint(full_message)
+        else:
+            if status == 'ERROR':
+                eprint(full_message)
 
 ####################################################################################################
 #### Gaussian function used for curve fitting
