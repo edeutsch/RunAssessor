@@ -147,6 +147,7 @@ def main():
         for filename in result.metadata['files']:
             study.metadata['files'][filename] = result.metadata['files'][filename]
         study.metadata['state'] = result.metadata['state']
+        study.metadata['state']['problems'] = result.metadata['problems']
 
     #### Infer parameters based on the latest data
     study.infer_search_criteria()
