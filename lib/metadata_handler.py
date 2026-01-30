@@ -739,9 +739,9 @@ class MetadataHandler:
 
             elif criteria["fragmentation_type"].startswith('LR'):
                 error = self.default_tolerances['LR']['m/z']['minimum']
-                self.metadata['search_criteria']['tolerances']['overall_lower_m/z'] = three_sigma_lower
-                self.metadata['search_criteria']['tolerances']['overall_upper_m/z'] = three_sigma_upper
-                self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance (m/z)'] = math.ceil(math.sqrt(error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)))
+                self.metadata['search_criteria']['tolerances']['overall_upper_fragment_tolerance_m/z'] = three_sigma_upper
+                self.metadata['search_criteria']['tolerances']['overall_lower_fragment_tolerance_m/z'] = three_sigma_lower
+                self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance (m/z)'] = round(math.sqrt(error**2 + (max(abs(three_sigma_lower), abs(three_sigma_upper))**2)),1)
 
             elif criteria['fragmentation_type'] == "multiple":
                 self.metadata['search_criteria']['tolerances']['recommended overall fragment tolerance'] = "multiple"
