@@ -1,6 +1,7 @@
 {
   "files": {
     "EXP22038_2022ms0310aX49_A_BA7_1_9837.mzML.gz": {
+      "delta_start_days": 0.0,
       "instrument_model": {
         "accession": "MS:1000122",
         "category": "QTOF",
@@ -1780,14 +1781,14 @@
           "dynamic exclusion window": {
             "dynamic_exclusion_time_fit_call": "probably not a good fit, suggested tolerance may not be accurate, check time graph",
             "fit_pulse_time": {
-              "chi_squared": 569555691091.676,
-              "decay constant": 3.4369631557445923,
-              "final level": -4168.928407666641,
-              "inital level": 4316.708793066108,
-              "peak level": -34.627178863282204,
-              "peak to following level ratio": -3462717886.3282204,
-              "peak to preceding level ratio": -0.008021661993716959,
-              "pulse start": 0.9714817523763694
+              "chi_squared": 569589309219.8053,
+              "decay constant": 3.436996451544193,
+              "final level": -4168.928372100987,
+              "inital level": 4316.708893077093,
+              "peak level": -34.630526096399485,
+              "peak to following level ratio": -3463052609.6399484,
+              "peak to preceding level ratio": -0.008022437221082495,
+              "pulse start": 0.9714817831469135
             },
             "histogram_time": {
               "bin_centers": [
@@ -2313,13 +2314,9 @@
   },
   "problems": {
     "errors": {
-      "codes": {
-        "Unparsable Timestamp": 1
-      },
-      "count": 1,
-      "list": [
-        "ERROR: [Unparsable Timestamp]: The run timestamp '2022-06-06T21:47:12.947-07:00' cannot be parsed."
-      ]
+      "codes": {},
+      "count": 0,
+      "list": []
     },
     "warnings": {
       "codes": {},
@@ -2367,9 +2364,9 @@
     "n_unknown_fragmentation_type_spectra": 0
   },
   "state": {
-    "code": "Unparsable Timestamp",
-    "message": "The run timestamp '2022-06-06T21:47:12.947-07:00' cannot be parsed.",
-    "status": "ERROR",
+    "code": "OK",
+    "message": "No problems detected",
+    "status": "OK",
     "version": "v0.1"
   }
 }

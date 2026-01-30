@@ -41,6 +41,8 @@
                 "extent": 2,
                 "intensity": 2572878772.0,
                 "n_spectra": 28741,
+                "three_sigma_mz_lower": 6.763100853575941e-06,
+                "three_sigma_mz_upper": 0.0005398798319928769,
                 "three_sigma_ppm_lower": 0.056321260184818644,
                 "three_sigma_ppm_upper": 4.495972061414632
               },
@@ -76,6 +78,8 @@
                 "extent": 3,
                 "intensity": 114981195.89648438,
                 "n_spectra": 8502,
+                "three_sigma_mz_lower": -0.00011740047398387361,
+                "three_sigma_mz_upper": 0.0006002619159646044,
                 "three_sigma_ppm_lower": -0.9695777141387039,
                 "three_sigma_ppm_upper": 4.957395456899302
               },
@@ -111,6 +115,8 @@
                 "extent": 3,
                 "intensity": 3634651362.9587708,
                 "n_spectra": 31243,
+                "three_sigma_mz_lower": 8.579219791622264e-05,
+                "three_sigma_mz_upper": 0.0005864989162829746,
                 "three_sigma_ppm_lower": 0.7794240760211326,
                 "three_sigma_ppm_upper": 5.328356039527613
               },
@@ -197,6 +203,8 @@
                 "extent": 3,
                 "intensity": 291631428.2890625,
                 "n_spectra": 11897,
+                "three_sigma_mz_lower": -4.274979072397617e-05,
+                "three_sigma_mz_upper": 0.0005762154104488695,
                 "three_sigma_ppm_lower": -0.3813985675043634,
                 "three_sigma_ppm_upper": 5.140790829553255
               },
@@ -232,6 +240,8 @@
                 "extent": 3,
                 "intensity": 711236962.9296875,
                 "n_spectra": 15636,
+                "three_sigma_mz_lower": -0.00012820637627366605,
+                "three_sigma_mz_upper": 0.00043442861962641555,
                 "three_sigma_ppm_lower": -0.8058647965268453,
                 "three_sigma_ppm_upper": 2.730681120051198
               },
@@ -267,6 +277,8 @@
                 "extent": 3,
                 "intensity": 189803498.84375,
                 "n_spectra": 8525,
+                "three_sigma_mz_lower": -4.596642751628142e-05,
+                "three_sigma_mz_upper": 0.0005935215357148755,
                 "three_sigma_ppm_lower": -0.3534108451379816,
                 "three_sigma_ppm_upper": 4.56326407942602
               },
@@ -302,6 +314,8 @@
                 "extent": 3,
                 "intensity": 1608439266.0,
                 "n_spectra": 28635,
+                "three_sigma_mz_lower": -0.00011885008910325205,
+                "three_sigma_mz_upper": 0.0005910044404174545,
                 "three_sigma_ppm_lower": -0.8734116218940504,
                 "three_sigma_ppm_upper": 4.343203700950951
               },
@@ -337,6 +351,8 @@
                 "extent": 2,
                 "intensity": 8622709572.0,
                 "n_spectra": 37154,
+                "three_sigma_mz_lower": -0.00015802069669821532,
+                "three_sigma_mz_upper": 0.0005048495917596504,
                 "three_sigma_ppm_lower": -1.2429745382108042,
                 "three_sigma_ppm_upper": 3.9710949343666044
               },
@@ -372,6 +388,8 @@
                 "extent": 3,
                 "intensity": 7746252134.5859375,
                 "n_spectra": 36768,
+                "three_sigma_mz_lower": 9.525255910642087e-05,
+                "three_sigma_mz_upper": 0.0006294282583776926,
                 "three_sigma_ppm_lower": 0.7434165277699152,
                 "three_sigma_ppm_upper": 4.9124913253051545
               },
@@ -407,6 +425,8 @@
                 "extent": 3,
                 "intensity": 8206910040.5,
                 "n_spectra": 36775,
+                "three_sigma_mz_lower": -9.922448499629358e-05,
+                "three_sigma_mz_upper": 0.00036842994837889823,
                 "three_sigma_ppm_lower": -0.7683613371135869,
                 "three_sigma_ppm_upper": 2.852998710748405
               },
@@ -442,6 +462,8 @@
                 "extent": 3,
                 "intensity": 10321358682.3125,
                 "n_spectra": 36665,
+                "three_sigma_mz_lower": 1.741764464728118e-05,
+                "three_sigma_mz_upper": 0.000700007822042011,
                 "three_sigma_ppm_lower": 0.13384307119390337,
                 "three_sigma_ppm_upper": 5.379096810112211
               },
@@ -477,6 +499,8 @@
                 "extent": 3,
                 "intensity": 129528478.55273438,
                 "n_spectra": 12038,
+                "three_sigma_mz_lower": -0.0007198748998477556,
+                "three_sigma_mz_upper": 0.000545294403242852,
                 "three_sigma_ppm_lower": -5.489173433403071,
                 "three_sigma_ppm_upper": 4.157966269274109
               },
@@ -512,6 +536,8 @@
                 "extent": 2,
                 "intensity": 8915564882.0,
                 "n_spectra": 36950,
+                "three_sigma_mz_lower": 8.16781759487771e-05,
+                "three_sigma_mz_upper": 0.0005275115456663894,
                 "three_sigma_ppm_lower": 0.647583042893837,
                 "three_sigma_ppm_upper": 4.182359950331217
               },
@@ -547,6 +573,8 @@
                 "extent": 3,
                 "intensity": 6711035859.125,
                 "n_spectra": 36809,
+                "three_sigma_mz_lower": -8.215334498271569e-05,
+                "three_sigma_mz_upper": 0.0007967887674514614,
                 "three_sigma_ppm_lower": -0.6462418885409558,
                 "three_sigma_ppm_upper": 6.267770082330628
               },
@@ -582,6 +610,8 @@
                 "extent": 2,
                 "intensity": 7140115374.0,
                 "n_spectra": 36474,
+                "three_sigma_mz_lower": -0.00013279960447193324,
+                "three_sigma_mz_upper": 0.00042422398368530074,
                 "three_sigma_ppm_lower": -1.0364084139033358,
                 "three_sigma_ppm_upper": 3.3107727076398015
               },
@@ -617,6 +647,8 @@
                 "extent": 3,
                 "intensity": 8849960519.46875,
                 "n_spectra": 36983,
+                "three_sigma_mz_lower": 0.00011358483541108792,
+                "three_sigma_mz_upper": 0.000642890761788736,
                 "three_sigma_ppm_lower": 0.8796061654862308,
                 "three_sigma_ppm_upper": 4.97857549167439
               },
@@ -652,6 +684,8 @@
                 "extent": 2,
                 "intensity": 8290129290.0,
                 "n_spectra": 36498,
+                "three_sigma_mz_lower": -0.0002713546779707641,
+                "three_sigma_mz_upper": 0.0005340597770603082,
                 "three_sigma_ppm_lower": -2.085079905444844,
                 "three_sigma_ppm_upper": 4.1036967476741895
               },
@@ -687,6 +721,8 @@
                 "extent": 2,
                 "intensity": 9148473848.875,
                 "n_spectra": 37096,
+                "three_sigma_mz_lower": 3.986088596550231e-05,
+                "three_sigma_mz_upper": 0.0004694304064514445,
                 "three_sigma_ppm_lower": 0.30396096073123946,
                 "three_sigma_ppm_upper": 3.5796624657296174
               },
@@ -722,6 +758,8 @@
                 "extent": 3,
                 "intensity": 20685470052.75,
                 "n_spectra": 38116,
+                "three_sigma_mz_lower": -0.00025528670432426945,
+                "three_sigma_mz_upper": 0.0005231833230901865,
                 "three_sigma_ppm_lower": -1.1091214428465086,
                 "three_sigma_ppm_upper": 2.2730280596279906
               },
@@ -757,6 +795,8 @@
                 "extent": 4,
                 "intensity": 6688753035.75,
                 "n_spectra": 34967,
+                "three_sigma_mz_lower": -0.00029235205613476747,
+                "three_sigma_mz_upper": 0.000518750082448513,
                 "three_sigma_ppm_lower": -1.1779801979628137,
                 "three_sigma_ppm_upper": 2.090210456854912
               },
@@ -838,6 +878,8 @@
                 "extent": 3,
                 "intensity": 381490105.2265625,
                 "n_spectra": 18280,
+                "three_sigma_mz_lower": -0.00010429038150443714,
+                "three_sigma_mz_upper": 0.0006282435038013534,
                 "three_sigma_ppm_lower": -0.9061905605547711,
                 "three_sigma_ppm_upper": 5.458876692769795
               },
@@ -873,6 +915,8 @@
                 "extent": 3,
                 "intensity": 1243377524.0625,
                 "n_spectra": 18601,
+                "three_sigma_mz_lower": -0.00012004806224186009,
+                "three_sigma_mz_upper": 0.00048678937873946975,
                 "three_sigma_ppm_lower": -0.7593537845074154,
                 "three_sigma_ppm_upper": 3.0791447200464397
               },
@@ -908,6 +952,8 @@
                 "extent": 4,
                 "intensity": 141689391.015625,
                 "n_spectra": 10848,
+                "three_sigma_mz_lower": -0.00018206236943327063,
+                "three_sigma_mz_upper": 0.0005335337836389325,
                 "three_sigma_ppm_lower": -1.290286882995412,
                 "three_sigma_ppm_upper": 3.7811857815930665
               },
@@ -943,6 +989,8 @@
                 "extent": 3,
                 "intensity": 172510561.125,
                 "n_spectra": 8062,
+                "three_sigma_mz_lower": -0.0002180971517431274,
+                "three_sigma_mz_upper": 0.0006311218445047373,
                 "three_sigma_ppm_lower": -1.5238985967661167,
                 "three_sigma_ppm_upper": 4.409804004969172
               },
@@ -978,6 +1026,8 @@
                 "extent": 4,
                 "intensity": 428808349.9375,
                 "n_spectra": 17341,
+                "three_sigma_mz_lower": -0.0003882583734610673,
+                "three_sigma_mz_upper": 0.0005005003615809439,
                 "three_sigma_ppm_lower": -1.9304488258180403,
                 "three_sigma_ppm_upper": 2.4885241410828782
               },
@@ -1013,6 +1063,8 @@
                 "extent": 4,
                 "intensity": 331055561.734375,
                 "n_spectra": 14272,
+                "three_sigma_mz_lower": -0.0002573913368450888,
+                "three_sigma_mz_upper": 0.00045237132150076316,
                 "three_sigma_ppm_lower": -1.3906124494965604,
                 "three_sigma_ppm_upper": 2.4440340501933076
               },
@@ -1048,6 +1100,8 @@
                 "extent": 5,
                 "intensity": 300948678.18359375,
                 "n_spectra": 10013,
+                "three_sigma_mz_lower": -0.0003557243218162143,
+                "three_sigma_mz_upper": 0.0005953676089185678,
                 "three_sigma_ppm_lower": -1.6534625927747293,
                 "three_sigma_ppm_upper": 2.767362280066944
               },
@@ -1083,6 +1137,8 @@
                 "extent": 3,
                 "intensity": 83483397.78125,
                 "n_spectra": 7505,
+                "three_sigma_mz_lower": -0.00013356116523903115,
+                "three_sigma_mz_upper": 0.000609427810769263,
                 "three_sigma_ppm_lower": -1.0509461717324478,
                 "three_sigma_ppm_upper": 4.79537463999359
               },
@@ -1118,6 +1174,8 @@
                 "extent": 4,
                 "intensity": 135785533.74414062,
                 "n_spectra": 4690,
+                "three_sigma_mz_lower": -0.0004484456733609787,
+                "three_sigma_mz_upper": 0.00049798501445251,
                 "three_sigma_ppm_lower": -2.2514538113696716,
                 "three_sigma_ppm_upper": 2.500169642380687
               },
@@ -1153,6 +1211,8 @@
                 "extent": 3,
                 "intensity": 368386378.71875,
                 "n_spectra": 12431,
+                "three_sigma_mz_lower": -0.0002795492225267036,
+                "three_sigma_mz_upper": 0.00044439279436469506,
                 "three_sigma_ppm_lower": -1.526347031765216,
                 "three_sigma_ppm_upper": 2.4263978146160246
               },
@@ -1188,6 +1248,8 @@
                 "extent": 4,
                 "intensity": 244719280.4111328,
                 "n_spectra": 8565,
+                "three_sigma_mz_lower": -0.00018555405812565706,
+                "three_sigma_mz_upper": 0.0004452042275512974,
                 "three_sigma_ppm_lower": -1.0717710354690813,
                 "three_sigma_ppm_upper": 2.57152552079856
               },
@@ -1223,6 +1285,8 @@
                 "extent": 4,
                 "intensity": 249343992.23828125,
                 "n_spectra": 4536,
+                "three_sigma_mz_lower": -0.00018441030610204397,
+                "three_sigma_mz_upper": 0.00038888685437853273,
                 "three_sigma_ppm_lower": -0.9853920380179978,
                 "three_sigma_ppm_upper": 2.0780075587663878
               },
@@ -1258,6 +1322,8 @@
                 "extent": 4,
                 "intensity": 105586032.39746094,
                 "n_spectra": 4626,
+                "three_sigma_mz_lower": -0.0003127080038047717,
+                "three_sigma_mz_upper": 0.0005000748371066658,
                 "three_sigma_ppm_lower": -1.6888087598313573,
                 "three_sigma_ppm_upper": 2.7007008301720012
               },
@@ -1293,6 +1359,8 @@
                 "extent": 4,
                 "intensity": 940707638.4765625,
                 "n_spectra": 10966,
+                "three_sigma_mz_lower": -0.00015962036183013483,
+                "three_sigma_mz_upper": 0.0004281261533829326,
                 "three_sigma_ppm_lower": -0.9437534496713946,
                 "three_sigma_ppm_upper": 2.53129067944142
               },
@@ -1328,6 +1396,8 @@
                 "extent": 4,
                 "intensity": 106711843.015625,
                 "n_spectra": 5466,
+                "three_sigma_mz_lower": -0.0002995647142493859,
+                "three_sigma_mz_upper": 0.000552237949899422,
                 "three_sigma_ppm_lower": -1.618145208094088,
                 "three_sigma_ppm_upper": 2.9829988308086737
               },
@@ -1363,6 +1433,8 @@
                 "extent": 3,
                 "intensity": 226689067.09375,
                 "n_spectra": 11112,
+                "three_sigma_mz_lower": -0.0002662934690078549,
+                "three_sigma_mz_upper": 0.0004782292662184267,
                 "three_sigma_ppm_lower": -1.5747957254622862,
                 "three_sigma_ppm_upper": 2.8281332134718222
               },
@@ -1398,6 +1470,8 @@
                 "extent": 4,
                 "intensity": 158579910.16601562,
                 "n_spectra": 9260,
+                "three_sigma_mz_lower": -0.0002822734563827458,
+                "three_sigma_mz_upper": 0.0005398861479810426,
                 "three_sigma_ppm_lower": -1.649633787669571,
                 "three_sigma_ppm_upper": 3.1551476451851794
               },
@@ -1433,6 +1507,8 @@
                 "extent": 3,
                 "intensity": 215835678.3125,
                 "n_spectra": 14373,
+                "three_sigma_mz_lower": -0.00023679125424166535,
+                "three_sigma_mz_upper": 0.0005657214341744058,
                 "three_sigma_ppm_lower": -1.5268826664796595,
                 "three_sigma_ppm_upper": 3.6478976162495576
               },
@@ -1468,6 +1544,8 @@
                 "extent": 4,
                 "intensity": 77139506.546875,
                 "n_spectra": 6084,
+                "three_sigma_mz_lower": -7.64752925075078e-05,
+                "three_sigma_mz_upper": 0.0006475665036642346,
                 "three_sigma_ppm_lower": -0.5923622433468836,
                 "three_sigma_ppm_upper": 5.0159199690434075
               },
@@ -1503,6 +1581,8 @@
                 "extent": 4,
                 "intensity": 544305356.0,
                 "n_spectra": 14807,
+                "three_sigma_mz_lower": -0.0003307409365932755,
+                "three_sigma_mz_upper": 0.0004907000160900054,
                 "three_sigma_ppm_lower": -1.6777940302035326,
                 "three_sigma_ppm_upper": 2.489239965565627
               },
@@ -1538,6 +1618,8 @@
                 "extent": 3,
                 "intensity": 133205156.4375,
                 "n_spectra": 12568,
+                "three_sigma_mz_lower": -0.0001309837678690588,
+                "three_sigma_mz_upper": 0.0006583690575980132,
                 "three_sigma_ppm_lower": -1.0148599948712906,
                 "three_sigma_ppm_upper": 5.101032206412564
               },
@@ -1803,6 +1885,8 @@
                 "extent": 4,
                 "intensity": 150672205.296875,
                 "n_spectra": 4756,
+                "three_sigma_mz_lower": -0.00023348515888145337,
+                "three_sigma_mz_upper": 0.00040196121623538127,
                 "three_sigma_ppm_lower": -1.247864913759055,
                 "three_sigma_ppm_upper": 2.148287714880932
               },
@@ -1838,6 +1922,8 @@
                 "extent": 3,
                 "intensity": 15886151.078125,
                 "n_spectra": 1481,
+                "three_sigma_mz_lower": -0.00018755023554735677,
+                "three_sigma_mz_upper": 0.0006150041136506356,
                 "three_sigma_ppm_lower": -1.2748736720894225,
                 "three_sigma_ppm_upper": 4.1804935644664205
               },
@@ -1873,6 +1959,8 @@
                 "extent": 4,
                 "intensity": 24003129.34765625,
                 "n_spectra": 2029,
+                "three_sigma_mz_lower": -0.0001286977531671493,
+                "three_sigma_mz_upper": 0.000686119215129953,
                 "three_sigma_ppm_lower": -0.9893262606454307,
                 "three_sigma_ppm_upper": 5.274340388677121
               },
@@ -1908,6 +1996,8 @@
                 "extent": 3,
                 "intensity": 5251193735.21875,
                 "n_spectra": 29745,
+                "three_sigma_mz_lower": -0.0001473568196116308,
+                "three_sigma_mz_upper": 0.000389487695060851,
                 "three_sigma_ppm_lower": -0.8414670120602641,
                 "three_sigma_ppm_upper": 2.2241321973484363
               },
@@ -2264,7 +2354,8 @@
             "fragment_tolerance_ppm_lower": -1.6844028679802274,
             "fragment_tolerance_ppm_upper": 5.220920565027575,
             "number of peaks with fragment_tolerance": 45,
-            "recommended fragment tolerance (ppm)": 8
+            "recommended fragment tolerance": 8,
+            "recommended fragment tolerance units": "ppm"
           },
           "z=2 phosphoric_acid to z=2 water_loss intensity ratio": -0.0008282901552433749
         },
@@ -2274,7 +2365,8 @@
             "fragment_tolerance_ppm_lower": -1.6844028679802274,
             "fragment_tolerance_ppm_upper": 5.220920565027575,
             "number of peaks with fragment_tolerance": 45,
-            "recommended fragment tolerance (ppm)": 8
+            "recommended fragment tolerance": 8,
+            "recommended fragment tolerance units": "ppm"
           },
           "fragmentation type": "HR_HCD",
           "has phospho_spectra": false,
@@ -2288,14 +2380,14 @@
           "dynamic exclusion window": {
             "dynamic_exclusion_time_fit_call": "uncertain about fit, manually check time graph",
             "fit_pulse_time": {
-              "chi_squared": 13.583922763579812,
-              "decay constant": 3.1355379986545024,
-              "final level": 30.661001807675024,
-              "inital level": 35.75555573092894,
-              "peak level": 315.7166728973934,
-              "peak to following level ratio": 3.5664908476295385,
-              "peak to preceding level ratio": 8.829863400061631,
-              "pulse start": 45.52860160873072
+              "chi_squared": 13.583922612029635,
+              "decay constant": 3.135538003678563,
+              "final level": 30.661001804019726,
+              "inital level": 35.75555551612512,
+              "peak level": 315.71667240029745,
+              "peak to following level ratio": 3.566490840240403,
+              "peak to preceding level ratio": 8.829863439204988,
+              "pulse start": 45.5286016087307
             },
             "histogram_time": {
               "bin_centers": [

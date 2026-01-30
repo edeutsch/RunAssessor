@@ -1,6 +1,7 @@
 {
   "files": {
     "WS1_11.mzML.gz": {
+      "delta_start_days": 0.0,
       "instrument_model": {
         "accession": "MS:1000556",
         "category": "variable",
@@ -24,7 +25,9 @@
                 "intensity": 1089786.34765625,
                 "n_spectra": 6481,
                 "three_sigma_mz_lower": -0.10981072743029466,
-                "three_sigma_mz_upper": 0.16953597359147346
+                "three_sigma_mz_upper": 0.16953597359147346,
+                "three_sigma_ppm_lower": -291.835819932817,
+                "three_sigma_ppm_upper": 450.5631737353049
               },
               "fit": {
                 "delta_mz": 0.0298626230805894,
@@ -59,7 +62,9 @@
                 "intensity": 212560.7664794922,
                 "n_spectra": 2667,
                 "three_sigma_mz_lower": -0.23614200770653615,
-                "three_sigma_mz_upper": 0.14135233196562358
+                "three_sigma_mz_upper": 0.14135233196562358,
+                "three_sigma_ppm_lower": -1025.9451818981613,
+                "three_sigma_ppm_upper": 614.1209069011695
               },
               "fit": {
                 "delta_mz": -0.047394837870456286,
@@ -94,7 +99,9 @@
                 "intensity": 193680.58178710938,
                 "n_spectra": 2643,
                 "three_sigma_mz_lower": -0.2056319855197623,
-                "three_sigma_mz_upper": 0.1009957543509083
+                "three_sigma_mz_upper": 0.1009957543509083,
+                "three_sigma_ppm_lower": -828.5572204027649,
+                "three_sigma_ppm_upper": 406.9442858607562
               },
               "fit": {
                 "delta_mz": -0.052318115584427005,
@@ -129,7 +136,9 @@
                 "intensity": 487057.1389160156,
                 "n_spectra": 5044,
                 "three_sigma_mz_lower": 0.019929724784957116,
-                "three_sigma_mz_upper": 0.1071042773497212
+                "three_sigma_mz_upper": 0.1071042773497212,
+                "three_sigma_ppm_lower": 65.29745904831856,
+                "three_sigma_ppm_upper": 350.9148891720744
               },
               "fit": {
                 "delta_mz": 0.06351700106733915,
@@ -164,7 +173,9 @@
                 "intensity": 641800.5744628906,
                 "n_spectra": 5834,
                 "three_sigma_mz_lower": -0.10112787949950838,
-                "three_sigma_mz_upper": 0.053559266465108196
+                "three_sigma_mz_upper": 0.053559266465108196,
+                "three_sigma_ppm_lower": -312.8714753754293,
+                "three_sigma_ppm_upper": 165.7027399555591
               },
               "fit": {
                 "delta_mz": -0.023784306517200093,
@@ -199,7 +210,9 @@
                 "intensity": 893500.6373901367,
                 "n_spectra": 3099,
                 "three_sigma_mz_lower": -0.26429476071956876,
-                "three_sigma_mz_upper": 0.16606104927717885
+                "three_sigma_mz_upper": 0.16606104927717885,
+                "three_sigma_ppm_lower": -1314.0927417811704,
+                "three_sigma_ppm_upper": 825.6675953529361
               },
               "fit": {
                 "delta_mz": -0.04911685572119495,
@@ -234,7 +247,9 @@
                 "intensity": 587183.5367431641,
                 "n_spectra": 3228,
                 "three_sigma_mz_lower": -0.3171642425613481,
-                "three_sigma_mz_upper": 0.2108308626269786
+                "three_sigma_mz_upper": 0.2108308626269786,
+                "three_sigma_ppm_lower": -1474.229280031805,
+                "three_sigma_ppm_upper": 979.9750069837568
               },
               "fit": {
                 "delta_mz": -0.053166689967184766,
@@ -269,7 +284,9 @@
                 "intensity": 1089786.34765625,
                 "n_spectra": 6481,
                 "three_sigma_mz_lower": -0.10981072743029466,
-                "three_sigma_mz_upper": 0.16953597359147346
+                "three_sigma_mz_upper": 0.16953597359147346,
+                "three_sigma_ppm_lower": -291.835819932817,
+                "three_sigma_ppm_upper": 450.5631737353049
               },
               "fit": {
                 "delta_mz": 0.0298626230805894,
@@ -304,7 +321,9 @@
                 "intensity": 1956811.8017578125,
                 "n_spectra": 7053,
                 "three_sigma_mz_lower": -0.09925015730524045,
-                "three_sigma_mz_upper": 0.1534446122901354
+                "three_sigma_mz_upper": 0.1534446122901354,
+                "three_sigma_ppm_lower": -219.9148289613532,
+                "three_sigma_ppm_upper": 339.99689857463375
               },
               "fit": {
                 "delta_mz": 0.027097227492447473,
@@ -656,20 +675,22 @@
             }
           },
           "tolerance": {
-            "lower_m/z": -0.27486865708792463,
-            "number of peaks with sigma_m/z": 9,
-            "recommended fragment tolerance (m/z)": 0.407,
-            "upper_m/z": 0.17779495139857449
+            "fragment_tolerance_mz_lower": -0.27486865708792463,
+            "fragment_tolerance_mz_upper": 0.17779495139857449,
+            "number of peaks with fragment_tolerance": 9,
+            "recommended fragment tolerance": 0.2925,
+            "recommended fragment tolerance units": "m/z"
           },
           "z=2 phosphoric_acid to z=2 water_loss intensity ratio": 0.11584402874361972
         },
         "combined summary": {
           "call": "TMTpro",
           "fragmentation tolerance": {
-            "lower_m/z": -0.27486865708792463,
-            "number of peaks with sigma_m/z": 9,
-            "recommended fragment tolerance (m/z)": 0.407,
-            "upper_m/z": 0.17779495139857449
+            "fragment_tolerance_mz_lower": -0.27486865708792463,
+            "fragment_tolerance_mz_upper": 0.17779495139857449,
+            "number of peaks with fragment_tolerance": 9,
+            "recommended fragment tolerance": 0.2925,
+            "recommended fragment tolerance units": "m/z"
           },
           "fragmentation type": "LR_IT_CID",
           "has phospho_spectra": false,
@@ -683,14 +704,14 @@
           "dynamic exclusion window": {
             "dynamic_exclusion_time_fit_call": "probably not a good fit, suggested tolerance may not be accurate, check time graph",
             "fit_pulse_time": {
-              "chi_squared": 439210219.27415806,
-              "decay constant": 2.8115819171501846,
-              "final level": 5.170095614388199,
-              "inital level": 4.259259506469776,
-              "peak level": 123.86824933014412,
-              "peak to following level ratio": 4.911504495131576,
-              "peak to preceding level ratio": 29.082109024347872,
-              "pulse start": 31.038437450782535
+              "chi_squared": 439210258.87218475,
+              "decay constant": 2.8115819092704557,
+              "final level": 5.170095600379246,
+              "inital level": 4.259259698471534,
+              "peak level": 123.8682494724373,
+              "peak to following level ratio": 4.911504517821024,
+              "peak to preceding level ratio": 29.08210774677306,
+              "pulse start": 31.03843745078254
             },
             "histogram_time": {
               "bin_centers": [
@@ -1216,13 +1237,9 @@
   },
   "problems": {
     "errors": {
-      "codes": {
-        "Unparsable Timestamp": 1
-      },
-      "count": 1,
-      "list": [
-        "ERROR: [Unparsable Timestamp]: The run timestamp '2013-05-20T21:46:55.83Z' cannot be parsed."
-      ]
+      "codes": {},
+      "count": 0,
+      "list": []
     },
     "warnings": {
       "codes": {},
@@ -1243,9 +1260,9 @@
       "non_phospho_enriched_spectra": 1
     },
     "tolerances": {
-      "overall_lower_m/z": -0.27486865708792463,
-      "overall_upper_m/z": 0.17779495139857449,
-      "recommended overall fragment tolerance (m/z)": 6,
+      "overall_lower_fragment_tolerance_m/z": -0.27486865708792463,
+      "overall_upper_fragment_tolerance_m/z": 0.17779495139857449,
+      "recommended overall fragment tolerance (m/z)": 0.3,
       "recommended overall precursor tolerance (ppm)": 7.0
     }
   },
@@ -1277,9 +1294,9 @@
     "n_unknown_fragmentation_type_spectra": 0
   },
   "state": {
-    "code": "Unparsable Timestamp",
-    "message": "The run timestamp '2013-05-20T21:46:55.83Z' cannot be parsed.",
-    "status": "ERROR",
+    "code": "OK",
+    "message": "No problems detected",
+    "status": "OK",
     "version": "v0.1"
   }
 }

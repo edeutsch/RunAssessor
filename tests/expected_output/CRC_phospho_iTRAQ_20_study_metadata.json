@@ -23,6 +23,8 @@
                 "extent": 7,
                 "intensity": 956202.2093963623,
                 "n_spectra": 799,
+                "three_sigma_mz_lower": -0.0008269205185376844,
+                "three_sigma_mz_upper": -0.00012251545325285096,
                 "three_sigma_ppm_lower": -8.102698776861725,
                 "three_sigma_ppm_upper": -1.2004851626780573
               },
@@ -58,6 +60,8 @@
                 "extent": 6,
                 "intensity": 2745844.64453125,
                 "n_spectra": 1899,
+                "three_sigma_mz_lower": -0.0007327304180359438,
+                "three_sigma_mz_upper": 0.000567429616807603,
                 "three_sigma_ppm_lower": -6.1019791679896125,
                 "three_sigma_ppm_upper": 4.725399158862916
               },
@@ -116,6 +120,8 @@
                 "extent": 5,
                 "intensity": 5220700.251464844,
                 "n_spectra": 2777,
+                "three_sigma_mz_lower": -0.0005920913908454204,
+                "three_sigma_mz_upper": 3.823647736849492e-05,
                 "three_sigma_ppm_lower": -5.379163798559065,
                 "three_sigma_ppm_upper": 0.34737926952687026
               },
@@ -151,6 +157,8 @@
                 "extent": 6,
                 "intensity": 402722.57330322266,
                 "n_spectra": 1084,
+                "three_sigma_mz_lower": -0.0007275745632382995,
+                "three_sigma_mz_upper": 7.592125556771397e-05,
                 "three_sigma_ppm_lower": -7.196062196469054,
                 "three_sigma_ppm_upper": 0.7508977150983132
               },
@@ -209,6 +217,8 @@
                 "extent": 5,
                 "intensity": 207632.03521728516,
                 "n_spectra": 317,
+                "three_sigma_mz_lower": -0.0008202515162029689,
+                "three_sigma_mz_upper": 5.004302143202797e-05,
                 "three_sigma_ppm_lower": -8.11560193467053,
                 "three_sigma_ppm_upper": 0.4951276937963378
               },
@@ -244,6 +254,8 @@
                 "extent": 5,
                 "intensity": 3259441.210205078,
                 "n_spectra": 2403,
+                "three_sigma_mz_lower": -0.0006506912239384704,
+                "three_sigma_mz_upper": 0.00032520611864551515,
                 "three_sigma_ppm_lower": -5.805237791693003,
                 "three_sigma_ppm_upper": 2.9013743855707257
               },
@@ -325,6 +337,8 @@
                 "extent": 8,
                 "intensity": 1554275.7844238281,
                 "n_spectra": 1161,
+                "three_sigma_mz_lower": -0.00043392455879594883,
+                "three_sigma_mz_upper": 0.00028418214802624454,
                 "three_sigma_ppm_lower": -3.1888470218005054,
                 "three_sigma_ppm_upper": 2.088412324245753
               },
@@ -705,6 +719,8 @@
                 "extent": 7,
                 "intensity": 2282811.912475586,
                 "n_spectra": 2000,
+                "three_sigma_mz_lower": -0.0007994316920461153,
+                "three_sigma_mz_upper": 0.0003327320465176364,
                 "three_sigma_ppm_lower": -6.946349631578408,
                 "three_sigma_ppm_upper": 2.891145236970149
               },
@@ -740,6 +756,8 @@
                 "extent": 7,
                 "intensity": 4083268.990234375,
                 "n_spectra": 2361,
+                "three_sigma_mz_lower": -0.0009843139290906919,
+                "three_sigma_mz_upper": 0.0006610719836245124,
                 "three_sigma_ppm_lower": -6.22619385302957,
                 "three_sigma_ppm_upper": 4.181554480952358
               },
@@ -775,6 +793,8 @@
                 "extent": 9,
                 "intensity": 437059.4833984375,
                 "n_spectra": 535,
+                "three_sigma_mz_lower": -0.0006863878008753363,
+                "three_sigma_mz_upper": 0.0005803682972564547,
                 "three_sigma_ppm_lower": -4.864471328558188,
                 "three_sigma_ppm_upper": 4.1131047760578054
               },
@@ -833,6 +853,8 @@
                 "extent": 14,
                 "intensity": 530855.4936828613,
                 "n_spectra": 462,
+                "three_sigma_mz_lower": -0.0007400104757236104,
+                "three_sigma_mz_upper": -0.00031376462517604614,
                 "three_sigma_ppm_lower": -3.679385820372891,
                 "three_sigma_ppm_upper": -1.5600605000604664
               },
@@ -868,6 +890,8 @@
                 "extent": 10,
                 "intensity": 491564.3465576172,
                 "n_spectra": 568,
+                "three_sigma_mz_lower": -0.0006594818142969644,
+                "three_sigma_mz_upper": 0.0008832590570489857,
                 "three_sigma_ppm_lower": -3.56299334864516,
                 "three_sigma_ppm_upper": 4.771998373830849
               },
@@ -903,6 +927,8 @@
                 "extent": 11,
                 "intensity": 549830.5740661621,
                 "n_spectra": 388,
+                "three_sigma_mz_lower": -0.001018950484202262,
+                "three_sigma_mz_upper": -0.0005934612371939943,
                 "three_sigma_ppm_lower": -4.73624210151307,
                 "three_sigma_ppm_upper": -2.7585011644749255
               },
@@ -938,6 +964,8 @@
                 "extent": 7,
                 "intensity": 175753.27313232422,
                 "n_spectra": 257,
+                "three_sigma_mz_lower": -0.0008038304438543225,
+                "three_sigma_mz_upper": 0.000377517623374543,
                 "three_sigma_ppm_lower": -6.325061077288504,
                 "three_sigma_ppm_upper": 2.9705543549051323
               },
@@ -973,6 +1001,8 @@
                 "extent": 7,
                 "intensity": 1787083.1364746094,
                 "n_spectra": 289,
+                "three_sigma_mz_lower": 0.00030412989264366486,
+                "three_sigma_mz_upper": 0.000700700992237238,
                 "three_sigma_ppm_lower": 1.5269060370504404,
                 "three_sigma_ppm_upper": 3.5179198135180707
               },
@@ -1008,6 +1038,8 @@
                 "extent": 8,
                 "intensity": 1152191.0116577148,
                 "n_spectra": 680,
+                "three_sigma_mz_lower": -0.0004946914039831241,
+                "three_sigma_mz_upper": 0.00034614856943133374,
                 "three_sigma_ppm_lower": -2.701029712351575,
                 "three_sigma_ppm_upper": 1.8899814377084263
               },
@@ -1043,6 +1075,8 @@
                 "extent": 9,
                 "intensity": 344291.6029968262,
                 "n_spectra": 369,
+                "three_sigma_mz_lower": -0.0006877438446175883,
+                "three_sigma_mz_upper": 0.00041259648426231156,
                 "three_sigma_ppm_lower": -3.972448460190041,
                 "three_sigma_ppm_upper": 2.383181298407695
               },
@@ -1124,6 +1158,8 @@
                 "extent": 8,
                 "intensity": 1619410.3856201172,
                 "n_spectra": 558,
+                "three_sigma_mz_lower": -0.0005900720429128665,
+                "three_sigma_mz_upper": -8.429640301314421e-06,
                 "three_sigma_ppm_lower": -3.4887937833789,
                 "three_sigma_ppm_upper": -0.04984014584756169
               },
@@ -1182,6 +1218,8 @@
                 "extent": 11,
                 "intensity": 411621.4252624512,
                 "n_spectra": 478,
+                "three_sigma_mz_lower": -0.0008416010451263792,
+                "three_sigma_mz_upper": 0.0007090706362213386,
                 "three_sigma_ppm_lower": -4.977026786828633,
                 "three_sigma_ppm_upper": 4.193273725910453
               },
@@ -1217,6 +1255,8 @@
                 "extent": 11,
                 "intensity": 306146.0299682617,
                 "n_spectra": 332,
+                "three_sigma_mz_lower": -0.000385958605198625,
+                "three_sigma_mz_upper": 0.000399809150741107,
                 "three_sigma_ppm_lower": -2.2555799753064933,
                 "three_sigma_ppm_upper": 2.3365239230560597
               },
@@ -1252,6 +1292,8 @@
                 "extent": 9,
                 "intensity": 499487.3521118164,
                 "n_spectra": 525,
+                "three_sigma_mz_lower": -0.000572218409294959,
+                "three_sigma_mz_upper": 0.0005008295020932508,
                 "three_sigma_ppm_lower": -3.6897915566651016,
                 "three_sigma_ppm_upper": 3.2294600071140063
               },
@@ -1287,6 +1329,8 @@
                 "extent": 7,
                 "intensity": 778096.3851318359,
                 "n_spectra": 1359,
+                "three_sigma_mz_lower": -0.00044850545308933024,
+                "three_sigma_mz_upper": 0.0003843269647451615,
                 "three_sigma_ppm_lower": -3.4740330848584056,
                 "three_sigma_ppm_upper": 2.976919414761212
               },
@@ -1322,6 +1366,8 @@
                 "extent": 10,
                 "intensity": 863828.2946777344,
                 "n_spectra": 579,
+                "three_sigma_mz_lower": -0.0005073670525327504,
+                "three_sigma_mz_upper": 8.04587437507468e-05,
                 "three_sigma_ppm_lower": -2.5737890828683048,
                 "three_sigma_ppm_upper": 0.40815389027178406
               },
@@ -1380,6 +1426,8 @@
                 "extent": 7,
                 "intensity": 10087017.00390625,
                 "n_spectra": 4684,
+                "three_sigma_mz_lower": -0.0018897963726664418,
+                "three_sigma_mz_upper": -0.00031099990235301475,
                 "three_sigma_ppm_lower": -13.023288511852757,
                 "three_sigma_ppm_upper": -2.1432158057254522
               },
@@ -1530,6 +1578,8 @@
                 "extent": 4,
                 "intensity": 32187382.19921875,
                 "n_spectra": 6203,
+                "three_sigma_mz_lower": -0.0005233403714796977,
+                "three_sigma_mz_upper": 0.00019111512802536608,
                 "three_sigma_ppm_lower": -4.586252325196009,
                 "three_sigma_ppm_upper": 1.6748224445368838
               },
@@ -1565,6 +1615,8 @@
                 "extent": 3,
                 "intensity": 32980757.669921875,
                 "n_spectra": 6203,
+                "three_sigma_mz_lower": -0.000415856515391188,
+                "three_sigma_mz_upper": 0.00016386854079793948,
                 "three_sigma_ppm_lower": -3.612759712858413,
                 "three_sigma_ppm_upper": 1.4236104052446832
               },
@@ -1600,6 +1652,8 @@
                 "extent": 3,
                 "intensity": 39320467.234375,
                 "n_spectra": 6271,
+                "three_sigma_mz_lower": -0.00041774354195380246,
+                "three_sigma_mz_upper": 0.00018064021124954442,
                 "three_sigma_ppm_lower": -3.5977925752608693,
                 "three_sigma_ppm_upper": 1.5557535797861306
               },
@@ -1635,6 +1689,8 @@
                 "extent": 3,
                 "intensity": 38465385.712890625,
                 "n_spectra": 6314,
+                "three_sigma_mz_lower": -0.0005270800734082045,
+                "three_sigma_mz_upper": 0.00017184237976843953,
                 "three_sigma_ppm_lower": -4.50055642512663,
                 "three_sigma_ppm_upper": 1.4673032910825696
               },
@@ -1739,6 +1795,8 @@
                 "extent": 6,
                 "intensity": 22682173.556640625,
                 "n_spectra": 4460,
+                "three_sigma_mz_lower": -0.0005711581949478625,
+                "three_sigma_mz_upper": 0.0004039043090708458,
                 "three_sigma_ppm_lower": -3.2615441958044085,
                 "three_sigma_ppm_upper": 2.306456891563396
               },
@@ -1777,7 +1835,9 @@
                 "intensity": 1228739.919921875,
                 "n_spectra": 5578,
                 "three_sigma_mz_lower": -0.023691430089305215,
-                "three_sigma_mz_upper": 0.18812158742624277
+                "three_sigma_mz_upper": 0.18812158742624277,
+                "three_sigma_ppm_lower": -62.96295532585603,
+                "three_sigma_ppm_upper": 499.95678016476427
               },
               "fit": {
                 "delta_mz": 0.08221507866846878,
@@ -1812,7 +1872,9 @@
                 "intensity": 311624.859375,
                 "n_spectra": 4874,
                 "three_sigma_mz_lower": -0.04850025581620787,
-                "three_sigma_mz_upper": 0.3285502472510585
+                "three_sigma_mz_upper": 0.3285502472510585,
+                "three_sigma_ppm_lower": -210.71474854784788,
+                "three_sigma_ppm_upper": 1427.4230428224787
               },
               "fit": {
                 "delta_mz": 0.14002499571742533,
@@ -1847,7 +1909,9 @@
                 "intensity": 538769.0001220703,
                 "n_spectra": 4622,
                 "three_sigma_mz_lower": 0.03607651797626085,
-                "three_sigma_mz_upper": 0.22025390842849793
+                "three_sigma_mz_upper": 0.22025390842849793,
+                "three_sigma_ppm_lower": 145.36386146671884,
+                "three_sigma_ppm_upper": 887.4736373774051
               },
               "fit": {
                 "delta_mz": 0.1281652132023794,
@@ -1882,7 +1946,9 @@
                 "intensity": 644847.5024414062,
                 "n_spectra": 5330,
                 "three_sigma_mz_lower": -0.03939364070351509,
-                "three_sigma_mz_upper": 0.3217908130980684
+                "three_sigma_mz_upper": 0.3217908130980684,
+                "three_sigma_ppm_lower": -129.06874873372658,
+                "three_sigma_ppm_upper": 1054.310717640021
               },
               "fit": {
                 "delta_mz": 0.14119858619727665,
@@ -1917,7 +1983,9 @@
                 "intensity": 1062424.73046875,
                 "n_spectra": 5395,
                 "three_sigma_mz_lower": -0.07496265744116754,
-                "three_sigma_mz_upper": 0.37365601247772956
+                "three_sigma_mz_upper": 0.37365601247772956,
+                "three_sigma_ppm_lower": -231.92098309344073,
+                "three_sigma_ppm_upper": 1156.0245155479147
               },
               "fit": {
                 "delta_mz": 0.149346677518281,
@@ -1952,7 +2020,9 @@
                 "intensity": 236688.66973876953,
                 "n_spectra": 4381,
                 "three_sigma_mz_lower": -0.16768862729623246,
-                "three_sigma_mz_upper": 0.3450792762903948
+                "three_sigma_mz_upper": 0.3450792762903948,
+                "three_sigma_ppm_lower": -833.7600314485207,
+                "three_sigma_ppm_upper": 1715.7592192811549
               },
               "fit": {
                 "delta_mz": 0.08869532449708117,
@@ -1987,7 +2057,9 @@
                 "intensity": 248402.5711669922,
                 "n_spectra": 4516,
                 "three_sigma_mz_lower": -0.03748173377666997,
-                "three_sigma_mz_upper": 0.26895924911471236
+                "three_sigma_mz_upper": 0.26895924911471236,
+                "three_sigma_ppm_lower": -174.22099336824147,
+                "three_sigma_ppm_upper": 1250.164889264218
               },
               "fit": {
                 "delta_mz": 0.1157387576690212,
@@ -2022,7 +2094,9 @@
                 "intensity": 1228739.919921875,
                 "n_spectra": 5578,
                 "three_sigma_mz_lower": -0.023691430089305215,
-                "three_sigma_mz_upper": 0.18812158742624277
+                "three_sigma_mz_upper": 0.18812158742624277,
+                "three_sigma_ppm_lower": -62.96295532585603,
+                "three_sigma_ppm_upper": 499.95678016476427
               },
               "fit": {
                 "delta_mz": 0.08221507866846878,
@@ -2057,7 +2131,9 @@
                 "intensity": 3788536.2495117188,
                 "n_spectra": 10871,
                 "three_sigma_mz_lower": -0.41019393154136546,
-                "three_sigma_mz_upper": -0.3382247860307563
+                "three_sigma_mz_upper": -0.3382247860307563,
+                "three_sigma_ppm_lower": -908.8925473284,
+                "three_sigma_ppm_upper": -749.4259756353729
               },
               "fit": {
                 "delta_mz": -0.3742093587860609,
@@ -2668,7 +2744,8 @@
             "fragment_tolerance_ppm_lower": -7.377389512547588,
             "fragment_tolerance_ppm_upper": 4.183898329943977,
             "number of peaks with fragment_tolerance": 29,
-            "recommended fragment tolerance (ppm)": 9
+            "recommended fragment tolerance": 9,
+            "recommended fragment tolerance units": "ppm"
           },
           "z=2 phosphoric_acid to z=2 water_loss intensity ratio": 29.78393763541601
         },
@@ -2692,10 +2769,11 @@
             }
           },
           "tolerance": {
-            "lower_m/z": -0.21618968814525905,
-            "number of peaks with sigma_m/z": 9,
-            "recommended fragment tolerance (m/z)": 0.462,
-            "upper_m/z": 0.3507946235278618
+            "fragment_tolerance_mz_lower": -0.21618968814525905,
+            "fragment_tolerance_mz_upper": 0.3507946235278618,
+            "number of peaks with fragment_tolerance": 9,
+            "recommended fragment tolerance": 0.4616,
+            "recommended fragment tolerance units": "m/z"
           },
           "z=2 phosphoric_acid to z=2 water_loss intensity ratio": 33.64874412719456
         },
@@ -2714,14 +2792,14 @@
           "dynamic exclusion window": {
             "dynamic_exclusion_time_fit_call": "probably not a good fit, suggested tolerance may not be accurate, check time graph",
             "fit_pulse_time": {
-              "chi_squared": 9725422736.799576,
-              "decay constant": 1.0868455918845026,
-              "final level": 13.125476632551054,
-              "inital level": 3752.078874679775,
-              "peak level": 3998.628663441901,
-              "peak to following level ratio": 75.20701264555508,
-              "peak to preceding level ratio": 1.0657101828071693,
-              "pulse start": 0.9409654911411921
+              "chi_squared": 9725420655.894745,
+              "decay constant": 1.0868455921570312,
+              "final level": 13.125476780323732,
+              "inital level": 3755.896586189783,
+              "peak level": 3826.9385229587033,
+              "peak to following level ratio": 74.39138203469193,
+              "peak to preceding level ratio": 1.0189147744456377,
+              "pulse start": 0.9888221842724981
             },
             "histogram_time": {
               "bin_centers": [
@@ -3270,7 +3348,7 @@
       "phospho_enriched_spectra": 1
     },
     "tolerances": {
-      "recommended overall precursor tolerance (ppm)": 6.0
+      "recommended overall precursor tolerance (ppm)": null
     }
   },
   "spectra_stats": {

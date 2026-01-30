@@ -1330,14 +1330,14 @@
           "dynamic exclusion window": {
             "dynamic_exclusion_time_fit_call": "no fit",
             "fit_pulse_time": {
-              "chi_squared": 78573339.61016053,
-              "decay constant": 6.208662983858659,
-              "final level": 2.6883098282825904,
-              "inital level": 1.19354458548693,
-              "peak level": 17.37612104166321,
-              "peak to following level ratio": 1.8779087767294473,
-              "peak to preceding level ratio": 14.558418054047207,
-              "pulse start": 62.69771178249642
+              "chi_squared": 78573339.52878885,
+              "decay constant": 6.208663005422339,
+              "final level": 2.688309818782247,
+              "inital level": 1.193544585486684,
+              "peak level": 17.376121053838112,
+              "peak to following level ratio": 1.8779087742807403,
+              "peak to preceding level ratio": 14.558418064250834,
+              "pulse start": 62.69771178249643
             },
             "histogram_time": {
               "bin_centers": [

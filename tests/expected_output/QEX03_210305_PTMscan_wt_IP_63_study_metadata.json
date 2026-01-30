@@ -558,6 +558,8 @@
                 "extent": 8,
                 "intensity": 20356586.9609375,
                 "n_spectra": 1820,
+                "three_sigma_mz_lower": -0.00027326640201224325,
+                "three_sigma_mz_upper": 0.0013693409329043537,
                 "three_sigma_ppm_lower": -1.3587003937545568,
                 "three_sigma_ppm_upper": 6.808462551638598
               },
@@ -593,6 +595,8 @@
                 "extent": 6,
                 "intensity": 3949892.2006835938,
                 "n_spectra": 624,
+                "three_sigma_mz_lower": -0.00022700252828751336,
+                "three_sigma_mz_upper": 0.0012900451957413418,
                 "three_sigma_ppm_lower": -1.2264303289034122,
                 "three_sigma_ppm_upper": 6.969748599933762
               },
@@ -628,6 +632,8 @@
                 "extent": 8,
                 "intensity": 9198981.759765625,
                 "n_spectra": 1389,
+                "three_sigma_mz_lower": -0.00023234288734744408,
+                "three_sigma_mz_upper": 0.0016106471720896153,
                 "three_sigma_ppm_lower": -1.0799662810932396,
                 "three_sigma_ppm_upper": 7.48654136329902
               },
@@ -680,6 +686,8 @@
                 "extent": 7,
                 "intensity": 12663386.407714844,
                 "n_spectra": 803,
+                "three_sigma_mz_lower": 0.0001796526670977523,
+                "three_sigma_mz_upper": 0.0009867749829505106,
                 "three_sigma_ppm_lower": 0.9019591582375983,
                 "three_sigma_ppm_upper": 4.954174894089832
               },
@@ -715,6 +723,8 @@
                 "extent": 6,
                 "intensity": 14743602.083007812,
                 "n_spectra": 837,
+                "three_sigma_mz_lower": 0.0003048448435798108,
+                "three_sigma_mz_upper": 0.0008913858523591827,
                 "three_sigma_ppm_lower": 1.664461871656712,
                 "three_sigma_ppm_upper": 4.866993145638168
               },
@@ -767,6 +777,8 @@
                 "extent": 7,
                 "intensity": 14474329.16430664,
                 "n_spectra": 796,
+                "three_sigma_mz_lower": 0.00031357262019764414,
+                "three_sigma_mz_upper": 0.0010598493981347045,
                 "three_sigma_ppm_lower": 1.675567758735884,
                 "three_sigma_ppm_upper": 5.663279783518179
               },
@@ -802,6 +814,8 @@
                 "extent": 8,
                 "intensity": 7303976.268066406,
                 "n_spectra": 780,
+                "three_sigma_mz_lower": 0.00018185614917797725,
+                "three_sigma_mz_upper": 0.0009510763477089742,
                 "three_sigma_ppm_lower": 0.9821311064129525,
                 "three_sigma_ppm_upper": 5.1363765805051
               },
@@ -854,6 +868,8 @@
                 "extent": 6,
                 "intensity": 6080926.6728515625,
                 "n_spectra": 772,
+                "three_sigma_mz_lower": -0.0006503897128895975,
+                "three_sigma_mz_upper": 0.00161475621294631,
                 "three_sigma_ppm_lower": -3.5131807828002537,
                 "three_sigma_ppm_upper": 8.722355818062056
               },
@@ -957,6 +973,8 @@
                 "extent": 8,
                 "intensity": 9139028.55078125,
                 "n_spectra": 1194,
+                "three_sigma_mz_lower": -0.0007145820323397017,
+                "three_sigma_mz_upper": 0.001957306642106967,
                 "three_sigma_ppm_lower": -3.6249563791512682,
                 "three_sigma_ppm_upper": 9.92909264039243
               },
@@ -1185,6 +1203,8 @@
                 "extent": 6,
                 "intensity": 5962671.7958984375,
                 "n_spectra": 624,
+                "three_sigma_mz_lower": 6.544043040064015e-05,
+                "three_sigma_mz_upper": 0.000971208426424555,
                 "three_sigma_ppm_lower": 0.34974735623222886,
                 "three_sigma_ppm_upper": 5.190637919293524
               },
@@ -1547,7 +1567,8 @@
             "fragment_tolerance_ppm_lower": -3.524358342435355,
             "fragment_tolerance_ppm_upper": 8.843029500295092,
             "number of peaks with fragment_tolerance": 10,
-            "recommended fragment tolerance (ppm)": 11
+            "recommended fragment tolerance": 11,
+            "recommended fragment tolerance units": "ppm"
           },
           "z=2 phosphoric_acid to z=2 water_loss intensity ratio": "n/a"
         },
@@ -1557,7 +1578,8 @@
             "fragment_tolerance_ppm_lower": -3.524358342435355,
             "fragment_tolerance_ppm_upper": 8.843029500295092,
             "number of peaks with fragment_tolerance": 10,
-            "recommended fragment tolerance (ppm)": 11
+            "recommended fragment tolerance": 11,
+            "recommended fragment tolerance units": "ppm"
           },
           "fragmentation type": "HR_HCD",
           "has phospho_spectra": false,
@@ -1571,14 +1593,14 @@
           "dynamic exclusion window": {
             "dynamic_exclusion_time_fit_call": "probably not a good fit, suggested tolerance may not be accurate, check time graph",
             "fit_pulse_time": {
-              "chi_squared": 69118669592.02443,
-              "decay constant": 0.5542097493181194,
-              "final level": 11.257654734072139,
-              "inital level": 255.9999999999803,
-              "peak level": 3557.9810393941175,
-              "peak to following level ratio": 304.46804868128584,
-              "peak to preceding level ratio": 13.89836343513434,
-              "pulse start": 6.601630428300282
+              "chi_squared": 69118668054.72536,
+              "decay constant": 0.5542097476506682,
+              "final level": 11.257654762999287,
+              "inital level": 255.99999714629786,
+              "peak level": 3557.981057736903,
+              "peak to following level ratio": 304.4680497425066,
+              "peak to preceding level ratio": 13.898363661713645,
+              "pulse start": 6.601630428405002
             },
             "histogram_time": {
               "bin_centers": [
