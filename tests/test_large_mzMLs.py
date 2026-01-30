@@ -49,10 +49,6 @@ if tests_large_files_dir not in sys.path:
     sys.path.insert(0, tests_large_files_dir)
 from large_test_file_downloader import download_large_test_files
 
-study_metadata_files = [
-    os.path.join(tests_large_files_dir, "*_study_metadata.json"),
-    os.path.join(tests_large_files_dir, "*_study_metadata.file_summary.tsv")
-]
 
 @pytest.mark.slow
 def test_large_files_present():
@@ -86,77 +82,69 @@ def test_large_files_present():
 @pytest.mark.slow
 def test_compare_study_metadatas():     # This test takes ~ 1 hour
 
+    keep_output = False
+    halt_if_different = True
+
+    study_metadata_files = [
+        os.path.join(tests_large_files_dir, "*_study_metadata.json"),
+        os.path.join(tests_large_files_dir, "*_study_metadata.file_summary.tsv"),
+        os.path.join(tests_large_files_dir, "*_study_metadata.txt")
+]
     for file_type in study_metadata_files:
         for file_path in glob.glob(file_type):
             if os.path.exists(file_path):
                 os.remove(file_path)
 
-    try:
-        for i, input_file in enumerate(input_mzML_file):
-            
-            file_root_name = input_file.split('.')[0]
-            current_study_metadata = os.path.join(tests_large_files_dir, f"{file_root_name}_study_metadata.json")
-            metadata_filepath = f"{file_root_name}_study_metadata.json"
+    for i, input_file in enumerate(input_mzML_file):
+        
+        file_root_name = input_file.split('.')[0]
+        current_study_metadata = os.path.join(tests_large_files_dir, f"{file_root_name}_study_metadata.json")
+        metadata_filepath = f"{file_root_name}_study_metadata.json"
 
-            output = subprocess.run(
-                [sys.executable, assess_mzMLs_file, input_file, '--verbose', '--metadata_filepath', metadata_filepath],
-                cwd=tests_large_files_dir,
-                capture_output=True,
-                text=True,
-                check=True
-            )
+        output = subprocess.run(
+            [sys.executable, assess_mzMLs_file, input_file, '--verbose', '--metadata_filepath', metadata_filepath],
+            cwd=tests_large_files_dir,
+            capture_output=True,
+            text=True,
+            check=True
+        )
 
-            # Testing verbosity
-            stdout_lines = []
-            for line in output.stdout.splitlines():
-                if line != '':
-                    stdout_lines.append(line)
-            print(stdout_lines)
+        # Testing verbosity
+        stdout_lines = []
+        for line in output.stdout.splitlines():
+            if line != '':
+                stdout_lines.append(line)
+        print(stdout_lines)
 
-            stderr_lines = []
-            for line in output.stderr.splitlines():
-                if line != '':
-                    stderr_lines.append(line)
-            eprint(stderr_lines)
+        stderr_lines = []
+        for line in output.stderr.splitlines():
+            if line != '':
+                stderr_lines.append(line)
+        eprint(stderr_lines)
 
-            assert len(stdout_lines) == 0
-            assert len(stderr_lines) >= 11
+        assert len(stdout_lines) == 0
+        assert len(stderr_lines) >= 11
 
-            # Make sure the current generated '<root_name>_study_metadata.json' files exactly match the expected output files
-            print(i)
-            expected_study_metadata = [
-                os.path.join(tests_expected_output_dir, "P50_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "QEX03_210305_PTMscan_wt_IP_63_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "06CPTAC_BCprospective_W_BI_20161116_BA_f17_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "Q20181210_06_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "140924_11_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "ALS081215_10_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "Orbi_CID_HCD_iTRAQ8plex_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "QExactive_TMT6_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "ADPhosTMT3R2_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "20250613_PRM34_AST_EV1109_G20_PRM_Pool10_iRT25_HeLaS3-P1_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "20171001_QE3_nLC7_DBJ_SA_LFQphos_Tech_Rep_03_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "ea02315_OrbiterFAIMS_CHX_HEK293T_F6_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "CRC_phospho_iTRAQ_20_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "20180914_QE8_nLC0_BDA_SA_DIA_Skin_Dermal_T_cells_CD4_MT_200000_2_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "EXP22038_2022ms0310aX49_A_BA7_1_9837_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "WS1_11_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "iTRAQ_Phos_T1_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "C_i012_PO4_SCX_15_ETD_qMODE_study_metadata.json"),
-                os.path.join(tests_expected_output_dir, "20150730_LWP_HBE_1_study_metadata.json")
-            ]
-            expected_study_metadata = expected_study_metadata[i]
-            with open(current_study_metadata, 'r') as study_metadata, open(expected_study_metadata, 'r') as expected_study_metadata:
-                current = json.load(study_metadata)
-                expected = json.load(expected_study_metadata)
-            
-            diff = DeepDiff(expected, current)
+        # Make sure the current generated '<root_name>_study_metadata.json' files exactly match the expected output files
+        file_root = input_file.replace('.mzML.gz','')
+        file_root = file_root.replace('.mzML','')
+        expected_study_metadata = file_root + '_study_metadata.json'
+        expected_study_metadata = os.path.join(tests_expected_output_dir, expected_study_metadata)
+        with open(current_study_metadata, 'r') as study_metadata, open(expected_study_metadata, 'r') as expected_study_metadata:
+            current = json.load(study_metadata)
+            expected = json.load(expected_study_metadata)
+        
+        diff = DeepDiff(expected, current)
+        if halt_if_different:
             assert not diff, \
                 f"Current generated study_metadata.json for '{input_file}' does not match expected output." \
                 f"\n\nDifferences found:\n{diff.pretty()}\n"
-    
-    finally:
-        for file_type in study_metadata_files:
-            for file_path in glob.glob(file_type):
+        else:
+            print(f"Current generated study_metadata.json for '{input_file}' does not match expected output." \
+                f"\n\nDifferences found:\n{diff.pretty()}\n")
+
+        if not keep_output:
+            study_metadata_files_glob = os.path.join(tests_large_files_dir, f"{file_root}_study_metadata.*")
+            for file_path in glob.glob(study_metadata_files_glob):
                 if os.path.exists(file_path):
                     os.remove(file_path)
